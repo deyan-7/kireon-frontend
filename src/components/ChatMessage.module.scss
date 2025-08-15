@@ -1,0 +1,9 @@
+.chatMessage {
+  &.user {
+    background-color: var(--royalIndigo);
+    padding: 0 1rem 0.25rem;
+    margin: 1rem 1rem 2rem;
+    max-width: 70%;
+    border-radius: 1rem;
+  }
+}

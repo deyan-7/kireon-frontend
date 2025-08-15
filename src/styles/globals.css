@@ -1,0 +1,288 @@
+@import 'tailwindcss';
+@import 'katex/dist/katex.min.css';
+
+:root {
+  --white: #ffffff; /* Define your white color */
+  --gray-1: #cccccc; /* Example for light gray */
+  --gray-3: #999999; /* Example for darker gray */
+  --purple: #6a0dad; /* Example purple color */
+  --purple-contrast: #8b5fc0; /* Example hover purple */
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Example shadow */
+  --thumbs-up-bg: #0055c0;
+  --thumbs-down-bg: #a93636;
+}
+
+/* Light-blue Light scheme (Default) */
+/* Can be forced with data-theme="light" */
+[data-theme='light'],
+:root:not([data-theme='dark']) {
+  --primary: #009de0;
+  --primary-hover: #0288d1;
+  --primary-focus: rgba(3, 155, 229, 0.125);
+  --primary-inverse: #fff;
+  --background-color: #fdfdfd;
+  --secondary-bg: #dad9d9;
+  --scrollbar-color: rgba(0, 0, 0, 0.5);
+
+  --primary-text: #333;
+
+  /* Chat Message Variables */
+  --chat-message-bg: #fff;
+  --chat-message-color: #333;
+  --chat-message-border: #e0e0e0;
+
+  --chat-message-user-bg: #efefef;
+  --chat-message-user-color: var(--secondary-text);
+
+  --chat-message-assistant-bg: #f5f5f5;
+  --chat-message-assistant-color: #333;
+
+  /*--artifact-bg: #ffffff;*/
+  --artifact-bg-gray: #f3f3f3;
+}
+
+/* Light-blue Dark scheme (Auto) */
+/* Automatically enabled if user has Dark mode enabled */
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --primary: #009de0;
+    --primary-hover: #03a9f4;
+    --primary-focus: rgba(3, 155, 229, 0.25);
+    --primary-inverse: #fff;
+    --background-color: #212121;
+    --secondary-bg: #2e2e2e;
+
+    --scrollbar-color: rgba(143, 139, 139, 0.5);
+
+    --primary-text: #eeeeee;
+    --secondary-text: #fff;
+    --tertiary-text: #c2c2c2;
+
+    /* Chat Message Variables */
+    --chat-message-bg: var(--background-color);
+    --chat-message-color: #fff;
+    --chat-message-border: #444;
+
+    --chat-message-user-bg: #2e2e2e;
+    --chat-message-user-color: var(--secondary-text);
+
+    --chat-message-assistant-bg: #444;
+    --chat-message-assistant-color: #fff;
+
+    /*--artifact-bg: #2f2f2f;*/
+    --artifact-bg-gray: #504f4f;
+  }
+}
+
+/* Light-blue Dark scheme (Forced) */
+/* Enabled if forced with data-theme="dark" */
+[data-theme='dark'] {
+  --primary: #009de0;
+  --primary-hover: #03a9f4;
+  --primary-focus: rgba(3, 155, 229, 0.25);
+  --primary-inverse: #fff;
+  --background-color: #212121;
+  --secondary-bg: #2e2e2e;
+
+  --scrollbar-color: rgba(143, 139, 139, 0.5);
+
+  --primary-text: #eeeeee;
+  --secondary-text: #fff;
+  --tertiary-text: #c2c2c2;
+
+  /* Chat Message Variables */
+  --chat-message-bg: var(--background-color);
+  --chat-message-color: #fff;
+  --chat-message-border: #444;
+
+  --chat-message-user-bg: #2e2e2e;
+  --chat-message-user-color: var(--secondary-text);
+
+  --chat-message-assistant-bg: #444;
+  --chat-message-assistant-color: #fff;
+
+  --artifact-bg: #2f2f2f;
+  --artifact-bg-gray: #5b5a5a;
+}
+
+/* Light-blue (Common styles) */
+:root {
+  --form-element-active-border-color: var(--primary);
+  --form-element-focus-color: var(--primary-focus);
+  --switch-color: var(--primary-inverse);
+  --switch-checked-background-color: var(--primary);
+}
+
+@media (min-width: 576px) {
+  :root {
+    --font-size: 16px;
+    --container-width: 510px;
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --font-size: 16px;
+    --container-width: 700px;
+  }
+}
+@media (min-width: 992px) {
+  :root {
+    --font-size: 17px;
+    --container-width: 920px;
+  }
+}
+@media (min-width: 1200px) {
+  :root {
+    --font-size: 17px;
+    --container-width: 1130px;
+  }
+}
+.chat-message {
+  color: var(--chat-message-color);
+  display: flex;
+  width: 100%;
+  border-radius: 1rem;
+}
+
+.chat-message.user {
+  background-color: var(--chat-message-user-bg);
+  color: var(--chat-message-user-color);
+  width: fit-content;
+  padding-right: 1rem;
+  min-width: 200px;
+  text-align: left;
+  flex-direction: row;
+}
+
+.chat-message.assistant {
+  color: var(--chat-message-assistant-color);
+}
+
+.markdown-chat {
+  white-space: normal;
+  p {
+    margin-bottom: 0.5rem;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+  blockquote {
+    margin: 0;
+    padding: 0.5em 1em;
+    border-left: 0.25em solid var(--primary-text);
+  }
+  a {
+    color: #fe5000;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  a:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+  }
+}
+
+.markdown-chat ul {
+  padding-left: 2em; /* Adjust this value to change the indentation of sublist items */
+  margin-bottom: 0;
+  list-style-type: disc;
+}
+
+.markdown-chat ol {
+  padding-left: 2em;
+  list-style: decimal;
+  margin-bottom: 0;
+}
+
+.markdown-chat li {
+  margin-bottom: 0.5em;
+}
+
+.markdown-chat pre {
+  background: var(--gradientTurquoise) !important;
+  border-radius: 10px !important;
+  padding: 0 !important;
+  margin: 1rem 0 2rem !important;
+}
+
+.markdown-chat pre code {
+  display: block;
+  color: var(--turquoise) !important;
+  border-radius: 9px !important;
+  background: var(--gradientDarkblue) !important;
+  width: calc(100% - 3px) !important;
+  height: calc(100% - 3px);
+  margin: 1.5px;
+  padding: 1rem;
+  position: relative;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+.div.error {
+  color: red !important;
+  font-size: 0.2rem !important;
+}
+
+.shimmer-text {
+  /* Put the text in an inline-block so the background can span just the text area */
+  display: inline-block;
+  /*
+    Create a diagonal gradient with #666 for most of the text,
+    except for a narrow band of #444 in the middle (the 'sweep').
+    The stops at 45%–50%–55% define how wide that darker band is.
+  */
+  background: linear-gradient(80deg, #abaaaa 35%, #525151 50%, #abaaaa 65%);
+
+  /* Make the gradient much wider than the text so we can animate it across */
+  background-size: 200% 100%;
+  background-position: 0 0;
+
+  /*
+    Normally, to see the gradient through the text, you must
+    'clip' the background to the glyphs and set the text fill to transparent.
+    This is okay, because the gradient includes the same gray (#666).
+  */
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* Animate the gradient from far left to far right */
+  animation: shimmer 8s linear infinite;
+}
+
+/* Move the gradient from left to right */
+@keyframes shimmer {
+  0% {
+    background-position: 400% 0;
+  }
+  100% {
+    background-position: -400% 0;
+  }
+}
+
+input,
+textarea {
+  /* vertical padding = var(--pico-form-element-spacing-vertical) = 0.75rem */
+  /* horizontal padding = var(--pico-form-element-spacing-horizontal) = 1rem */
+  padding: 0.75rem 1rem;
+}
+
+/* Remove Pico’s focus outline/box-shadow so nothing “lights up” on focus */
+input:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: none;
+}

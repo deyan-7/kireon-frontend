@@ -1,0 +1,67 @@
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  min-width: 325px;
+
+  @media (max-width: 768px) {
+    height: auto;
+  }
+}
+
+.messagesWrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+
+  // Firefox scrollbar
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-color) transparent;
+
+  // WebKit scrollbar (using :global correctly in SCSS)
+  :global(.messagesWrapper::-webkit-scrollbar) {
+    width: 8px;
+  }
+
+  :global(.messagesWrapper::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  :global(.messagesWrapper::-webkit-scrollbar-thumb) {
+    background-color: var(--scrollbar-color);
+    border: 3px solid transparent;
+    border-radius: 10px;
+    background-clip: padding-box;
+  }
+}
+
+.messagesContent {
+  position: relative;
+  min-height: min-content;
+  width: 100%;
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+}
+
+.inputWrapper {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.scrollButtonContainer {
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+
+  svg {
+    color: #fe5000 !important;
+  }
+}

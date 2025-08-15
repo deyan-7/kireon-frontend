@@ -1,0 +1,196 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes inputFocusGlow {
+  0% { box-shadow: 0 0 0 0 rgba(88, 216, 255, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(88, 216, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(88, 216, 255, 0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.logoSection {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.logo {
+  animation: logoFloat 4s ease-in-out infinite;
+  filter: drop-shadow(0 10px 30px rgba(88, 216, 255, 0.3));
+  transition: transform 0.3s ease, filter 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 15px 40px rgba(88, 216, 255, 0.5));
+  }
+
+  @media (max-width: 767px) {
+    width: 70px !important;
+    height: 70px !important;
+  }
+}
+
+.contentContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5rem;
+  max-width: 565px;
+  width: 50%;
+  
+  @media (max-width: 767px) {
+    width: 90%;
+    gap: 3rem;
+  }
+}
+
+.formSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.formWrapper {
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+  width: 100%;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.input {
+  border: 2px solid rgba(88, 216, 255, 0.2) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  height: auto !important;
+  margin: 0 !important;
+
+  &::placeholder {
+    color: var(--grey) !important;
+    transition: color 0.3s ease !important;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: rgba(88, 216, 255, 0.4) !important;
+    
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.6) !important;
+    }
+  }
+
+  &:focus {
+    outline: none !important;
+    border-color: var(--turquoise) !important;
+    box-shadow: 0 0 0 4px rgba(88, 216, 255, 0.1) !important;
+    animation: inputFocusGlow 0.75s ease !important;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    border-color: rgba(88, 216, 255, 0.1) !important;
+  }
+}
+
+.inputError {
+  border-color: #ff5757 !important;
+  box-shadow: 0 0 0 4px rgba(255, 87, 87, 0.1) !important;
+  background: linear-gradient(135deg, rgba(255, 87, 87, 0.15), rgba(255, 87, 87, 0.08)) !important;
+  
+  &:focus {
+    border-color: #ff5757 !important;
+    box-shadow: 0 0 0 4px rgba(255, 87, 87, 0.2) !important;
+    background: linear-gradient(135deg, rgba(255, 87, 87, 0.2), rgba(255, 87, 87, 0.1)) !important;
+  }
+  
+  &:hover:not(:disabled) {
+    border-color: #ff5757 !important;
+    background: linear-gradient(135deg, rgba(255, 87, 87, 0.18), rgba(255, 87, 87, 0.1)) !important;
+  }
+}
+
+.shake {
+  animation: shake 0.6s ease-in-out;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--grey);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  opacity: 0.7;
+  border-radius: 6px;
+
+  &:hover {
+    color: var(--turquoise);
+    opacity: 1;
+    background: rgba(88, 216, 255, 0.1);
+  }
+
+  &:focus {
+    outline: none;
+    color: var(--turquoise);
+    opacity: 1;
+  }
+
+  @media (max-width: 767px) {
+    right: 0.75rem;
+    padding: 0.375rem;
+  }
+}
+
+.errorContainer {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 1rem;
+  z-index: 10;
+}
+
+.errorMessage {
+  color: #ff5757;
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 87, 87, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #ff5757;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 87, 87, 0.2);
+  animation: fadeInUp 0.3s ease-out;
+  width: 100%;
+  max-width: 565px;
+}

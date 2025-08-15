@@ -1,0 +1,17 @@
+.textareaWrapper {
+  opacity: 1 !important;
+  background: var(--gradientTurquoise) !important;
+  border-radius: 10px;
+  margin: 0;
+  padding: 0;
+
+  @media (max-width: 767px) {
+    width: calc(100% - 2rem);
+    margin: 0 auto;
+  }
+}
+
+.textareaWrapper:has(textarea:disabled) {
+  opacity: 0.5 !important;
+  pointer-events: none;
+}

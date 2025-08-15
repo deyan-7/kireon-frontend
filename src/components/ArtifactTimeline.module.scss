@@ -1,0 +1,127 @@
+.artifactTimeline {
+  position: relative;
+  background-color: var(--artifact-bg);
+  z-index: 10;
+  
+  &::before {
+    height: 1px;
+    width: 100%;
+    content: "";
+    position: absolute;
+    top: calc(50% - 0.5px);
+    background-color: #747f9e;
+    z-index: 1;
+  }
+  
+  .artifactTimelineBubbles {
+    width: 100%;
+  }
+  
+  .timelineItem {
+    width: 38px;
+    height: 38px;
+    border-radius: 30px;
+    border: 1px solid #747f9e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1e3a5f !important;
+    z-index: 10;
+    padding: 0.4rem;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+    
+    img {
+      filter: invert(49%) sepia(9%) saturate(262%) hue-rotate(183deg);
+      transition: filter 0.3s ease;
+    }
+    
+    &.timelineDone {
+      border: 2px solid #71d8fc;
+      background-color: #1a2951 !important;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    &.timelineActive {
+      width: 55px !important;
+      height: 55px !important;
+      border: 2px solid #71d8fc;
+      padding: 0.65rem !important;
+      background-color: #051543 !important;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: linear-gradient(45deg, rgba(113, 216, 252, 0.3), rgba(88, 216, 255, 0.2), rgba(113, 216, 252, 0.3)) !important;
+        background-size: 200% 200%;
+        z-index: 0;
+        animation: backgroundShift 6s ease-in-out infinite;
+        opacity: 0.3;
+      }
+      
+      &::after {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg, transparent 0deg, #71d8fc 90deg, transparent 180deg, #58d8ff 270deg, transparent 360deg);
+        z-index: -1;
+        animation: rotateRing 8s linear infinite;
+        opacity: 0.3;
+      }
+      
+      img {
+        filter: invert(80%) sepia(9%) saturate(262%) hue-rotate(183deg);
+        position: relative;
+        z-index: 1;
+        animation: iconPulse 4s ease-in-out infinite;
+      }
+    }
+  }
+}
+
+@keyframes backgroundShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes rotateRing {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+#artifactTimelineProgressContainer {
+  width: calc(100% - 5rem);
+  height: 2px;
+  position: absolute;
+  z-index: 5;
+}
+
+#artifactTimelineProgress {
+  height: 2px;
+  background: linear-gradient(90deg, #71d8fc, #58d8ff);
+  top: calc(50% - 1px);
+  transition: width 0.5s ease-in-out;
+}

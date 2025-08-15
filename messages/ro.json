@@ -1,0 +1,16 @@
+{
+  "start_session_button": "Începe sesiunea",
+  "start_guest_message": "Ia-ți 10 minute pentru a finaliza cu atenție sarcinile.",
+  "start_guest_button": "Începe testul",
+  "impressum": "Imprint",
+  "privacy_policy": "Politica de confidențialitate",
+  "input_placeholder": "Trimite un mesaj...",
+  "llm_disclaimer": "Acesta este un test dinamic bazat pe un LLM. Reține că LLM-urile pot greși.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "sign_in_error": "Eroare la autentificare.",
+  "show_password": "Arata parola",
+  "hide_password": "Ascunde parola",
+  "password_placeholder": "Parola",
+  "sign_in_button": "Sign in"
+}

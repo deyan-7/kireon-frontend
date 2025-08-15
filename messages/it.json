@@ -1,0 +1,16 @@
+{
+  "start_session_button": "Avvia sessione",
+  "start_guest_message": "Prenditi 10 minuti per completare attentamente i compiti.",
+  "start_guest_button": "Inizia il test",
+  "impressum": "Note legali",
+  "privacy_policy": "Informativa sulla privacy",
+  "input_placeholder": "Invia un messaggio...",
+  "llm_disclaimer": "Questo è un test dinamico alimentato da un LLM. Ricorda che gli LLM possono commettere errori.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "sign_in_error": "Errore di accesso.",
+  "show_password": "Mostra password",
+  "hide_password": "Nascondere la password",
+  "password_placeholder": "Password",
+  "sign_in_button": "Sign in"
+}

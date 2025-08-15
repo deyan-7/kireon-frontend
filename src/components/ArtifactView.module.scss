@@ -1,0 +1,141 @@
+.artifactContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.artifactContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+
+  // Firefox scrollbar
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-color) transparent;
+
+  // WebKit scrollbar
+  &::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-color);
+    border: 3px solid transparent;
+    border-radius: 10px;
+    background-clip: padding-box;
+  }
+}
+
+.artifactInnerContent {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 50px;
+  margin-top: 60px;
+}
+
+.fadeIn {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: calc(100% - 30px);
+  height: 60px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--artifact-bg),
+    rgba(255, 255, 255, 0)
+  );
+  z-index: 1;
+}
+
+.fadeOut {
+  position: absolute;
+  bottom: 80px;
+  left: 0;
+  width: calc(100% - 30px);
+  height: 60px;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    var(--artifact-bg),
+    rgba(255, 255, 255, 0)
+  );
+  z-index: 1;
+}
+
+.artifactActionFooter {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 10px;
+}
+
+.artifact {
+  background-color: var(--artifact-bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-color) transparent;
+
+  &::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-color);
+    border: 3px solid transparent;
+    border-radius: 10px;
+    background-clip: padding-box;
+  }
+}
+
+.notification {
+  position: absolute;
+  bottom: 4rem;
+  right: 1rem;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: opacity 0.3s ease;
+}
+
+.formLoadingPlaceholder {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+  opacity: 0.4; /* fade everything together */
+  filter: grayscale(100%); /* turn all colors to gray */
+}
+
+.shimmerBlock {
+  height: 2.5rem; /* match your input height */
+  width: 100%;
+  background: linear-gradient(to right, #e0e0e0 0%, #f8f8f8 50%, #e0e0e0 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+.shimmerBlock.short {
+  width: 60%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}

@@ -1,0 +1,136 @@
+@media (max-width: 767px) {
+  .mobileLayout {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: var(--deepNavy);
+    transform: translateZ(0);
+  }
+
+  .mobileArtifact {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 100px;
+    z-index: 1;
+  }
+
+  .mobileChatPanel {
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 100px;
+    background-color: var(--deepNavyTransparent);
+    backdrop-filter: blur(1px);
+    z-index: 15;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .mobileChatCollapsed {
+    transform: translateY(100vh);
+  }
+
+  .mobileChatExpanded {
+    transform: translateY(0);
+  }
+
+  .mobileMessagesOnly {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .mobileMessagesOnly :global([class*="inputWrapper"]) {
+    display: none !important;
+  }
+
+  .mobileInputFixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: var(--deepNavy);
+    border-top: 1px solid var(--royalIndigo);
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+  }
+
+  .mobileInputContent :global([class*="messagesWrapper"]) {
+    display: none !important;
+  }
+
+  .mobileInputContent :global([class*="inputWrapper"]) {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .mobileInputContent {
+    flex: 1;
+    margin-left: 3rem;
+  }
+
+  .mobileToggle {
+    position: absolute;
+    top: 8px;
+    left: 1rem;
+    width: 32px;
+    height: 32px;
+    background: var(--royalIndigo);
+    border: 1px solid var(--turquoise);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 35;
+  }
+
+  .mobileChevron {
+    width: 20px;
+    height: 20px;
+    color: var(--turquoise);
+    transition: transform 0.3s ease;
+  }
+
+  .mobileChevronUp {
+    transform: rotate(0deg);
+  }
+
+  .mobileChevronDown {
+    transform: rotate(180deg);
+  }
+
+  .mobileCloseButton {
+    position: absolute;
+    top: 8px;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    background: var(--royalIndigo);
+    border: 1px solid var(--turquoise);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 35;
+  }
+
+  .mobileCloseIcon {
+    width: 16px;
+    height: 16px;
+    color: var(--turquoise);
+  }
+}

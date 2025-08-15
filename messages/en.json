@@ -1,0 +1,13 @@
+{
+  "start_session_button": "Start session",
+  "start_guest_message": "Take 10 minutes to carefully complete the tasks.",
+  "start_guest_button": "Start test",
+  "impressum": "Imprint",
+  "privacy_policy": "Privacy policy",
+  "input_placeholder": "Send a message...",
+  "llm_disclaimer": "This a LLM powered dynamic test. Remember LLMs can make mistakes.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "password_placeholder": "Password",
+  "sign_in_button": "Sign in"
+}

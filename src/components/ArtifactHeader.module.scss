@@ -1,0 +1,55 @@
+.artifactHeader {
+  background-color: var(--artifact-bg);
+  height: 5rem;
+}
+
+.tabButton {
+  background-color: var(--chat-message-bg);
+  border: 1px solid var(--chat-message-bg);
+  color: var(--primary-text);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  margin-bottom: 0px;
+}
+
+.tabButton.active {
+  background-color: var(--artifact-bg, #ddd);
+  font-weight: bold;
+}
+
+.tabButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.headerButton {
+  transition: all 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  border: none;
+  
+  &:hover {
+    background-color: transparent;
+    
+    svg {
+      color: white;
+    }
+  }
+}
+
+.headerLink {
+  transition: all 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  display: inline-block;
+  
+  &:hover {
+    background-color: transparent;
+    
+    img {
+      filter: brightness(0) invert(1);
+    }
+  }
+}
