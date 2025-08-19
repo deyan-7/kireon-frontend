@@ -54,12 +54,12 @@ const ArtifactHeader = ({
       <div className="flex flex-row justify-between items-center min-h-[55px]">
         <div className="flex flex-row gap-4 items-center justify-center">
           <Image
-            src="/assets/images/ava_logo.svg"
+            src="/assets/images/logo.png"
             alt="Logo"
             width={37}
             height={37}
           />
-          <span className="ava_title">AI Competence Test</span>
+          <span className="ava_title">Kireon GPT</span>
         </div>
 
         <div className="flex flex-row items-center gap-0 md:gap-6">

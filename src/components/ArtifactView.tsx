@@ -137,7 +137,7 @@ const ArtifactView = () => {
         model: "gpt-4o-mini",
         stream_tokens: true,
         message: "",
-        agent_id: "hiring-assessment-agent",
+        agent_id: "kireon-agent",
         agent_config: {
           command_id: nextCommand?.id,
           artifact_content: updated,

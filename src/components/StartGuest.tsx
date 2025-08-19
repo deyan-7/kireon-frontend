@@ -46,7 +46,7 @@ const StartGuest = () => {
             </div>
           )}
 
-          <div className="container max-w-3xl text-white">
+          <div className="container max-w-3xl text-black">
             {t("start_guest_message")}
           </div>
         </div>
@@ -62,7 +62,7 @@ const StartGuest = () => {
 
         <button
           onClick={startTest}
-          className="action-btn w-full text-white"
+          className="action-btn w-full"
           aria-busy={isLoading}
           disabled={isLoading}
         >

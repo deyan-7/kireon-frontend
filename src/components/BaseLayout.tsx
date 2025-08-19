@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import type { ReactNode } from "react";
-import BubbleCanvas from "@/components/BubbleCanvas";
 import LegalLinks from "@/components/LegalLinks";
 
 interface BaseLayoutProps {
@@ -12,13 +11,11 @@ interface BaseLayoutProps {
 const BaseLayout = ({ children }: BaseLayoutProps) => {
   return (
     <>
-      <BubbleCanvas />
-
       <div className="flex flex-col relative z-10 gap-20 justify-center h-screen w-screen overflow-hidden">
         <div className="flex flex-col gap-4 items-center justify-center">
           <div>
             <Image
-              src="/assets/images/ava_logo.svg"
+              src="/assets/images/logo.png"
               alt="Logo"
               width={90}
               height={90}
@@ -26,7 +23,7 @@ const BaseLayout = ({ children }: BaseLayoutProps) => {
               priority
             />
           </div>
-          <span className="ava_title">AI Competence Test</span>
+          <span className="ava_title">Kireon GPT</span>
         </div>
 
         <main className="flex justify-center">

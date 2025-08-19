@@ -193,8 +193,10 @@ export function useAgentStream(endpoint: string) {
               ...(token && { Authorization: `Bearer ${token}` }),
             },
             body: JSON.stringify({
-              ...options,
-              agent_config: { ...options?.agent_config, language: locale },
+              user_input: {
+                ...options,
+                agent_config: { ...options?.agent_config, language: locale },
+              },
             }),
           }
         );
@@ -264,10 +266,16 @@ export function useAgentStream(endpoint: string) {
                     meta,
                   };
 
-                  setArtifacts((prev) => [
-                    ...prev.filter((a) => a.id !== draft.id),
-                    draft,
-                  ]);
+                  setArtifacts((prev) => {
+                    const draftExists = prev.some((a) => a.id === draftId);
+                    if (draftExists) {
+                      // If a streaming draft exists, map and update it.
+                      return prev.map((a) => (a.id === draftId ? complete : a));
+                    } else {
+                      // Otherwise, add the new complete artifact to the array.
+                      return [...prev, complete];
+                    }
+                  });
                 }
               }
 
@@ -331,7 +339,6 @@ export function useAgentStream(endpoint: string) {
       delete chatRef.current["controller_llm"];
     } else if (role === "tool") {
       try {
-        // Parse the incoming tool payload
         const isJson =
           typeof final.content === "string" &&
           (final.content.trim().startsWith("{") ||
@@ -340,31 +347,27 @@ export function useAgentStream(endpoint: string) {
           ? JSON.parse(final.content)
           : {
               artifact_type: "markdown",
-              artifact_title: "Task Instructions",
+              artifact_title: "Tool Output",
               artifact_content: final.content,
             };
-
-        // Detect json_form vs. plain markdown
+  
         const isForm = toolData.artifact_type === "json_form";
-
-        // Choose the complete content to store
         const artifactCompleteContent = isForm
-          ? toolData // full object for forms
+          ? toolData
           : toolData.artifact_content?.trim?.() ||
             toolData.task_content?.content?.trim?.();
-
+  
         if (!artifactCompleteContent) {
           console.debug("Skipped empty tool artifact", toolData);
           return;
         }
-
-        // Reuse the same draft ID you used during streaming
+  
         const node = sseMeta.node ?? sseMeta.langgraph_node;
         const draftId = `streaming_${node}`;
-
-        // Build the “complete” artifact
+        const finalId = final.tool_call_id || draftId;
+  
         const complete: Artifact = {
-          id: draftId,
+          id: finalId,
           node,
           type: toolData.artifact_type ?? toolData.task_type ?? "unknown",
           title: toolData.artifact_title ?? toolData.task_title ?? "Untitled",
@@ -372,11 +375,17 @@ export function useAgentStream(endpoint: string) {
           status: "complete",
           meta: toolData,
         };
-
-        // Replace the streaming draft in-place
-        setArtifacts((prev) =>
-          prev.map((a) => (a.id === draftId ? complete : a))
-        );
+  
+        setArtifacts((prev) => {
+          const draftExists = prev.some((a) => a.id === draftId);
+          if (draftExists) {
+            // If a streaming draft exists, map and update it.
+            return prev.map((a) => (a.id === draftId ? complete : a));
+          } else {
+            // Otherwise, add the new complete artifact to the array.
+            return [...prev, complete];
+          }
+        });
         delete artifactRef.current[node];
       } catch (err) {
         console.warn("Failed to finalize tool artifact:", final, err);

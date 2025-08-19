@@ -50,8 +50,8 @@
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    var(--artifact-bg),
-    rgba(255, 255, 255, 0)
+    #F5F5F5,
+    rgba(245, 245, 245, 0)
   );
   z-index: 1;
 }
@@ -65,8 +65,8 @@
   pointer-events: none;
   background: linear-gradient(
     to top,
-    var(--artifact-bg),
-    rgba(255, 255, 255, 0)
+    #F5F5F5,
+    rgba(245, 245, 245, 0)
   );
   z-index: 1;
 }
