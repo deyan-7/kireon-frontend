@@ -90,6 +90,13 @@ export interface Rahmengesetzgebung {
     shortTitle: string;
 }
 
+export interface LawAcronym {
+    id: string; // The unique 'gesetz' string
+    acronym: string; // The 'stichwort'
+    fullName: string; // The 'kurztitel'
+    isActive: boolean; // Default to true as the model doesn't support this yet
+}
+
 export const subscribedLaws: Rahmengesetzgebung[] = [
     {
         stichwort: Stichwort.TypG,
