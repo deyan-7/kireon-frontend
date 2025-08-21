@@ -87,6 +87,21 @@ src/
     sdk.gen.ts
     types.gen.ts
   components/
+    customer/
+      CustomerDetails.module.scss
+      CustomerDetails.tsx
+      CustomerList.module.scss
+      CustomerList.tsx
+      CustomerView.module.scss
+      CustomerView.tsx
+    shared/
+      SearchableTagSelector.tsx
+    ui/
+      badge.tsx
+      button.tsx
+      command.tsx
+      dialog.tsx
+      popover.tsx
     ArtifactActionButton.module.scss
     ArtifactActionButton.tsx
     ArtifactEditor.module.scss
@@ -105,10 +120,16 @@ src/
     ArtifactView.tsx
     ChatMessage.module.scss
     ChatMessage.tsx
+    CollapsibleSection.module.scss
+    CollapsibleSection.tsx
     ConversationChat.module.scss
     ConversationChat.tsx
     Dashboard.module.scss
     Dashboard.tsx
+    LawDetailDialog.module.scss
+    LawDetailDialog.tsx
+    LawsTable.module.scss
+    LawsTable.tsx
     LegalLinks.tsx
     Protected.tsx
     ScrollDownButton.module.scss
@@ -120,6 +141,8 @@ src/
     SignIn.tsx
     SplitView.module.scss
     SplitView.tsx
+    TagDisplay.module.scss
+    TagDisplay.tsx
     TextInput.module.scss
     TextInput.tsx
   context/
@@ -134,6 +157,7 @@ src/
     custom-keymaping.ts
     custom-math-block.ts
     custom-tab-extension.ts
+    customer.ts
     markdown-service.ts
     persistent-code-block.ts
   i18n/
@@ -144,15 +168,20 @@ src/
     hooks/
       useAgentStream.ts
       useAuthGuard.ts
+      useCustomerData.ts
+      useLaws.ts
       useLocale.ts
       useNormalizedParam.ts
     api.ts
     auth.ts
+    utils.ts
   styles/
     custom.scss
     globals.css
   types/
+    counties.ts
     generic.ts
+    laws.ts
   utils/
     asset.tsx
   config.ts
@@ -161,6 +190,7 @@ src/
 .env.example
 .env.local
 .gitignore
+components.json
 docker-compose.yaml
 Dockerfile
 eslint.config.mjs
@@ -175,430 +205,2404 @@ tsconfig.json
 <files>
 This section contains the contents of the repository's files.
 
-<file path="src/app/[locale]/(main)/conversation/[...conversationId]/layout.tsx">
-import SplitView from "@/components/SplitView";
-
-export default function ChatLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <SplitView>{children}</SplitView>;
-}
-</file>
-
-<file path="src/app/[locale]/(main)/conversation/[...conversationId]/page.tsx">
-"use client";
-
-import ConversationChat from "@/components/ConversationChat";
-import Protected from "@/components/Protected";
-
-const ConversationsPage: React.FC = () => {
-  return (
-    <Protected>
-      <ConversationChat />
-    </Protected>
-  );
-};
-
-export default ConversationsPage;
-</file>
-
-<file path="src/app/[locale]/(main)/customer/page.tsx">
-import { useTranslations } from "next-intl";
-
-export default function CustomerPage() {
-  const t = useTranslations("sidebar");
-  return (
-    <div style={{ padding: "2rem" }}>
-      <h1>{t("customer")}</h1>
-      <p>This page is under construction.</p>
-    </div>
-  );
-}
-</file>
-
-<file path="src/app/[locale]/(main)/laws/page.tsx">
-import { useTranslations } from "next-intl";
-
-export default function LawsPage() {
-  const t = useTranslations("sidebar");
-  return (
-    <div style={{ padding: "2rem" }}>
-      <h1>{t("laws")}</h1>
-      <p>This page is under construction.</p>
-    </div>
-  );
-}
-</file>
-
-<file path="src/app/[locale]/(main)/layout.tsx">
-import Sidebar from "@/components/Sidebar";
-
-export default function MainAppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ display: "flex", height: "100vh" }}>
-      <Sidebar />
-      <main style={{ flex: 1, overflowY: "auto" }}>{children}</main>
-    </div>
-  );
-}
-</file>
-
-<file path="src/components/Dashboard.module.scss">
-.dashboardContainer {
+<file path="src/components/customer/CustomerDetails.module.scss">
+.container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   height: 100%;
-  padding: 3rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
+  background-color: white;
 }
 
 .header {
-  text-align: center;
-  margin-bottom: 4rem;
-
-  .logoContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0;
-    letter-spacing: -0.025em;
-  }
-
-  p {
-    margin-top: 0.5rem;
-    font-size: 1.125rem;
-    color: #6b7280;
-    font-weight: 400;
-  }
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 0.5rem 0.5rem 0 0;
 }
 
-.tileGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  width: 100%;
-  max-width: 1000px;
+.customerName {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 
-.tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  border-radius: 16px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  text-align: center;
-  text-decoration: none;
-  color: inherit;
-  border: 2px solid transparent;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  position: relative;
-  overflow: hidden;
+.customerAddress {
+  font-size: 1rem;
+  opacity: 0.95;
+  margin-bottom: 0.25rem;
+}
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #dc2626, #f87171);
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-  }
+.customerMetadata {
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
 
-  &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    border-color: #dc2626;
+.content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
 
-    &::before {
-      transform: scaleX(1);
-    }
+.section {
+  margin-bottom: 2rem;
 
-    h3 {
-      color: #dc2626;
-    }
-  }
-
-  h3 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1f2937;
-    transition: color 0.3s ease;
+  &:last-child {
+    margin-bottom: 0;
   }
 }
 </file>
 
-<file path="src/components/Dashboard.tsx">
+<file path="src/components/customer/CustomerDetails.tsx">
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
-import { v4 as uuidv4 } from "uuid";
-import { Link } from "@/i18n/navigation";
-import styles from "./Dashboard.module.scss";
-import Image from "next/image";
+import { Customer, OTHER_TAGS } from "@/domain/customer";
+import { SearchableTagSelector } from "@/components/shared/SearchableTagSelector";
+import { Stichwort } from "@/types/laws";
+import { MarketsAll, CountryName } from "@/types/counties";
+import styles from "./CustomerDetails.module.scss";
 
-const Dashboard = () => {
-  const t = useTranslations("dashboard");
-  const router = useRouter();
+interface CustomerDetailsProps {
+  customer: Customer;
+  onUpdate: (
+    customerId: string,
+    updates: Partial<
+      Pick<Customer, "subscribedLaws" | "subscribedCountries" | "otherTags">
+    >
+  ) => void;
+}
 
-  const handleStartConsulting = () => {
-    const newThreadId = uuidv4();
-    router.push(`/conversation/${newThreadId}`);
+export function CustomerDetails({ customer, onUpdate }: CustomerDetailsProps) {
+  // Get all law enum values
+  const ALL_LAWS: Stichwort[] = Object.values(Stichwort);
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.customerName}>{customer.name}</h1>
+        <p className={styles.customerAddress}>{customer.address}</p>
+        <p className={styles.customerMetadata}>{customer.metadata}</p>
+      </div>
+
+      <div className={styles.content}>
+        <div className={styles.section}>
+          <SearchableTagSelector
+            label="Abonnierte Rahmengesetze"
+            options={ALL_LAWS}
+            selected={customer.subscribedLaws}
+            onChange={(newLaws) =>
+              onUpdate(customer.id, { subscribedLaws: newLaws as Stichwort[] })
+            }
+          />
+        </div>
+
+        <div className={styles.section}>
+          <SearchableTagSelector
+            label="Abonnierte Länder"
+            options={MarketsAll}
+            optionNames={CountryName}
+            selected={customer.subscribedCountries}
+            onChange={(newCountries) =>
+              onUpdate(customer.id, {
+                subscribedCountries: newCountries as typeof MarketsAll[number][],
+              })
+            }
+          />
+        </div>
+
+        <div className={styles.section}>
+          <SearchableTagSelector
+            label="Weitere Tags"
+            options={OTHER_TAGS}
+            selected={customer.otherTags}
+            onChange={(newTags) =>
+              onUpdate(customer.id, { otherTags: newTags })
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/customer/CustomerList.module.scss">
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+}
+
+.searchBox {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background-color: white;
+  transition: border-color 0.15s;
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.customerList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.customerItem {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  background-color: white;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+
+  &.selected {
+    background-color: #eff6ff;
+    border-left: 3px solid #3b82f6;
+  }
+}
+
+.customerName {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.customerMeta {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+</file>
+
+<file path="src/components/customer/CustomerList.tsx">
+"use client";
+
+import { Customer } from "@/domain/customer";
+import styles from "./CustomerList.module.scss";
+
+interface CustomerListProps {
+  customers: Customer[];
+  selectedCustomerId: string | null;
+  searchQuery: string;
+  onSelectCustomer: (customerId: string) => void;
+  onSearchChange: (query: string) => void;
+}
+
+export function CustomerList({
+  customers,
+  selectedCustomerId,
+  searchQuery,
+  onSelectCustomer,
+  onSearchChange,
+}: CustomerListProps) {
+  return (
+    <div className={styles.container}>
+      <div className={styles.searchBox}>
+        <input
+          type="text"
+          placeholder="Kunden suchen..."
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className={styles.searchInput}
+        />
+      </div>
+      <div className={styles.customerList}>
+        {customers.map((customer) => (
+          <div
+            key={customer.id}
+            className={`${styles.customerItem} ${
+              selectedCustomerId === customer.id ? styles.selected : ""
+            }`}
+            onClick={() => onSelectCustomer(customer.id)}
+          >
+            <div className={styles.customerName}>{customer.name}</div>
+            <div className={styles.customerMeta}>{customer.metadata}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/customer/CustomerView.module.scss">
+.container {
+  display: flex;
+  height: calc(100vh - 64px); // Adjust based on your header height
+  background-color: #f9fafb;
+}
+
+.sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  background-color: white;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  p {
+    color: #6b7280;
+    font-size: 1.125rem;
+  }
+}
+</file>
+
+<file path="src/components/customer/CustomerView.tsx">
+"use client";
+
+import { useCustomerData } from "@/lib/hooks/useCustomerData";
+import { CustomerList } from "./CustomerList";
+import { CustomerDetails } from "./CustomerDetails";
+import styles from "./CustomerView.module.scss";
+
+export function CustomerView() {
+  const {
+    filteredCustomers,
+    selectedCustomer,
+    selectedCustomerId,
+    searchQuery,
+    selectCustomer,
+    updateCustomer,
+    setSearchQuery,
+  } = useCustomerData();
+
+  return (
+    <div className={styles.container}>
+      <aside className={styles.sidebar}>
+        <CustomerList
+          customers={filteredCustomers}
+          selectedCustomerId={selectedCustomerId}
+          searchQuery={searchQuery}
+          onSelectCustomer={selectCustomer}
+          onSearchChange={setSearchQuery}
+        />
+      </aside>
+      <main className={styles.main}>
+        {selectedCustomer ? (
+          <CustomerDetails
+            customer={selectedCustomer}
+            onUpdate={updateCustomer}
+          />
+        ) : (
+          <div className={styles.placeholder}>
+            <p>Wählen Sie einen Kunden aus, um Details anzuzeigen</p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/shared/SearchableTagSelector.tsx">
+"use client";
+
+import * as React from "react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+
+interface SearchableTagSelectorProps {
+  label: string;
+  options: readonly string[];
+  optionNames?: Record<string, string>;
+  selected: string[];
+  onChange: (newSelected: string[]) => void;
+}
+
+export function SearchableTagSelector({
+  label,
+  options,
+  optionNames,
+  selected,
+  onChange,
+}: SearchableTagSelectorProps) {
+  const [open, setOpen] = React.useState(false);
+  const [searchValue, setSearchValue] = React.useState("");
+
+  const handleSelect = (currentValue: string) => {
+    const newSelected = selected.includes(currentValue)
+      ? selected.filter((item) => item !== currentValue)
+      : [...selected, currentValue];
+    onChange(newSelected);
+  };
+
+  const handleRemove = (valueToRemove: string) => {
+    onChange(selected.filter((item) => item !== valueToRemove));
+  };
+
+  const getDisplayName = (value: string) =>
+    optionNames ? optionNames[value] || value : value;
+
+  const filteredOptions = React.useMemo(() => {
+    if (!searchValue) return options;
+    const search = searchValue.toLowerCase();
+    return options.filter((option) => {
+      const displayName = getDisplayName(option).toLowerCase();
+      return displayName.includes(search) || option.toLowerCase().includes(search);
+    });
+  }, [options, searchValue, optionNames]);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between"
+          >
+            <span className="truncate">
+              {selected.length === 0
+                ? "Wählen Sie Tags aus..."
+                : `${selected.length} ausgewählt`}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[400px] p-0">
+          <Command>
+            <CommandInput
+              placeholder={`Suche ${label.toLowerCase()}...`}
+              value={searchValue}
+              onValueChange={setSearchValue}
+            />
+            <CommandList>
+              <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
+              <CommandGroup>
+                {filteredOptions.map((option) => (
+                  <CommandItem
+                    key={option}
+                    value={option}
+                    onSelect={() => handleSelect(option)}
+                    className="cursor-pointer"
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selected.includes(option) ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <span className="truncate">{getDisplayName(option)}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {selected.map((item) => (
+            <Badge
+              key={item}
+              variant="secondary"
+              className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+              onClick={() => handleRemove(item)}
+            >
+              {getDisplayName(item)}
+              <X className="ml-1 h-3 w-3" />
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/ui/badge.tsx">
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const badgeVariants = cva(
+  "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+  {
+    variants: {
+      variant: {
+        default:
+          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+        secondary:
+          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+        destructive:
+          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        outline:
+          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+function Badge({
+  className,
+  variant,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"span"> &
+  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
+  const Comp = asChild ? Slot : "span"
+
+  return (
+    <Comp
+      data-slot="badge"
+      className={cn(badgeVariants({ variant }), className)}
+      {...props}
+    />
+  )
+}
+
+export { Badge, badgeVariants }
+</file>
+
+<file path="src/components/ui/button.tsx">
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        outline:
+          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+        ghost:
+          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        icon: "size-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean
+  }) {
+  const Comp = asChild ? Slot : "button"
+
+  return (
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  )
+}
+
+export { Button, buttonVariants }
+</file>
+
+<file path="src/components/ui/command.tsx">
+"use client"
+
+import * as React from "react"
+import { Command as CommandPrimitive } from "cmdk"
+import { SearchIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
+function Command({
+  className,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive>) {
+  return (
+    <CommandPrimitive
+      data-slot="command"
+      className={cn(
+        "bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CommandDialog({
+  title = "Command Palette",
+  description = "Search for a command to run...",
+  children,
+  className,
+  showCloseButton = true,
+  ...props
+}: React.ComponentProps<typeof Dialog> & {
+  title?: string
+  description?: string
+  className?: string
+  showCloseButton?: boolean
+}) {
+  return (
+    <Dialog {...props}>
+      <DialogHeader className="sr-only">
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{description}</DialogDescription>
+      </DialogHeader>
+      <DialogContent
+        className={cn("overflow-hidden p-0", className)}
+        showCloseButton={showCloseButton}
+      >
+        <Command className="[&_[cmdk-group-heading]]:text-muted-foreground **:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+          {children}
+        </Command>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function CommandInput({
+  className,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive.Input>) {
+  return (
+    <div
+      data-slot="command-input-wrapper"
+      className="flex h-9 items-center gap-2 border-b px-3"
+    >
+      <SearchIcon className="size-4 shrink-0 opacity-50" />
+      <CommandPrimitive.Input
+        data-slot="command-input"
+        className={cn(
+          "placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        {...props}
+      />
+    </div>
+  )
+}
+
+function CommandList({
+  className,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive.List>) {
+  return (
+    <CommandPrimitive.List
+      data-slot="command-list"
+      className={cn(
+        "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CommandEmpty({
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive.Empty>) {
+  return (
+    <CommandPrimitive.Empty
+      data-slot="command-empty"
+      className="py-6 text-center text-sm"
+      {...props}
+    />
+  )
+}
+
+function CommandGroup({
+  className,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive.Group>) {
+  return (
+    <CommandPrimitive.Group
+      data-slot="command-group"
+      className={cn(
+        "text-foreground [&_[cmdk-group-heading]]:text-muted-foreground overflow-hidden p-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CommandSeparator({
+  className,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive.Separator>) {
+  return (
+    <CommandPrimitive.Separator
+      data-slot="command-separator"
+      className={cn("bg-border -mx-1 h-px", className)}
+      {...props}
+    />
+  )
+}
+
+function CommandItem({
+  className,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive.Item>) {
+  return (
+    <CommandPrimitive.Item
+      data-slot="command-item"
+      className={cn(
+        "data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CommandShortcut({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
+  return (
+    <span
+      data-slot="command-shortcut"
+      className={cn(
+        "text-muted-foreground ml-auto text-xs tracking-widest",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export {
+  Command,
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandShortcut,
+  CommandSeparator,
+}
+</file>
+
+<file path="src/components/ui/dialog.tsx">
+import * as React from "react"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { XIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+function Dialog({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+}
+
+function DialogTrigger({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
+  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+}
+
+function DialogPortal({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+}
+
+function DialogClose({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Close>) {
+  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+}
+
+function DialogOverlay({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+  return (
+    <DialogPrimitive.Overlay
+      data-slot="dialog-overlay"
+      className={cn(
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function DialogContent({
+  className,
+  children,
+  showCloseButton = true,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  showCloseButton?: boolean
+}) {
+  return (
+    <DialogPortal data-slot="dialog-portal">
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        data-slot="dialog-content"
+        className={cn(
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        {showCloseButton && (
+          <DialogPrimitive.Close
+            data-slot="dialog-close"
+            className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+          >
+            <XIcon />
+            <span className="sr-only">Close</span>
+          </DialogPrimitive.Close>
+        )}
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  )
+}
+
+function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-header"
+      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      {...props}
+    />
+  )
+}
+
+function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-footer"
+      className={cn(
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function DialogTitle({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Title>) {
+  return (
+    <DialogPrimitive.Title
+      data-slot="dialog-title"
+      className={cn("text-lg leading-none font-semibold", className)}
+      {...props}
+    />
+  )
+}
+
+function DialogDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      data-slot="dialog-description"
+      className={cn("text-muted-foreground text-sm", className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+}
+</file>
+
+<file path="src/components/ui/popover.tsx">
+import * as React from "react"
+import * as PopoverPrimitive from "@radix-ui/react-popover"
+
+import { cn } from "@/lib/utils"
+
+function Popover({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+  return <PopoverPrimitive.Root data-slot="popover" {...props} />
+}
+
+function PopoverTrigger({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
+}
+
+function PopoverContent({
+  className,
+  align = "center",
+  sideOffset = 4,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  return (
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Content
+        data-slot="popover-content"
+        align={align}
+        sideOffset={sideOffset}
+        className={cn(
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
+          className
+        )}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
+  )
+}
+
+function PopoverAnchor({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
+  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
+}
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }
+</file>
+
+<file path="src/components/CollapsibleSection.module.scss">
+.collapsibleSection {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin: 1rem 0;
+
+  .header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f9fafb;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f3f4f6;
+    }
+
+    .title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #111827;
+      text-align: left;
+    }
+
+    .icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      color: #6b7280;
+      transition: transform 0.3s ease;
+
+      &.rotated {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .content {
+    padding: 1rem;
+    background-color: white;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+</file>
+
+<file path="src/components/CollapsibleSection.tsx">
+import React, { useState } from 'react';
+import { ChevronUpIcon } from '@heroicons/react/24/outline';
+import styles from './CollapsibleSection.module.scss';
+
+interface CollapsibleSectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children }) => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleOpen = () => {
+    setIsOpen(!isOpen);
   };
 
   return (
-    <div className={styles.dashboardContainer}>
-      <div className={styles.header}>
-        <div className={styles.logoContainer}>
-          <Image
-            src="/images/logo.png"
-            alt="Kireon Logo"
-            width={80}
-            height={80}
-            priority
-          />
-          <h1 className={styles.title}>Kireon GPT</h1>
+    <div className={styles.collapsibleSection}>
+      <button
+        className={styles.header}
+        onClick={toggleOpen}
+        aria-expanded={isOpen}
+      >
+        <span className={styles.title}>{title}</span>
+        <ChevronUpIcon 
+          className={`${styles.icon} ${!isOpen ? styles.rotated : ''}`}
+        />
+      </button>
+      {isOpen && (
+        <div className={styles.content}>
+          {children}
         </div>
-        <p>{t("welcome_message")}</p>
-      </div>
-      <div className={styles.tileGrid}>
-        <div className={styles.tile} onClick={handleStartConsulting}>
-          <h3>{t("consultant_title")}</h3>
+      )}
+    </div>
+  );
+};
+
+export default CollapsibleSection;
+</file>
+
+<file path="src/components/LawDetailDialog.module.scss">
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .dialog {
+    background-color: white;
+    border-radius: 0.75rem;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: slideUp 0.3s ease-out;
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+
+      .title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+        padding-right: 1rem;
+      }
+
+      .closeButton {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        border-radius: 0.375rem;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #f3f4f6;
+        }
+
+        .closeIcon {
+          width: 1.5rem;
+          height: 1.5rem;
+          color: #6b7280;
+        }
+      }
+    }
+
+    .content {
+      padding: 1.5rem;
+
+      .parameterList {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        .parameter {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+
+          .parameterLabel {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+          }
+
+          .parameterValue {
+            color: #111827;
+            font-size: 0.875rem;
+          }
+        }
+      }
+
+      .infoSection,
+      .recommendationsSection {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background-color: #f9fafb;
+        border-radius: 0.5rem;
+
+        h3 {
+          margin: 0 0 1rem 0;
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: #111827;
+        }
+
+        p {
+          margin: 0;
+          color: #4b5563;
+          line-height: 1.6;
+          font-size: 0.875rem;
+        }
+      }
+
+      .recommendationsSection {
+        background-color: #fef3c7;
+      }
+    }
+  }
+}
+</file>
+
+<file path="src/components/LawDetailDialog.tsx">
+import React from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { Rahmengesetzgebung } from '@/types/laws';
+import TagDisplay from './TagDisplay';
+import CollapsibleSection from './CollapsibleSection';
+import styles from './LawDetailDialog.module.scss';
+
+interface LawDetailDialogProps {
+  law: Rahmengesetzgebung;
+  onClose: () => void;
+}
+
+const LawDetailDialog: React.FC<LawDetailDialogProps> = ({ law, onClose }) => {
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <div className={styles.overlay} onClick={handleOverlayClick}>
+      <div className={styles.dialog}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>{law.kurztitel}</h2>
+          <button 
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="Schließen"
+          >
+            <XMarkIcon className={styles.closeIcon} />
+          </button>
         </div>
-        <Link href="/laws" className={styles.tile}>
-          <h3>{t("laws_title")}</h3>
-        </Link>
-        <Link href="/customer" className={styles.tile}>
-          <h3>{t("customer_title")}</h3>
-        </Link>
+
+        <div className={styles.content}>
+          <TagDisplay tags={[law.stichwort]} title="Stichwort" />
+
+          <CollapsibleSection title="Weitere Parameter">
+            <div className={styles.parameterList}>
+              <div className={styles.parameter}>
+                <span className={styles.parameterLabel}>Gesetz:</span>
+                <span className={styles.parameterValue}>{law.gesetz}</span>
+              </div>
+              <div className={styles.parameter}>
+                <span className={styles.parameterLabel}>Englischer Titel:</span>
+                <span className={styles.parameterValue}>{law.shortTitle}</span>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          <div className={styles.infoSection}>
+            <h3>Informationen</h3>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
+              incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
+              exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute 
+              irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
+              pariatur.
+            </p>
+          </div>
+
+          <div className={styles.recommendationsSection}>
+            <h3>Konkrete Empfehlungen</h3>
+            <p>
+              Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt 
+              mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit 
+              voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae 
+              ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default LawDetailDialog;
 </file>
 
-<file path="src/components/Sidebar.module.scss">
-.sidebar {
-  width: 240px;
-  background-color: #ffffff;
-  height: 100vh;
-  transition: width 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid #e5e7eb;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
-  position: relative;
-  z-index: 10;
+<file path="src/components/LawsTable.module.scss">
+.lawsTable {
+  width: 100%;
 
-  &.collapsed {
-    width: 60px;
-    
-    &:hover {
-      width: 240px;
+  .filterContainer {
+    margin-bottom: 1.5rem;
 
-      .navLabel {
-        opacity: 1;
-        width: auto;
-        transition-delay: 0.1s;
+    .filterInput {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      background-color: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
       }
 
-      .navLink {
-        justify-content: flex-start;
-        padding: 0.75rem 1.5rem;
+      &::placeholder {
+        color: #9ca3af;
+      }
+    }
+  }
+
+  .tableContainer {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background-color: white;
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+
+        tr {
+          th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+        }
       }
 
-      .navIcon {
-        margin-right: 1rem;
+      tbody {
+        tr {
+          border-bottom: 1px solid #f3f4f6;
+
+          &.clickableRow {
+            cursor: pointer;
+            transition: background-color 0.15s;
+
+            &:hover {
+              background-color: #f9fafb;
+            }
+          }
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          td {
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: #111827;
+
+            .stichwort {
+              display: inline-block;
+              padding: 0.25rem 0.625rem;
+              background-color: #ede9fe;
+              color: #6b21a8;
+              border-radius: 0.375rem;
+              font-size: 0.75rem;
+              font-weight: 600;
+            }
+          }
+
+          td.noResults {
+            text-align: center;
+            color: #6b7280;
+            padding: 2rem;
+            font-style: italic;
+          }
+        }
       }
     }
   }
 }
+</file>
 
-.sidebarContent {
-  flex-grow: 1;
-  padding-top: 2rem;
+<file path="src/components/LawsTable.tsx">
+import React from 'react';
+import { Rahmengesetzgebung } from '@/types/laws';
+import styles from './LawsTable.module.scss';
+
+interface LawsTableProps {
+  laws: Rahmengesetzgebung[];
+  filterText: string;
+  onFilterChange: (text: string) => void;
+  onSelectLaw: (law: Rahmengesetzgebung) => void;
 }
 
-.navList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
+const LawsTable: React.FC<LawsTableProps> = ({ 
+  laws, 
+  filterText, 
+  onFilterChange, 
+  onSelectLaw 
+}) => {
+  return (
+    <div className={styles.lawsTable}>
+      <div className={styles.filterContainer}>
+        <input
+          type="text"
+          className={styles.filterInput}
+          placeholder="Gesetzestexte durchsuchen..."
+          value={filterText}
+          onChange={(e) => onFilterChange(e.target.value)}
+        />
+      </div>
+      
+      <div className={styles.tableContainer}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Kurztitel</th>
+              <th>Gesetz</th>
+              <th>Stichwort</th>
+            </tr>
+          </thead>
+          <tbody>
+            {laws.map((law, index) => (
+              <tr 
+                key={index} 
+                onClick={() => onSelectLaw(law)}
+                className={styles.clickableRow}
+              >
+                <td>{law.kurztitel}</td>
+                <td>{law.gesetz}</td>
+                <td>
+                  <span className={styles.stichwort}>
+                    {law.stichwort}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {laws.length === 0 && (
+              <tr>
+                <td colSpan={3} className={styles.noResults}>
+                  Keine Gesetzestexte gefunden
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
 
-.navLink {
+export default LawsTable;
+</file>
+
+<file path="src/components/TagDisplay.module.scss">
+.tagDisplay {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1.5rem;
-  color: #4b5563;
-  text-decoration: none;
-  white-space: nowrap;
-  overflow: hidden;
-  transition: all 0.2s ease;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0;
 
-  &:hover {
-    background-color: #f3f4f6;
-    color: #1f2937;
-  }
-
-  &.active {
-    background-color: #fee2e2;
-    color: #dc2626;
+  .title {
     font-weight: 600;
-    border-left: 3px solid #dc2626;
-  }
-}
-
-.navIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-right: 1rem;
-  flex-shrink: 0;
-  transition: margin 0.2s ease;
-}
-
-.navLabel {
-  transition: opacity 0.3s ease, width 0.3s ease;
-}
-
-.collapsed .navLabel {
-  opacity: 0;
-  width: 0;
-  overflow: hidden;
-}
-
-.collapsed .navLink {
-  justify-content: center;
-  padding: 0.75rem 0.5rem;
-}
-
-.collapsed .navIcon {
-  margin-right: 0;
-}
-
-.toggleButton {
-  padding: 1rem;
-  background-color: transparent;
-  border: none;
-  border-top: 1px solid #e5e7eb;
-  cursor: pointer;
-  color: #6b7280;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: #f9fafb;
     color: #374151;
+    font-size: 0.875rem;
+  }
+
+  .tagContainer {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: #e5e7eb;
+    color: #374151;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #d1d5db;
+    }
   }
 }
 </file>
 
-<file path="src/components/Sidebar.tsx">
-"use client";
+<file path="src/components/TagDisplay.tsx">
+import React from 'react';
+import styles from './TagDisplay.module.scss';
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Link, usePathname } from "@/i18n/navigation";
-import { v4 as uuidv4 } from "uuid";
-import clsx from "clsx";
-import styles from "./Sidebar.module.scss";
-import {
-  ChatBubbleLeftRightIcon,
-  DocumentTextIcon,
-  UsersIcon,
-  ChevronDoubleLeftIcon,
-  ChevronDoubleRightIcon,
-} from "@heroicons/react/24/outline";
+interface TagDisplayProps {
+  tags: string[];
+  title?: string;
+}
 
-const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(true);
-  const t = useTranslations("sidebar");
-  const pathname = usePathname();
-
-  const navItems = [
-    {
-      href: `/conversation/${uuidv4()}`,
-      label: t("consultant"),
-      icon: ChatBubbleLeftRightIcon,
-      isActive: (path: string) => path.startsWith("/conversation"),
-    },
-    {
-      href: "/laws",
-      label: t("laws"),
-      icon: DocumentTextIcon,
-      isActive: (path: string) => path === "/laws",
-    },
-    {
-      href: "/customer",
-      label: t("customer"),
-      icon: UsersIcon,
-      isActive: (path: string) => path === "/customer",
-    },
-  ];
-
+const TagDisplay: React.FC<TagDisplayProps> = ({ tags, title }) => {
   return (
-    <nav className={clsx(styles.sidebar, isCollapsed && styles.collapsed)}>
-      <div className={styles.sidebarContent}>
-        <ul className={styles.navList}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={clsx(
-                    styles.navLink,
-                    item.isActive(pathname) && styles.active
-                  )}
-                >
-                  <Icon className={styles.navIcon} />
-                  <span className={styles.navLabel}>{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+    <div className={styles.tagDisplay}>
+      {title && <span className={styles.title}>{title}:</span>}
+      <div className={styles.tagContainer}>
+        {tags.map((tag, index) => (
+          <span key={index} className={styles.tag}>
+            {tag}
+          </span>
+        ))}
       </div>
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className={styles.toggleButton}
-        title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-      >
-        {isCollapsed ? (
-          <ChevronDoubleRightIcon className="h-5 w-5" />
-        ) : (
-          <ChevronDoubleLeftIcon className="h-5 w-5" />
-        )}
-      </button>
-    </nav>
+    </div>
   );
 };
 
-export default Sidebar;
+export default TagDisplay;
+</file>
+
+<file path="src/domain/customer.ts">
+import { Country, MarketsAll } from "@/types/counties";
+import { Stichwort } from "@/types/laws";
+
+export const OTHER_TAGS = ["Hersteller", "Produzent", "Marktplatzbetreiber"];
+
+export interface Customer {
+  id: string;
+  name: string;
+  address: string;
+  metadata: string;
+  subscribedLaws: Stichwort[];
+  subscribedCountries: Country[];
+  otherTags: string[];
+}
+
+// Get all law values for the mock data
+const ALL_LAWS: Stichwort[] = Object.values(Stichwort);
+
+export const generateMockCustomers = (): Customer[] => {
+  return [
+    {
+      id: "kunde-1",
+      name: "Kunde 1",
+      address: "Hauptstraße 1, 10115 Berlin",
+      metadata: "Premium-Mitglied seit 2021",
+      subscribedLaws: [...ALL_LAWS],
+      subscribedCountries: [...MarketsAll],
+      otherTags: ["Hersteller", "Produzent"],
+    },
+    {
+      id: "kunde-2",
+      name: "Kunde 2",
+      address: "Musterweg 12, 80331 München",
+      metadata: "Standard-Mitglied",
+      subscribedLaws: [Stichwort.RoHS, Stichwort.REACh, Stichwort.BattR],
+      subscribedCountries: [Country.DE, Country.AT, Country.CH],
+      otherTags: ["Marktplatzbetreiber"],
+    },
+    {
+      id: "kunde-3",
+      name: "Kunde 3",
+      address: "Beispielallee 7, 20095 Hamburg",
+      metadata: "Test-Account",
+      subscribedLaws: [Stichwort.VerpackR, Stichwort.WEEE, Stichwort.CSRD],
+      subscribedCountries: [Country.FR, Country.IT, Country.ES, Country.PL],
+      otherTags: ["Hersteller"],
+    },
+  ];
+};
+</file>
+
+<file path="src/lib/hooks/useCustomerData.ts">
+"use client";
+
+import { useState, useCallback, useMemo } from "react";
+import { Customer, generateMockCustomers } from "@/domain/customer";
+import { Stichwort } from "@/types/laws";
+import { Country } from "@/types/counties";
+
+export interface UseCustomerDataReturn {
+  customers: Customer[];
+  selectedCustomerId: string | null;
+  selectedCustomer: Customer | null;
+  searchQuery: string;
+  filteredCustomers: Customer[];
+  selectCustomer: (customerId: string) => void;
+  updateCustomer: (customerId: string, updates: Partial<Pick<Customer, "subscribedLaws" | "subscribedCountries" | "otherTags">>) => void;
+  setSearchQuery: (query: string) => void;
+}
+
+export function useCustomerData(): UseCustomerDataReturn {
+  const [customers, setCustomers] = useState<Customer[]>(() => generateMockCustomers());
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const selectedCustomer = useMemo(
+    () => customers.find((c) => c.id === selectedCustomerId) || null,
+    [customers, selectedCustomerId]
+  );
+
+  const filteredCustomers = useMemo(() => {
+    if (!searchQuery) return customers;
+    const query = searchQuery.toLowerCase();
+    return customers.filter(
+      (customer) =>
+        customer.name.toLowerCase().includes(query) ||
+        customer.address.toLowerCase().includes(query) ||
+        customer.metadata.toLowerCase().includes(query)
+    );
+  }, [customers, searchQuery]);
+
+  const selectCustomer = useCallback((customerId: string) => {
+    setSelectedCustomerId(customerId);
+  }, []);
+
+  const updateCustomer = useCallback(
+    (
+      customerId: string,
+      updates: Partial<Pick<Customer, "subscribedLaws" | "subscribedCountries" | "otherTags">>
+    ) => {
+      setCustomers((prevCustomers) =>
+        prevCustomers.map((customer) =>
+          customer.id === customerId
+            ? { ...customer, ...updates }
+            : customer
+        )
+      );
+    },
+    []
+  );
+
+  return {
+    customers,
+    selectedCustomerId,
+    selectedCustomer,
+    searchQuery,
+    filteredCustomers,
+    selectCustomer,
+    updateCustomer,
+    setSearchQuery,
+  };
+}
+</file>
+
+<file path="src/lib/hooks/useLaws.ts">
+import { useState, useMemo, useCallback } from 'react';
+import { Rahmengesetzgebung, subscribedLaws } from '@/types/laws';
+
+export const useLaws = () => {
+  // The mock data is imported directly. No useEffect is needed for this static data.
+  const [laws] = useState<Rahmengesetzgebung[]>(subscribedLaws);
+  const [filterText, setFilterText] = useState('');
+  const [selectedLaw, setSelectedLaw] = useState<Rahmengesetzgebung | null>(null);
+
+  const filteredLaws = useMemo(() => {
+    const lowercasedFilter = filterText.toLowerCase();
+    if (!lowercasedFilter) {
+      return laws;
+    }
+    // Filter based on the properties available in the Rahmengesetzgebung interface
+    return laws.filter(law =>
+      law.kurztitel.toLowerCase().includes(lowercasedFilter) ||
+      law.gesetz.toLowerCase().includes(lowercasedFilter) ||
+      law.stichwort.toLowerCase().includes(lowercasedFilter) ||
+      law.shortTitle.toLowerCase().includes(lowercasedFilter)
+    );
+  }, [laws, filterText]);
+
+  const selectLaw = useCallback((law: Rahmengesetzgebung) => {
+    setSelectedLaw(law);
+  }, []);
+
+  const closeDialog = useCallback(() => {
+    setSelectedLaw(null);
+  }, []);
+
+  return {
+    filteredLaws,
+    selectedLaw,
+    filterText,
+    setFilterText,
+    selectLaw,
+    closeDialog,
+  };
+};
+</file>
+
+<file path="src/lib/utils.ts">
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+</file>
+
+<file path="src/types/counties.ts">
+export enum Country {
+    EU = "EU",
+    BE = "BE",
+    BG = "BG",
+    DK = "DK",
+    DE = "DE",
+    EE = "EE",
+    FI = "FI",
+    FR = "FR",
+    GR = "GR",
+    IE = "IE",
+    IS = "IS",
+    IT = "IT",
+    HR = "HR",
+    LV = "LV",
+    LI = "LI",
+    LT = "LT",
+    LU = "LU",
+    MT = "MT",
+    NL = "NL",
+    UK_XI = "UK-XI",
+    NO = "NO",
+    AT = "AT",
+    PL = "PL",
+    PT = "PT",
+    RO = "RO",
+    SE = "SE",
+    CH = "CH",
+    SK = "SK",
+    SI = "SI",
+    ES = "ES",
+    CZ = "CZ",
+    TR = "TR",
+    HU = "HU",
+    CY = "CY",
+    UK = "UK"
+}
+
+export const CountryName: Record<Country, string> = {
+    [Country.EU]: "EU-harmonisiert",
+    [Country.BE]: "Belgien",
+    [Country.BG]: "Bulgarien",
+    [Country.DK]: "Dänemark",
+    [Country.DE]: "Deutschland",
+    [Country.EE]: "Estland",
+    [Country.FI]: "Finnland",
+    [Country.FR]: "Frankreich",
+    [Country.GR]: "Griechenland",
+    [Country.IE]: "Irland",
+    [Country.IS]: "Island",
+    [Country.IT]: "Italien",
+    [Country.HR]: "Kroatien",
+    [Country.LV]: "Lettland",
+    [Country.LI]: "Liechtenstein",
+    [Country.LT]: "Litauen",
+    [Country.LU]: "Luxemburg",
+    [Country.MT]: "Malta",
+    [Country.NL]: "Niederlande",
+    [Country.UK_XI]: "Nordirland",
+    [Country.NO]: "Norwegen",
+    [Country.AT]: "Österreich",
+    [Country.PL]: "Polen",
+    [Country.PT]: "Portugal",
+    [Country.RO]: "Rumänien",
+    [Country.SE]: "Schweden",
+    [Country.CH]: "Schweiz",
+    [Country.SK]: "Slowakei",
+    [Country.SI]: "Slowenien",
+    [Country.ES]: "Spanien",
+    [Country.CZ]: "Tschechien",
+    [Country.TR]: "Türkei",
+    [Country.HU]: "Ungarn",
+    [Country.CY]: "Zypern",
+    [Country.UK]: "Vereinigtes Königreich"
+};
+
+export const MarketsAll: Country[] = [
+    Country.EU,
+    Country.BE,
+    Country.BG,
+    Country.DK,
+    Country.DE,
+    Country.EE,
+    Country.FI,
+    Country.FR,
+    Country.GR,
+    Country.IE,
+    Country.IS,
+    Country.IT,
+    Country.HR,
+    Country.LV,
+    Country.LI,
+    Country.LT,
+    Country.LU,
+    Country.MT,
+    Country.NL,
+    Country.UK_XI,
+    Country.NO,
+    Country.AT,
+    Country.PL,
+    Country.PT,
+    Country.RO,
+    Country.SE,
+    Country.CH,
+    Country.SK,
+    Country.SI,
+    Country.ES,
+    Country.CZ,
+    Country.TR,
+    Country.HU,
+    Country.CY,
+    Country.UK
+];
+</file>
+
+<file path="src/types/laws.ts">
+export enum Stichwort {
+    APSR = "APSR",
+    APSV = "APSV",
+    ATEX = "ATEX",
+    AbfallR = "AbfallR",
+    Abwasser = "Abwasser",
+    BarriereFreiheitR = "BarriereFreiheitR",
+    BattR = "BattR",
+    BattV = "BattV",
+    BauProd = "BauProd",
+    BauProd__alt = "BauProd (alt)",
+    CBAM = "CBAM",
+    CLP = "CLP",
+    CRA = "CRA",
+    CSDDD = "CSDDD",
+    CSRD = "CSRD",
+    DDG = "DDG",
+    DGRL = "DGRL",
+    DatenV = "DatenV",
+    DualUse = "DualUse",
+    E_Label = "E-Label",
+    EMV = "EMV",
+    ENISA = "ENISA",
+    ERP = "ERP",
+    EU_Umweltzeichen = "EU-Umweltzeichen",
+    EUDR = "EUDR",
+    EUTR = "EUTR",
+    EWKRL = "EWKRL",
+    EinwegkunststoffR = "EinwegkunststoffR",
+    FGasV = "FGasV",
+    FahrzTypGenV = "FahrzTypGenV",
+    FrequenzE = "FrequenzE",
+    FuAR = "FuAR",
+    KI_VO = "KI-VO",
+    KosmetikV = "KosmetikV",
+    KrebsR = "KrebsR",
+    LebKontV = "LebKontV",
+    MSR__alt = "MSR (alt)",
+    MSV = "MSV",
+    MessGerR = "MessGerR",
+    M_V = "MüV",
+    NIS2 = "NIS2",
+    NSR = "NSR",
+    NachhaltigkeitsR = "NachhaltigkeitsR",
+    NormV = "NormV",
+    OutdoorR = "OutdoorR",
+    OzonV = "OzonV",
+    POP = "POP",
+    PSA = "PSA",
+    ProdHR = "ProdHR",
+    QuecksilberV = "QuecksilberV",
+    REACh = "REACh",
+    RUS_SanktionsV = "RUS-SanktionsV",
+    Reducing_microplastics = "Reducing microplastics",
+    Resilienz = "Resilienz",
+    RoHS = "RoHS",
+    SpielR = "SpielR",
+    TabProdR = "TabProdR",
+    TextilKV = "TextilKV",
+    TrinkwasserR = "TrinkwasserR",
+    TypG = "TypG",
+    Umweltstrafrecht = "Umweltstrafrecht",
+    UnlautereGeschPrakt = "UnlautereGeschPrakt",
+    VK_BattR = "VK-BattR",
+    VK_ConstrProd = "VK-ConstrProd",
+    VK_EMC = "VK-EMC",
+    VK_ERP_EI = "VK-ERP&EI",
+    VK_ElectricalESR = "VK-ElectricalESR",
+    VK_GPSR = "VK-GPSR",
+    VK_MessGer = "VK-MessGer",
+    VK_PSTI = "VK-PSTI",
+    VK_RER = "VK-RER",
+    VK_RoHS = "VK-RoHS",
+    VK_SMSR = "VK-SMSR",
+    VK_ToySR = "VK-ToySR",
+    Verbraucherschutz = "Verbraucherschutz",
+    VerpackR = "VerpackR",
+    VerpackV = "VerpackV",
+    WBRL = "WBRL",
+    WEEE = "WEEE",
+    ZwangsarbV = "ZwangsarbV",
+    kodesign = "Ökodesign"
+}
+
+export interface Rahmengesetzgebung {
+    stichwort: Stichwort;
+    gesetz: string;
+    kurztitel: string;
+    shortTitle: string;
+}
+
+export const subscribedLaws: Rahmengesetzgebung[] = [
+    {
+        stichwort: Stichwort.TypG,
+        gesetz: "(EU) 2018/858",
+        kurztitel: "Verordnung über die Genehmigung und die Marktüberwachung von Kraftfahrzeugen",
+        shortTitle: "Regulation on the approval and market surveillance of motor vehicles"
+    },
+    {
+        stichwort: Stichwort.EMV,
+        gesetz: "2014/30/EG",
+        kurztitel: "Richtlinie über elektromagnetische Verträglichkeit",
+        shortTitle: "Electromagnetic Compatibility Directive"
+    },
+    {
+        stichwort: Stichwort.FuAR,
+        gesetz: "2014/53/EG",
+        kurztitel: "Funkanlagenrichtlinie",
+        shortTitle: "Radio Equipment Directive"
+    },
+    {
+        stichwort: Stichwort.FrequenzE,
+        gesetz: "Nr. 676/2002/EG",
+        kurztitel: "Frequenzentscheidung",
+        shortTitle: "Radio Spectrum Decision"
+    },
+    {
+        stichwort: Stichwort.AbfallR,
+        gesetz: "2008/98/EG",
+        kurztitel: "Abfallrahmenrichtlinie",
+        shortTitle: "Waste Framework Directive"
+    },
+    {
+        stichwort: Stichwort.EinwegkunststoffR,
+        gesetz: "(EU) 2019/904",
+        kurztitel: "Einwegkunststoffverordnung",
+        shortTitle: "Disposable Plastics Regulation"
+    },
+    {
+        stichwort: Stichwort.VerpackR,
+        gesetz: "94/62/EG",
+        kurztitel: "Verpackungsrichtlinie",
+        shortTitle: "Packaging directive"
+    },
+    {
+        stichwort: Stichwort.VerpackV,
+        gesetz: "(EU) 2025/40",
+        kurztitel: "Verordnung über Verpackungen und Verpackungsabfälle",
+        shortTitle: "Regulation on Packaging and Packaging Waste"
+    },
+    {
+        stichwort: Stichwort.WEEE,
+        gesetz: "2012/19/EU",
+        kurztitel: "Richtlinie über Elektro- und Elektronik-Altgeräte",
+        shortTitle: "Directive on waste electrical and electronic equipment"
+    },
+    {
+        stichwort: Stichwort.Abwasser,
+        gesetz: "(EU) 2024/3019",
+        kurztitel: "Richtlinie über die Behandlung von kommunalem Abwasser",
+        shortTitle: "Directive concerning urban wastewater treatment"
+    },
+    {
+        stichwort: Stichwort.CRA,
+        gesetz: "(EU)2024/2847",
+        kurztitel: "Cybersicherheitsanforderungen für Produkte",
+        shortTitle: "Cybersecurity requirements for products"
+    },
+    {
+        stichwort: Stichwort.KI_VO,
+        gesetz: "COM/2021/206 final",
+        kurztitel: "Verordnung über Künstliche Intelligenz",
+        shortTitle: "Artificial Intelligence Act"
+    },
+    {
+        stichwort: Stichwort.DatenV,
+        gesetz: "(EU) 2023/2854",
+        kurztitel: "Datenzugang- und Datennutzungsverordnung",
+        shortTitle: "Regulation on access and use of data"
+    },
+    {
+        stichwort: Stichwort.NIS2,
+        gesetz: "(EU) 2022/2555",
+        kurztitel: "Netzwerk- und Informationssicherheits-Richtlinie",
+        shortTitle: "Cybersecurity directive"
+    },
+    {
+        stichwort: Stichwort.ENISA,
+        gesetz: "(EU) 2019/881",
+        kurztitel: "Agentur der Europäischen Union für Cybersicherheit zur Zertifizierung der Cybersicherheit",
+        shortTitle: "European Union Agency for Cybersecurity for cybersecurity certification"
+    },
+    {
+        stichwort: Stichwort.CSRD,
+        gesetz: "(EU) 2022/2464",
+        kurztitel: "Verordnung zur Nachhaltigkeitsberichterstattung",
+        shortTitle: "Regulation on sustainability reporting"
+    },
+    {
+        stichwort: Stichwort.CSDDD,
+        gesetz: "(EU) 2024/1760",
+        kurztitel: "Richtlinie über Sorgfaltspflicht im Bereich der Nachhaltigkeit",
+        shortTitle: "Directive on Corporate Sustainability Due Diligence"
+    },
+    {
+        stichwort: Stichwort.EUDR,
+        gesetz: "(EU) 2023/1115",
+        kurztitel: "Entwaldungsfreie Lieferketten-Verordnung",
+        shortTitle: "Deforestation free Products Regulation"
+    },
+    {
+        stichwort: Stichwort.EUTR,
+        gesetz: "EU (995/2010)",
+        kurztitel: "Holzhandelsverordnung",
+        shortTitle: "Timber regulation"
+    },
+    {
+        stichwort: Stichwort.ZwangsarbV,
+        gesetz: "(EU) 2024/3015",
+        kurztitel: "Verordnung zum Verbot von in Zwangsarbeit hergestellten Produkten",
+        shortTitle: "Ordinance banning products manufactured using forced labour"
+    },
+    {
+        stichwort: Stichwort.CBAM,
+        gesetz: "(EU) 2023/956",
+        kurztitel: "Verordnung zur Schaffung eines CO2-Grenzausgleichssystems",
+        shortTitle: "Regulation to establishing a carbon border adjustment mechanism"
+    },
+    {
+        stichwort: Stichwort.M_V,
+        gesetz: "(EU) 2019/1020",
+        kurztitel: "Marktüberwachungsverordnung",
+        shortTitle: "Market Surveillance Regulation"
+    },
+    {
+        stichwort: Stichwort.DDG,
+        gesetz: "(EU) 2022/2065",
+        kurztitel: "Verordnung über einen Binnenmarkt für digitale Dienste",
+        shortTitle: "Regulation on a Single Market For Digital Services"
+    },
+    {
+        stichwort: Stichwort.UnlautereGeschPrakt,
+        gesetz: "2005/29/EG",
+        kurztitel: "Richtlinie über unlautere Geschäftspraktiken",
+        shortTitle: "Unfair Commercial Practices Directive"
+    },
+    {
+        stichwort: Stichwort.Resilienz,
+        gesetz: "(EU) 2024/2747",
+        kurztitel: "Maßnahmen für einen Binnenmarkt-Notfall",
+        shortTitle: "Measures related to an internal market emergency"
+    },
+    {
+        stichwort: Stichwort.E_Label,
+        gesetz: "(EU) 2017/1369",
+        kurztitel: "Verordnung zu Energieverbrauchskennzeichnung",
+        shortTitle: "Regulation on energy consumption labelling"
+    },
+    {
+        stichwort: Stichwort.ERP,
+        gesetz: "2009/125/EG",
+        kurztitel: "Ökodesign-Richtlinie",
+        shortTitle: "Ecodesign Directive"
+    },
+    {
+        stichwort: Stichwort.kodesign,
+        gesetz: "(EU) 2024/1781",
+        kurztitel: "Ökodesign-Verordnung",
+        shortTitle: "Ecodesign Regulation"
+    },
+    {
+        stichwort: Stichwort.EU_Umweltzeichen,
+        gesetz: "(EG) Nr. 66/2010",
+        kurztitel: "Verordnung  über das EU-Umweltzeichen ",
+        shortTitle: "Regulation on the EU Ecolabel"
+    },
+    {
+        stichwort: Stichwort.FGasV,
+        gesetz: "(EU) 2024/573",
+        kurztitel: "Verordnung über fluorierte Treibhausgase",
+        shortTitle: "Ordinance on Fluorinated Greenhouse Gases"
+    },
+    {
+        stichwort: Stichwort.EWKRL,
+        gesetz: "(EU) 2019/904",
+        kurztitel: "Richtlinie über die Verringerung der Auswirkungen bestimmter Kunststoffprodukte auf die Umwelt",
+        shortTitle: "Directive on the reduction of the impact of certain plastic products on the environment"
+    },
+    {
+        stichwort: Stichwort.OzonV,
+        gesetz: "(EG) Nr. 1005/2009",
+        kurztitel: "Verordnung über Stoffe, die zum Abbau der Ozonschicht führen",
+        shortTitle: "Regulation on substances that deplete the ozone layer"
+    },
+    {
+        stichwort: Stichwort.Reducing_microplastics,
+        gesetz: "COM(2023)645",
+        kurztitel: "Umweltverschmutzung durch Mikroplastik – Maßnahmen zur Eindämmung der Umweltfolgen",
+        shortTitle: "Environmental pollution by microplastics - Measures to mitigate the environmental impact"
+    },
+    {
+        stichwort: Stichwort.NachhaltigkeitsR,
+        gesetz: "(EU) 2024/1799",
+        kurztitel: "Nachhaltiger Konsum von Gütern – Förderung von Reparatur und Wiederverwendung",
+        shortTitle: "Sustainable consumption of goods - promoting repair and reuse"
+    },
+    {
+        stichwort: Stichwort.APSR,
+        gesetz: "2001/95/EG",
+        kurztitel: "Richtlinie über die allgemeine Produktsicherheit",
+        shortTitle: "General Product Safety Directive"
+    },
+    {
+        stichwort: Stichwort.APSV,
+        gesetz: "(EU) 2023/988",
+        kurztitel: "Verordnung über die allgemeine Produktsicheheit",
+        shortTitle: "Regulation on general product safety"
+    },
+    {
+        stichwort: Stichwort.ATEX,
+        gesetz: "2014/34/EG",
+        kurztitel: "Richtlinie über Schutzsysteme in explosionsgefährdeten Bereichen",
+        shortTitle: "Directive on protective systems in potentially explosive atmospheres"
+    },
+    {
+        stichwort: Stichwort.BattR,
+        gesetz: "2006/66/EG",
+        kurztitel: "Batterierichtlinie",
+        shortTitle: "Battery Directive"
+    },
+    {
+        stichwort: Stichwort.BattV,
+        gesetz: "(EU) 2023/1542",
+        kurztitel: "Batterieverordnung",
+        shortTitle: "Battery Regulation"
+    },
+    {
+        stichwort: Stichwort.BauProd__alt,
+        gesetz: "(EU) Nr. 305/2011",
+        kurztitel: "Bauprodukteverordnung",
+        shortTitle: "Construction Products Regulation"
+    },
+    {
+        stichwort: Stichwort.BauProd,
+        gesetz: "(EU) 2024/3110",
+        kurztitel: "Bauprodukteverordnung",
+        shortTitle: "Construction Products Regulation"
+    },
+    {
+        stichwort: Stichwort.DGRL,
+        gesetz: "2014/68/EU",
+        kurztitel: "Druckgeräterichtlinie",
+        shortTitle: "Pressure equipment directive"
+    },
+    {
+        stichwort: Stichwort.KosmetikV,
+        gesetz: "(EG) Nr. 1223/2009",
+        kurztitel: "Kosmetikverordnung",
+        shortTitle: "Cosmetics Regulation"
+    },
+    {
+        stichwort: Stichwort.MSR__alt,
+        gesetz: "2006/42/EG",
+        kurztitel: "Maschinenrichtlinie ",
+        shortTitle: "Machinery Directive "
+    },
+    {
+        stichwort: Stichwort.MSV,
+        gesetz: "(EU) 2023/1230",
+        kurztitel: "Maschinenverordnung",
+        shortTitle: "Machinery Regulation "
+    },
+    {
+        stichwort: Stichwort.NSR,
+        gesetz: "2014/35/EG",
+        kurztitel: "Niederspannungsrichtlinie",
+        shortTitle: "Low Voltage Directive"
+    },
+    {
+        stichwort: Stichwort.OutdoorR,
+        gesetz: "2000/14/EG",
+        kurztitel: "Richtlinie für im Freien verwendete Geräte",
+        shortTitle: "Directive for appliances used outdoors"
+    },
+    {
+        stichwort: Stichwort.PSA,
+        gesetz: "(EU) 2016/425",
+        kurztitel: "Verordnung über persönliche Schutzausrüstung",
+        shortTitle: "Regulation on personal protective equipment"
+    },
+    {
+        stichwort: Stichwort.SpielR,
+        gesetz: "2009/48/EG",
+        kurztitel: "Spielzeugrichtlinie",
+        shortTitle: "Toys Directive"
+    },
+    {
+        stichwort: Stichwort.DualUse,
+        gesetz: "(EU) 2021/821",
+        kurztitel: "Kontrolle von Gütern mit doppeltem Verwendungszweck",
+        shortTitle: "Control of dual-use goods"
+    },
+    {
+        stichwort: Stichwort.WBRL,
+        gesetz: "(EU) 2019/1937",
+        kurztitel: "Schutz von Personen, die Verstöße gegen das Unionsrecht melden",
+        shortTitle: " protection of persons who report breaches of Union law"
+    },
+    {
+        stichwort: Stichwort.RUS_SanktionsV,
+        gesetz: "(EU) Nr. 833/2014",
+        kurztitel: "Restriktive Maßnahmen gegen Russland ",
+        shortTitle: "Restrictive measures against Russia "
+    },
+    {
+        stichwort: Stichwort.FahrzTypGenV,
+        gesetz: "(EU) 2018/858",
+        kurztitel: "Fahrzeugtypengenehmigungsverordnung",
+        shortTitle: "Vehicle Type Approval Regulation"
+    },
+    {
+        stichwort: Stichwort.MessGerR,
+        gesetz: "2014/32/EU",
+        kurztitel: "Messgeräterichtlinie",
+        shortTitle: "Measuring Instruments Directive"
+    },
+    {
+        stichwort: Stichwort.NormV,
+        gesetz: "(EU) Nr. 1025/2012",
+        kurztitel: "Normungverordnung",
+        shortTitle: "Standardisation Regulation"
+    },
+    {
+        stichwort: Stichwort.TextilKV,
+        gesetz: "(EU) Nr. 1007/2011",
+        kurztitel: "Textilkennzeichnungsverordnung",
+        shortTitle: "Textile Labelling Regulation"
+    },
+    {
+        stichwort: Stichwort.BarriereFreiheitR,
+        gesetz: "(EU) 2019/882",
+        kurztitel: "Barrierefreiheits-Richtlinie",
+        shortTitle: "Accessibility Requirements for Products Directive"
+    },
+    {
+        stichwort: Stichwort.ProdHR,
+        gesetz: "(EU) 2024/2853",
+        kurztitel: "Richtlinie über die Haftung für fehlerhafte Produkte",
+        shortTitle: ""
+    },
+    {
+        stichwort: Stichwort.Verbraucherschutz,
+        gesetz: "(EU) 2019/771",
+        kurztitel: "Richtlinie über bestimmte vertragsrechtliche Aspekte des Warenkaufs",
+        shortTitle: "Directive on certain aspects concerning contracts for the sale of goods"
+    },
+    {
+        stichwort: Stichwort.Umweltstrafrecht,
+        gesetz: "(EU) 2024/1203",
+        kurztitel: "Richtlinie über den strafrechtlichen Schutz der Umwelt",
+        shortTitle: "Directive on the protection of the environment through criminal law"
+    },
+    {
+        stichwort: Stichwort.CLP,
+        gesetz: "(EU) 1272/2008",
+        kurztitel: "Verordnung über Einstufung, Kennzeichnung und Verpackung von Stoffen und Gemischen",
+        shortTitle: "Ordinance on Classification, Labelling and Packaging of Substances and Mixtures"
+    },
+    {
+        stichwort: Stichwort.LebKontV,
+        gesetz: "(EG) Nr. 1935/2004",
+        kurztitel: "Verordnung über Materialien und Gegenstände die dazu bestimmt sind mit Lebensmitteln in Berührung zu kommen",
+        shortTitle: "Ordinance on materials and articles intended to come into contact with foodstuffs"
+    },
+    {
+        stichwort: Stichwort.QuecksilberV,
+        gesetz: "(EU) 2017/852",
+        kurztitel: "Verordnung über Quecksilber",
+        shortTitle: "Mercury Ordinance"
+    },
+    {
+        stichwort: Stichwort.POP,
+        gesetz: "(EU) 2019/1021",
+        kurztitel: "Verordnung über persistente organische Schadstoffe",
+        shortTitle: "Regulation on Persistent Organic Pollutants"
+    },
+    {
+        stichwort: Stichwort.REACh,
+        gesetz: "(EG) Nr. 1907/2006",
+        kurztitel: "Verordnung über Registrierung, Bewertung, Zulassung und Beschränkung von Chemikalien",
+        shortTitle: "Regulation on the Registration, Evaluation, Authorisation and Restriction of Chemicals"
+    },
+    {
+        stichwort: Stichwort.RoHS,
+        gesetz: "2011/65/EU",
+        kurztitel: "Richtlinie zur Beschränkung der Verwendung bestimmter gefährlicher Stoffe in Elektro- und Elektrogeräten",
+        shortTitle: "Directive on the restriction of the use of certain hazardous substances in electrical and electronic equipment"
+    },
+    {
+        stichwort: Stichwort.KrebsR,
+        gesetz: "2004/37/EG",
+        kurztitel: "Richtlinie  über den Schutz der Arbeitnehmer gegen Gefährdung durch Karzinogene oder Mutagene",
+        shortTitle: "Directive on the protection of workers from the risks related to exposure to carcinogens or mutagens"
+    },
+    {
+        stichwort: Stichwort.TabProdR,
+        gesetz: "2014/40/EU",
+        kurztitel: "Tabakerzeugnis-Richtlinie",
+        shortTitle: "Tobacco Products Directive"
+    },
+    {
+        stichwort: Stichwort.TrinkwasserR,
+        gesetz: "(EU) 2020/2184",
+        kurztitel: "Trinkwasserrichtlinie",
+        shortTitle: "Drinking Water Directive"
+    },
+    {
+        stichwort: Stichwort.VK_EMC,
+        gesetz: "Electromagnetic Compatibility Regulations 2016",
+        kurztitel: "Richtlinie über elektromagnetische Verträglichkeit (Vereinigtes Königreich)",
+        shortTitle: "Electromagnetic Compatibility Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_RER,
+        gesetz: "Radio Equipment Regulations 2017",
+        kurztitel: "Funkanlagenrichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Radio Equipment Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_PSTI,
+        gesetz: "Product Security and Telecommunication Infrastructure Act 2022",
+        kurztitel: "Cybersicherheitsanforderungen für Produkte",
+        shortTitle: "Cybersecurity Act (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_ERP_EI,
+        gesetz: "Ecodesign and Energy Information Regulations 2020",
+        kurztitel: "Ökodesign-Richtlinie (Vereinigtes Königreich)",
+        shortTitle: "Ecodesign Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_BattR,
+        gesetz: "Batteries and Accumulators Regulations 1994",
+        kurztitel: "Batterierichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Battery Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_ConstrProd,
+        gesetz: "Construction Products (Amendment etc.) (EU Exit) Regulations 2019",
+        kurztitel: "Bauprodukteverordnung (Vereinigtes Königreich)",
+        shortTitle: "Construction Products Regulation (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_ElectricalESR,
+        gesetz: "Electrical Equipment (Safety) Regulations 2016",
+        kurztitel: "Niederspannungsrichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Low Voltage Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_GPSR,
+        gesetz: "General Product Safety Regulations 2005",
+        kurztitel: "Richtlinie über die allgemeine Produktsicherheit (Vereinigtes Königreich)",
+        shortTitle: "General Product Safety Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_SMSR,
+        gesetz: "Supply of Machinery (Safety) Regulations 2008",
+        kurztitel: "Maschinenrichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Machinery Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_ToySR,
+        gesetz: "Toys(Safety)Regulations 2011",
+        kurztitel: "Spielzeugrichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Toys Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_MessGer,
+        gesetz: "Weights and Measures (Prescribed Stamp) Regulations 1968",
+        kurztitel: "Verordnung über Gewichte und Maße (vorgeschriebener Stempel) von 1968",
+        shortTitle: "Weights and Measures (Prescribed Stamp) Regulations 1968"
+    },
+    {
+        stichwort: Stichwort.VK_RoHS,
+        gesetz: "The RoHS Regulations",
+        kurztitel: "RoHS",
+        shortTitle: "The RoHS Regulations"
+    }
+];
+</file>
+
+<file path="components.json">
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "default",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "src/app/globals.scss",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/lib/hooks"
+  }
+}
 </file>
 
 <file path=".github/workflows/build-check.yml">
@@ -643,63 +2647,6 @@ jobs:
       
     - name: Build check completed successfully
       run: echo "✅ All checks passed! yarn build would complete without errors."
-</file>
-
-<file path="messages/de.json">
-{
-  "start_session_button": "Session starten",
-  "start_guest_message": "Nimm dir 10 Minuten Zeit um in Ruhe die Aufgaben zu lösen.",
-  "start_guest_button": "Test starten!",
-  "impressum": "Impressum",
-  "privacy_policy": "Datenschutzerklärung",
-  "input_placeholder": "Sended Sie eine Nachricht...",
-  "llm_disclaimer": "Dies ist ein von einem LLM gesteuerter dynamischer Test. Denken Sie daran, dass LLMs Fehler machen können.",
-  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
-  "email_placeholder": "user@example.com",
-  "sign_in_error": "Fehler bei der Anmeldung.",
-  "show_password": "Passwort anzeigen",
-  "hide_password": "Passwort verbergen",
-  "password_placeholder": "Passwort",
-  "sign_in_button": "Sign in",
-  "sidebar": {
-    "consultant": "Beratung",
-    "laws": "Gesetzestexte",
-    "customer": "Kunden"
-  },
-  "dashboard": {
-    "consultant_title": "Beratung",
-    "laws_title": "Gesetzestexte",
-    "customer_title": "Kunden",
-    "welcome_message": "Wählen Sie einen Bereich aus, um zu beginnen."
-  }
-}
-</file>
-
-<file path="messages/en.json">
-{
-  "start_session_button": "Start session",
-  "start_guest_message": "Take 10 minutes to carefully complete the tasks.",
-  "start_guest_button": "Start test",
-  "impressum": "Imprint",
-  "privacy_policy": "Privacy policy",
-  "input_placeholder": "Send a message...",
-  "llm_disclaimer": "This a LLM powered dynamic test. Remember LLMs can make mistakes.",
-  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
-  "email_placeholder": "user@example.com",
-  "password_placeholder": "Password",
-  "sign_in_button": "Sign in",
-  "sidebar": {
-    "consultant": "Consultant",
-    "laws": "Laws",
-    "customer": "Customer"
-  },
-  "dashboard": {
-    "consultant_title": "Consulting",
-    "laws_title": "Legal Texts",
-    "customer_title": "Customers",
-    "welcome_message": "Select an area to get started."
-  }
-}
 </file>
 
 <file path="messages/es.json">
@@ -922,6 +2869,108 @@ jobs:
 </svg>
 </file>
 
+<file path="src/app/[locale]/(main)/conversation/[...conversationId]/layout.tsx">
+import SplitView from "@/components/SplitView";
+
+export default function ChatLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <SplitView>{children}</SplitView>;
+}
+</file>
+
+<file path="src/app/[locale]/(main)/conversation/[...conversationId]/page.tsx">
+"use client";
+
+import ConversationChat from "@/components/ConversationChat";
+import Protected from "@/components/Protected";
+
+const ConversationsPage: React.FC = () => {
+  return (
+    <Protected>
+      <ConversationChat />
+    </Protected>
+  );
+};
+
+export default ConversationsPage;
+</file>
+
+<file path="src/app/[locale]/(main)/customer/page.tsx">
+import { CustomerView } from "@/components/customer/CustomerView";
+
+export default function CustomerPage() {
+  return <CustomerView />;
+}
+</file>
+
+<file path="src/app/[locale]/(main)/laws/page.tsx">
+"use client";
+
+import { useLaws } from '@/lib/hooks/useLaws';
+import LawsTable from '@/components/LawsTable';
+import LawDetailDialog from '@/components/LawDetailDialog';
+
+const pageStyles = {
+  padding: '2rem',
+  maxWidth: '1200px',
+  margin: '0 auto'
+};
+
+export default function LawsPage() {
+  const {
+    filteredLaws,
+    selectedLaw,
+    filterText,
+    setFilterText,
+    selectLaw,
+    closeDialog,
+  } = useLaws();
+
+  return (
+    <div style={pageStyles}>
+      <h1>Gesetzestexte</h1>
+      <p style={{ marginBottom: '2rem' }}>
+        Verwalten und durchsuchen Sie relevante Gesetzestexte und Verordnungen.
+      </p>
+      
+      <LawsTable
+        laws={filteredLaws}
+        filterText={filterText}
+        onFilterChange={setFilterText}
+        onSelectLaw={selectLaw}
+      />
+
+      {selectedLaw && (
+        <LawDetailDialog
+          law={selectedLaw}
+          onClose={closeDialog}
+        />
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(main)/layout.tsx">
+import Sidebar from "@/components/Sidebar";
+
+export default function MainAppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ display: "flex", height: "100vh" }}>
+      <Sidebar />
+      <main style={{ flex: 1, overflowY: "auto" }}>{children}</main>
+    </div>
+  );
+}
+</file>
+
 <file path="src/app/[locale]/signin/layout.tsx">
 "use client";
 import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
@@ -992,23 +3041,6 @@ export default async function RootLayout({
     </html>
   );
 }
-</file>
-
-<file path="src/app/[locale]/page.tsx">
-"use client";
-
-import Protected from "@/components/Protected";
-import Dashboard from "@/components/Dashboard";
-
-const DashboardPage: React.FC = () => {
-  return (
-    <Protected>
-      <Dashboard />
-    </Protected>
-  );
-};
-
-export default DashboardPage;
 </file>
 
 <file path="src/client/client.gen.ts">
@@ -2413,6 +4445,160 @@ export default ChatMessage;
 }
 </file>
 
+<file path="src/components/Dashboard.module.scss">
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 3rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 4rem;
+
+  .logoContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    margin-top: 0.5rem;
+    font-size: 1.125rem;
+    color: #6b7280;
+    font-weight: 400;
+  }
+}
+
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  border-radius: 16px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #dc2626, #f87171);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #dc2626;
+
+    &::before {
+      transform: scaleX(1);
+    }
+
+    h3 {
+      color: #dc2626;
+    }
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    transition: color 0.3s ease;
+  }
+}
+</file>
+
+<file path="src/components/Dashboard.tsx">
+"use client";
+
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { v4 as uuidv4 } from "uuid";
+import { Link } from "@/i18n/navigation";
+import styles from "./Dashboard.module.scss";
+import Image from "next/image";
+
+const Dashboard = () => {
+  const t = useTranslations("dashboard");
+  const router = useRouter();
+
+  const handleStartConsulting = () => {
+    const newThreadId = uuidv4();
+    router.push(`/conversation/${newThreadId}`);
+  };
+
+  return (
+    <div className={styles.dashboardContainer}>
+      <div className={styles.header}>
+        <div className={styles.logoContainer}>
+          <Image
+            src="/images/logo.png"
+            alt="Kireon Logo"
+            width={80}
+            height={80}
+            priority
+          />
+          <h1 className={styles.title}>Kireon GPT</h1>
+        </div>
+        <p>{t("welcome_message")}</p>
+      </div>
+      <div className={styles.tileGrid}>
+        <div className={styles.tile} onClick={handleStartConsulting}>
+          <h3>{t("consultant_title")}</h3>
+        </div>
+        <Link href="/laws" className={styles.tile}>
+          <h3>{t("laws_title")}</h3>
+        </Link>
+        <Link href="/customer" className={styles.tile}>
+          <h3>{t("customer_title")}</h3>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
+</file>
+
 <file path="src/components/LegalLinks.tsx">
 "use client";
 
@@ -2514,6 +4700,204 @@ const ScrollDownButton = ({ onClick }: ScrollDownButtonProps) => {
 };
 
 export default ScrollDownButton;
+</file>
+
+<file path="src/components/Sidebar.module.scss">
+.sidebar {
+  width: 240px;
+  background-color: #ffffff;
+  height: 100vh;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 10;
+
+  &.collapsed {
+    width: 60px;
+    
+    &:hover {
+      width: 240px;
+
+      .navLabel {
+        opacity: 1;
+        width: auto;
+        transition-delay: 0.1s;
+      }
+
+      .navLink {
+        justify-content: flex-start;
+        padding: 0.75rem 1.5rem;
+      }
+
+      .navIcon {
+        margin-right: 1rem;
+      }
+    }
+  }
+}
+
+.sidebarContent {
+  flex-grow: 1;
+  padding-top: 2rem;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: #4b5563;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+
+  &.active {
+    background-color: #fee2e2;
+    color: #dc2626;
+    font-weight: 600;
+    border-left: 3px solid #dc2626;
+  }
+}
+
+.navIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  transition: margin 0.2s ease;
+}
+
+.navLabel {
+  transition: opacity 0.3s ease, width 0.3s ease;
+}
+
+.collapsed .navLabel {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.collapsed .navLink {
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+}
+
+.collapsed .navIcon {
+  margin-right: 0;
+}
+
+.toggleButton {
+  padding: 1rem;
+  background-color: transparent;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f9fafb;
+    color: #374151;
+  }
+}
+</file>
+
+<file path="src/components/Sidebar.tsx">
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
+import { v4 as uuidv4 } from "uuid";
+import clsx from "clsx";
+import styles from "./Sidebar.module.scss";
+import {
+  ChatBubbleLeftRightIcon,
+  DocumentTextIcon,
+  UsersIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+} from "@heroicons/react/24/outline";
+
+const Sidebar = () => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const t = useTranslations("sidebar");
+  const pathname = usePathname();
+
+  const navItems = [
+    {
+      href: `/conversation/${uuidv4()}`,
+      label: t("consultant"),
+      icon: ChatBubbleLeftRightIcon,
+      isActive: (path: string) => path.startsWith("/conversation"),
+    },
+    {
+      href: "/laws",
+      label: t("laws"),
+      icon: DocumentTextIcon,
+      isActive: (path: string) => path === "/laws",
+    },
+    {
+      href: "/customer",
+      label: t("customer"),
+      icon: UsersIcon,
+      isActive: (path: string) => path === "/customer",
+    },
+  ];
+
+  return (
+    <nav className={clsx(styles.sidebar, isCollapsed && styles.collapsed)}>
+      <div className={styles.sidebarContent}>
+        <ul className={styles.navList}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={clsx(
+                    styles.navLink,
+                    item.isActive(pathname) && styles.active
+                  )}
+                >
+                  <Icon className={styles.navIcon} />
+                  <span className={styles.navLabel}>{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className={styles.toggleButton}
+        title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+      >
+        {isCollapsed ? (
+          <ChevronDoubleRightIcon className="h-5 w-5" />
+        ) : (
+          <ChevronDoubleLeftIcon className="h-5 w-5" />
+        )}
+      </button>
+    </nav>
+  );
+};
+
+export default Sidebar;
 </file>
 
 <file path="src/components/SplitView.tsx">
@@ -3874,55 +6258,6 @@ NEXT_PUBLIC_BACKEND_URL=https://hiring-agent-backend-staging-474483908861.europe
 NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
 </file>
 
-<file path=".gitignore">
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# repomix
-repomix-output.xml
-memory/*
-**/source_code.xml
-</file>
-
 <file path="docker-compose.yaml">
 version: '3.8'
 
@@ -4060,6 +6395,9 @@ export default defineConfig({
     "@jsonforms/core": "3.5.1",
     "@jsonforms/react": "3.5.1",
     "@jsonforms/vanilla-renderers": "3.5.1",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tiptap/extension-code-block": "2.12.0",
     "@tiptap/extension-code-block-lowlight": "^2.24.0",
     "@tiptap/extension-image": "2.22.0",
@@ -4071,11 +6409,14 @@ export default defineConfig({
     "@tiptap/react": "2.12.0",
     "@tiptap/starter-kit": "2.12.0",
     "chart.js": "4.4.9",
+    "class-variance-authority": "^0.7.1",
+    "cmdk": "^1.1.1",
     "firebase": "11.7.1",
     "framer-motion": "12.13.0",
     "highlight.js": "^11.11.1",
     "katex": "0.16.22",
     "lowlight": "^3.3.0",
+    "lucide-react": "^0.540.0",
     "markdown-it": "14.1.0",
     "mitt": "3.0.1",
     "next": "15.3.2",
@@ -4085,6 +6426,7 @@ export default defineConfig({
     "react-dom": "19.0.0",
     "react-responsive": "^10.0.1",
     "sass": "1.89.0",
+    "tailwind-merge": "^3.3.1",
     "turndown": "7.2.0",
     "uuid": "11.1.0",
     "zustand": "5.0.4"
@@ -4098,7 +6440,7 @@ export default defineConfig({
     "@types/react": "19",
     "@types/react-dom": "19",
     "@types/turndown": "5.0.5",
-    "clsx": "2.1.1",
+    "clsx": "^2.1.1",
     "eslint": "9",
     "eslint-config-next": "15.3.2",
     "tailwindcss": "4.1.7",
@@ -4182,6 +6524,80 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
+</file>
+
+<file path="messages/de.json">
+{
+  "start_session_button": "Session starten",
+  "start_guest_message": "Nimm dir 10 Minuten Zeit um in Ruhe die Aufgaben zu lösen.",
+  "start_guest_button": "Test starten!",
+  "impressum": "Impressum",
+  "privacy_policy": "Datenschutzerklärung",
+  "input_placeholder": "Sended Sie eine Nachricht...",
+  "llm_disclaimer": "Dies ist ein von einem LLM gesteuerter dynamischer Test. Denken Sie daran, dass LLMs Fehler machen können.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "sign_in_error": "Fehler bei der Anmeldung.",
+  "show_password": "Passwort anzeigen",
+  "hide_password": "Passwort verbergen",
+  "password_placeholder": "Passwort",
+  "sign_in_button": "Sign in",
+  "sidebar": {
+    "consultant": "Beratung",
+    "laws": "Gesetzestexte",
+    "customer": "Kunden"
+  },
+  "dashboard": {
+    "consultant_title": "Beratung",
+    "laws_title": "Gesetzestexte",
+    "customer_title": "Kunden",
+    "welcome_message": "Wählen Sie einen Bereich aus, um zu beginnen."
+  }
+}
+</file>
+
+<file path="messages/en.json">
+{
+  "start_session_button": "Start session",
+  "start_guest_message": "Take 10 minutes to carefully complete the tasks.",
+  "start_guest_button": "Start test",
+  "impressum": "Imprint",
+  "privacy_policy": "Privacy policy",
+  "input_placeholder": "Send a message...",
+  "llm_disclaimer": "This a LLM powered dynamic test. Remember LLMs can make mistakes.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "password_placeholder": "Password",
+  "sign_in_button": "Sign in",
+  "sidebar": {
+    "consultant": "Consultant",
+    "laws": "Laws",
+    "customer": "Customer"
+  },
+  "dashboard": {
+    "consultant_title": "Consulting",
+    "laws_title": "Legal Texts",
+    "customer_title": "Customers",
+    "welcome_message": "Select an area to get started."
+  }
+}
+</file>
+
+<file path="src/app/[locale]/page.tsx">
+"use client";
+
+import Protected from "@/components/Protected";
+import Dashboard from "@/components/Dashboard";
+
+const DashboardPage: React.FC = () => {
+  return (
+    <Protected>
+      <Dashboard />
+    </Protected>
+  );
+};
+
+export default DashboardPage;
 </file>
 
 <file path="src/components/ArtifactActionButton.tsx">
@@ -4393,103 +6809,6 @@ const ArtifactForm = forwardRef<ArtifactFormRef, Props>(
 
 ArtifactForm.displayName = "ArtifactForm";
 export default ArtifactForm;
-</file>
-
-<file path="src/components/ArtifactHeader.tsx">
-"use client";
-
-import {
-  ArrowRightStartOnRectangleIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import ArtifactTimeline from "./ArtifactTimeline";
-import Image from "next/image";
-import clsx from "clsx";
-import { v4 as uuidv4 } from "uuid";
-import { useAgentStreamContext } from "@/context/AgentStreamProvider";
-
-import styles from "./ArtifactHeader.module.scss";
-
-interface ArtifactHeaderProps {
-  tasks?: {
-    original_index: number;
-    task_title: string;
-    task_type: string;
-    task_icon: string;
-  }[];
-  currentTaskIndex: number;
-}
-
-const ArtifactHeader = ({
-  tasks = [],
-  currentTaskIndex,
-}: ArtifactHeaderProps) => {
-  const router = useRouter();
-  const { signOut } = useAuth();
-  const { reset } = useAgentStreamContext();
-
-  const handleNewConversation = () => {
-    const newThreadId = uuidv4();
-    reset();
-
-    router.push(`/conversation/${newThreadId}`);
-  };
-
-  const handleLogout = async () => {
-    reset();
-    await signOut();
-    router.replace("/signin");
-  };
-  return (
-    <div
-      className={clsx(
-        styles.artifactHeader,
-        "flex flex-col gap-2 px-5 md:px-10 py-4 bg-[var(--artifact-bg)]"
-      )}
-    >
-      <div className="flex flex-row justify-between items-center min-h-[55px]">
-        <div className="flex flex-row gap-4 items-center justify-center">
-          <span className="ava_title">Kireon GPT</span>
-        </div>
-
-        <div className="flex flex-row items-center gap-0 md:gap-6">
-          <button
-            onClick={handleNewConversation}
-            title="Neuer Chat"
-            className={styles.headerButton}
-          >
-            <PencilSquareIcon className="h-6 w-6 text-gray-500" />
-          </button>
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            className={styles.headerButton}
-          >
-            <ArrowRightStartOnRectangleIcon className="h-6 w-6 text-gray-500" />
-          </button>
-          <Image
-            src="/images/logo.png"
-            alt="Kireon Logo"
-            width={40}
-            height={40}
-          />
-        </div>
-      </div>
-
-      {tasks.length > 0 && (
-        <ArtifactTimeline
-          tasks={tasks}
-          currentTask={currentTaskIndex}
-          totalTasks={tasks.length}
-        />
-      )}
-    </div>
-  );
-};
-
-export default ArtifactHeader;
 </file>
 
 <file path="src/components/ArtifactLoading.module.scss">
@@ -5802,417 +8121,6 @@ export default SignInPage;
 }
 </file>
 
-<file path="src/lib/hooks/useAgentStream.ts">
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-import { useCallback, useRef, useState } from "react";
-import { useLocale } from "./useLocale";
-import { useTaskContext } from "@/context/TaskContext";
-import { ChatHistory, ChatMessage } from "@/client";
-
-export interface StreamOptions {
-  agent_id?: string;
-  message?: string;
-  model?: string;
-  thread_id: string;
-  user_id: string;
-  agent_config?: Record<string, unknown>;
-  stream_tokens?: boolean;
-  run_id?: string;
-}
-
-export interface Artifact {
-  id: string;
-  node?: string;
-  type?: string;
-  title?: string;
-  content: any;
-  status?: string;
-  meta?: Record<string, unknown>;
-}
-
-type ExtendedChatMessage = ChatMessage & {
-  id: string;
-  role?: string;
-  meta?: ChatMessage["custom_data"];
-} & Omit<ChatMessage, "type">;
-
-function getParsedArtifactContent(artifact: Artifact): any {
-  try {
-    if (
-      typeof artifact?.content === "string" &&
-      !artifact.id.startsWith("streaming_")
-    ) {
-      const trimmed = artifact.content.trim();
-      const isLikelyJson =
-        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-        (trimmed.startsWith("[") && trimmed.endsWith("]"));
-      if (isLikelyJson) {
-        return JSON.parse(trimmed);
-      }
-    }
-
-    return artifact?.content ?? {};
-  } catch (err) {
-    console.warn("Failed to parse artifact content:", artifact?.content, err);
-    return artifact?.content ?? {};
-  }
-}
-
-export function useAgentStream(endpoint: string) {
-  const [chatMessages, setChatMessages] = useState<ExtendedChatMessage[]>([]);
-  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const chatRef = useRef<Record<string, string>>({});
-  const artifactRef = useRef<Record<string, string>>({});
-  const localUserMessages = useRef<ExtendedChatMessage[]>([]);
-  const messageBufferRef = useRef("");
-
-  const locale = useLocale();
-  const { updateTasks } = useTaskContext();
-
-  const reset = () => {
-    chatRef.current = {};
-    artifactRef.current = {};
-    localUserMessages.current = [];
-    messageBufferRef.current = "";
-    setChatMessages([]);
-    setArtifacts([]);
-  };
-
-  const sendUserMessage = (text: string) => {
-    const message = {
-      id: `human_${Date.now()}`,
-      role: "human",
-      content: text,
-    } as ExtendedChatMessage;
-    localUserMessages.current.push(message);
-    setChatMessages((prev) => [...prev, message]);
-  };
-
-  const loadHistory = (messages: ChatHistory["messages"]) => {
-    const loadedMessagesMap: Record<string, ExtendedChatMessage> = {};
-    const loadedArtifactsMap: Record<string, Artifact> = {};
-
-    for (const [index, message] of messages.entries()) {
-      if (!message.content?.trim()) continue;
-
-      if (message.type === "tool") {
-        try {
-          let toolData: any;
-          const isJson =
-            message.content.trim().startsWith("{") ||
-            message.content.trim().startsWith("[");
-
-          if (isJson) {
-            toolData = JSON.parse(message.content);
-          } else {
-            toolData = {
-              artifact_type: "markdown",
-              artifact_title: "Task Instructions",
-              artifact_content: message.content,
-            };
-          }
-
-          const artifactContent =
-            toolData.artifact_content?.trim?.() ||
-            toolData.task_content?.content?.trim?.();
-
-          if (artifactContent) {
-            const id = message.tool_call_id ?? `history_tool_${index}`;
-            loadedArtifactsMap[id] = {
-              id,
-              type: toolData.artifact_type ?? toolData.task_type ?? "unknown",
-              title:
-                toolData.artifact_title ?? toolData.task_title ?? "Untitled",
-              content: toolData,
-              status: toolData.status,
-            };
-          }
-        } catch (err) {
-          console.warn(
-            "Failed to parse or use tool message from history:",
-            message.content,
-            err
-          );
-        }
-        continue;
-      }
-
-      const id = (message.custom_data?.run_id as string) ?? `history_${index}`;
-      const role = message.type === "human" ? "human" : "ai";
-      const isChat = message.custom_data?.metadata?.type === "chat";
-
-      if (isChat || role === "human") {
-        const chat: ExtendedChatMessage = {
-          id,
-          role,
-          content: message.content,
-          meta: message.custom_data ?? {},
-        };
-
-        loadedMessagesMap[id] = chat;
-        if (role === "human") localUserMessages.current.push(chat);
-      }
-    }
-
-    const lastAiWithTasks = Object.values(loadedMessagesMap)
-      .reverse()
-      .find((m) => m.role === "ai" && m.meta?.all_tasks_summary);
-
-    if (lastAiWithTasks) {
-      updateTasks(
-        lastAiWithTasks?.meta?.all_tasks_summary,
-        lastAiWithTasks.meta.current_task_index_at_response ?? 0
-      );
-    }
-
-    setChatMessages(Object.values(loadedMessagesMap));
-    setArtifacts(Object.values(loadedArtifactsMap));
-  };
-
-  const clearArtifacts = () => {
-    setArtifacts([]);
-  };
-
-  const stream = useCallback(
-    async (options: StreamOptions, token?: string) => {
-      setIsStreaming(true);
-      setError(null);
-      chatRef.current = {};
-      artifactRef.current = {};
-      messageBufferRef.current = "";
-
-      if (options.message) sendUserMessage(options.message);
-
-      try {
-        const res = await fetch(
-          endpoint + `?agent_id=${options.agent_id ?? ""}`,
-          {
-            method: "POST",
-            headers: {
-              Accept: "text/event-stream",
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-            body: JSON.stringify({
-              user_input: {
-                ...options,
-                agent_config: { ...options?.agent_config, language: locale },
-              },
-            }),
-          }
-        );
-
-        if (!res.ok || !res.body)
-          throw new Error(`Stream error: ${res.statusText}`);
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const raw = line.slice(6).trim();
-            if (raw === "[DONE]") {
-              setIsStreaming(false);
-              return;
-            }
-
-            try {
-              const payload = JSON.parse(raw);
-
-              if (payload.type === "token") {
-                const node = payload.langgraph_node;
-                const isChat = node === "controller_llm";
-                const isChatMessage =
-                  payload.custom_data?.metadata?.type === "chat";
-
-                if (isChat && isChatMessage) {
-                  // ————— unchanged chat logic —————
-                  chatRef.current[node] =
-                    (chatRef.current[node] || "") + payload.content;
-                  const draft = {
-                    id: "streaming_" + node,
-                    role: "ai",
-                    content: chatRef.current[node],
-                  } as ExtendedChatMessage;
-                  setChatMessages((prev) => [
-                    ...prev.filter(
-                      (m) => m.id !== draft.id && !m.id.startsWith("streaming_")
-                    ),
-                    draft,
-                  ]);
-                } else {
-                  // ————— new: tool-artifact streaming draft —————
-                  const meta = payload.custom_data?.metadata ?? {};
-                  const artifactType = meta.artifact_type as string | undefined;
-
-                  artifactRef.current[node] =
-                    (artifactRef.current[node] || "") + payload.content;
-
-                  const draft: Artifact = {
-                    id: "streaming_" + node,
-                    node,
-                    type: artifactType,
-                    title: undefined,
-                    content: artifactRef.current[node],
-                    status: "streaming",
-                    meta,
-                  };
-
-                  setArtifacts((prev) => {
-                    const draftExists = prev.some((a) => a.id === draftId);
-                    if (draftExists) {
-                      // If a streaming draft exists, map and update it.
-                      return prev.map((a) => (a.id === draftId ? complete : a));
-                    } else {
-                      // Otherwise, add the new complete artifact to the array.
-                      return [...prev, complete];
-                    }
-                  });
-                }
-              }
-
-              if (payload.type === "message") {
-                handleFinalMessage(payload.content, payload.custom_data);
-              }
-            } catch {
-              messageBufferRef.current += raw;
-              try {
-                const payload = JSON.parse(messageBufferRef.current);
-                handleFinalMessage(payload.content, payload.custom_data);
-                messageBufferRef.current = "";
-              } catch {
-                // still incomplete
-              }
-            }
-          }
-        }
-      } catch (err: any) {
-        setIsStreaming(false);
-        setError(err.message ?? "Unknown error");
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [endpoint, locale, updateTasks]
-  );
-
-  const handleFinalMessage = (final: any, sseMeta: any) => {
-    const role = final.type === "ai" ? "ai" : final.type;
-
-    if (role === "ai") {
-      const validMessageTypes = ["chat", "metadata_update"];
-      if (
-        !validMessageTypes.includes(final?.custom_data?.metadata?.type) ||
-        !final.content?.trim()
-      ) {
-        console.debug("Skipped non-chat or empty AI message", final);
-        return;
-      }
-
-      const finalChat: ExtendedChatMessage = {
-        id: final.run_id,
-        role,
-        content: final.content,
-        meta: final.custom_data,
-      };
-
-      if (final?.custom_data?.all_tasks_summary) {
-        updateTasks(
-          final.custom_data.all_tasks_summary,
-          final.custom_data.current_task_index_at_response ?? 0
-        );
-      }
-
-      setChatMessages((prev) => {
-        const filtered = prev.filter(
-          (m) => m.id !== final.run_id && !m.id.startsWith("streaming_")
-        );
-        return [...filtered, finalChat];
-      });
-
-      delete chatRef.current["controller_llm"];
-    } else if (role === "tool") {
-      try {
-        const isJson =
-          typeof final.content === "string" &&
-          (final.content.trim().startsWith("{") ||
-            final.content.trim().startsWith("["));
-        const toolData = isJson
-          ? JSON.parse(final.content)
-          : {
-              artifact_type: "markdown",
-              artifact_title: "Tool Output",
-              artifact_content: final.content,
-            };
-  
-        const isForm = toolData.artifact_type === "json_form";
-        const artifactCompleteContent = isForm
-          ? toolData
-          : toolData.artifact_content?.trim?.() ||
-            toolData.task_content?.content?.trim?.();
-  
-        if (!artifactCompleteContent) {
-          console.debug("Skipped empty tool artifact", toolData);
-          return;
-        }
-  
-        const node = sseMeta.node ?? sseMeta.langgraph_node;
-        const draftId = `streaming_${node}`;
-        const finalId = final.tool_call_id || draftId;
-  
-        const complete: Artifact = {
-          id: finalId,
-          node,
-          type: toolData.artifact_type ?? toolData.task_type ?? "unknown",
-          title: toolData.artifact_title ?? toolData.task_title ?? "Untitled",
-          content: artifactCompleteContent,
-          status: "complete",
-          meta: toolData,
-        };
-  
-        setArtifacts((prev) => {
-          const draftExists = prev.some((a) => a.id === draftId);
-          if (draftExists) {
-            // If a streaming draft exists, map and update it.
-            return prev.map((a) => (a.id === draftId ? complete : a));
-          } else {
-            // Otherwise, add the new complete artifact to the array.
-            return [...prev, complete];
-          }
-        });
-        delete artifactRef.current[node];
-      } catch (err) {
-        console.warn("Failed to finalize tool artifact:", final, err);
-      }
-    }
-  };
-
-  return {
-    chatMessages,
-    artifacts,
-    isStreaming,
-    error,
-    sendMessage: stream,
-    reset,
-    loadHistory,
-    getParsedArtifactContent,
-    clearArtifacts,
-  };
-}
-</file>
-
 <file path="src/styles/custom.scss">
 /* -------------------------------
    Theme Variables
@@ -7112,6 +9020,563 @@ export function setIsProduction(isProd: boolean) {
 export let isProduction = false;
 
 export default config;
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# repomix
+repomix-output.xml
+memory/*
+**/source_code.xml
+</file>
+
+<file path="src/components/ArtifactHeader.tsx">
+"use client";
+
+import {
+  ArrowRightStartOnRectangleIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import ArtifactTimeline from "./ArtifactTimeline";
+import Image from "next/image";
+import clsx from "clsx";
+import { v4 as uuidv4 } from "uuid";
+import { useAgentStreamContext } from "@/context/AgentStreamProvider";
+
+import styles from "./ArtifactHeader.module.scss";
+
+interface ArtifactHeaderProps {
+  tasks?: {
+    original_index: number;
+    task_title: string;
+    task_type: string;
+    task_icon: string;
+  }[];
+  currentTaskIndex: number;
+}
+
+const ArtifactHeader = ({
+  tasks = [],
+  currentTaskIndex,
+}: ArtifactHeaderProps) => {
+  const router = useRouter();
+  const { signOut } = useAuth();
+  const { reset } = useAgentStreamContext();
+
+  const handleNewConversation = () => {
+    const newThreadId = uuidv4();
+    reset();
+
+    router.push(`/conversation/${newThreadId}`);
+  };
+
+  const handleLogout = async () => {
+    reset();
+    await signOut();
+    router.replace("/signin");
+  };
+  return (
+    <div
+      className={clsx(
+        styles.artifactHeader,
+        "flex flex-col gap-2 px-5 md:px-10 py-4 bg-[var(--artifact-bg)]"
+      )}
+    >
+      <div className="flex flex-row justify-between items-center min-h-[55px]">
+        <div className="flex flex-row gap-4 items-center justify-center">
+          <span className="ava_title">Kireon GPT</span>
+        </div>
+
+        <div className="flex flex-row items-center gap-0 md:gap-6">
+          <button
+            onClick={handleNewConversation}
+            title="Neuer Chat"
+            className={styles.headerButton}
+          >
+            <PencilSquareIcon className="h-6 w-6 text-gray-500" />
+          </button>
+          <button
+            onClick={handleLogout}
+            title="Logout"
+            className={styles.headerButton}
+          >
+            <ArrowRightStartOnRectangleIcon className="h-6 w-6 text-gray-500" />
+          </button>
+          <Image
+            src="/images/logo.png"
+            alt="Kireon Logo"
+            width={40}
+            height={40}
+          />
+        </div>
+      </div>
+
+      {tasks.length > 0 && (
+        <ArtifactTimeline
+          tasks={tasks}
+          currentTask={currentTaskIndex}
+          totalTasks={tasks.length}
+        />
+      )}
+    </div>
+  );
+};
+
+export default ArtifactHeader;
+</file>
+
+<file path="src/lib/hooks/useAgentStream.ts">
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+import { useCallback, useRef, useState } from "react";
+import { useLocale } from "./useLocale";
+import { useTaskContext } from "@/context/TaskContext";
+import { ChatHistory, ChatMessage } from "@/client";
+
+export interface StreamOptions {
+  agent_id?: string;
+  message?: string;
+  model?: string;
+  thread_id: string;
+  user_id: string;
+  agent_config?: Record<string, unknown>;
+  stream_tokens?: boolean;
+  run_id?: string;
+}
+
+export interface Artifact {
+  id: string;
+  node?: string;
+  type?: string;
+  title?: string;
+  content: any;
+  status?: string;
+  meta?: Record<string, unknown>;
+}
+
+type ExtendedChatMessage = ChatMessage & {
+  id: string;
+  role?: string;
+  meta?: ChatMessage["custom_data"];
+} & Omit<ChatMessage, "type">;
+
+function getParsedArtifactContent(artifact: Artifact): any {
+  try {
+    if (
+      typeof artifact?.content === "string" &&
+      !artifact.id.startsWith("streaming_")
+    ) {
+      const trimmed = artifact.content.trim();
+      const isLikelyJson =
+        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+        (trimmed.startsWith("[") && trimmed.endsWith("]"));
+      if (isLikelyJson) {
+        return JSON.parse(trimmed);
+      }
+    }
+
+    return artifact?.content ?? {};
+  } catch (err) {
+    console.warn("Failed to parse artifact content:", artifact?.content, err);
+    return artifact?.content ?? {};
+  }
+}
+
+export function useAgentStream(endpoint: string) {
+  const [chatMessages, setChatMessages] = useState<ExtendedChatMessage[]>([]);
+  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const chatRef = useRef<Record<string, string>>({});
+  const artifactRef = useRef<Record<string, string>>({});
+  const localUserMessages = useRef<ExtendedChatMessage[]>([]);
+  const messageBufferRef = useRef("");
+
+  const locale = useLocale();
+  const { updateTasks } = useTaskContext();
+
+  const reset = () => {
+    chatRef.current = {};
+    artifactRef.current = {};
+    localUserMessages.current = [];
+    messageBufferRef.current = "";
+    setChatMessages([]);
+    setArtifacts([]);
+  };
+
+  const sendUserMessage = (text: string) => {
+    const message = {
+      id: `human_${Date.now()}`,
+      role: "human",
+      content: text,
+    } as ExtendedChatMessage;
+    localUserMessages.current.push(message);
+    setChatMessages((prev) => [...prev, message]);
+  };
+
+  const loadHistory = (messages: ChatHistory["messages"]) => {
+    const loadedMessagesMap: Record<string, ExtendedChatMessage> = {};
+    const loadedArtifactsMap: Record<string, Artifact> = {};
+
+    for (const [index, message] of messages.entries()) {
+      if (!message.content?.trim()) continue;
+
+      if (message.type === "tool") {
+        try {
+          let toolData: any;
+          const isJson =
+            message.content.trim().startsWith("{") ||
+            message.content.trim().startsWith("[");
+
+          if (isJson) {
+            toolData = JSON.parse(message.content);
+          } else {
+            toolData = {
+              artifact_type: "markdown",
+              artifact_title: "Task Instructions",
+              artifact_content: message.content,
+            };
+          }
+
+          const artifactContent =
+            toolData.artifact_content?.trim?.() ||
+            toolData.task_content?.content?.trim?.();
+
+          if (artifactContent) {
+            const id = message.tool_call_id ?? `history_tool_${index}`;
+            loadedArtifactsMap[id] = {
+              id,
+              type: toolData.artifact_type ?? toolData.task_type ?? "unknown",
+              title:
+                toolData.artifact_title ?? toolData.task_title ?? "Untitled",
+              content: toolData,
+              status: toolData.status,
+            };
+          }
+        } catch (err) {
+          console.warn(
+            "Failed to parse or use tool message from history:",
+            message.content,
+            err
+          );
+        }
+        continue;
+      }
+
+      const id = (message.custom_data?.run_id as string) ?? `history_${index}`;
+      const role = message.type === "human" ? "human" : "ai";
+      const isChat = message.custom_data?.metadata?.type === "chat";
+
+      if (isChat || role === "human") {
+        const chat: ExtendedChatMessage = {
+          id,
+          role,
+          content: message.content,
+          meta: message.custom_data ?? {},
+        };
+
+        loadedMessagesMap[id] = chat;
+        if (role === "human") localUserMessages.current.push(chat);
+      }
+    }
+
+    const lastAiWithTasks = Object.values(loadedMessagesMap)
+      .reverse()
+      .find((m) => m.role === "ai" && m.meta?.all_tasks_summary);
+
+    if (lastAiWithTasks) {
+      updateTasks(
+        lastAiWithTasks?.meta?.all_tasks_summary,
+        lastAiWithTasks.meta.current_task_index_at_response ?? 0
+      );
+    }
+
+    setChatMessages(Object.values(loadedMessagesMap));
+    setArtifacts(Object.values(loadedArtifactsMap));
+  };
+
+  const clearArtifacts = () => {
+    setArtifacts([]);
+  };
+
+  const stream = useCallback(
+    async (options: StreamOptions, token?: string) => {
+      setIsStreaming(true);
+      setError(null);
+      chatRef.current = {};
+      artifactRef.current = {};
+      messageBufferRef.current = "";
+
+      if (options.message) sendUserMessage(options.message);
+
+      try {
+        const res = await fetch(
+          endpoint + `?agent_id=${options.agent_id ?? ""}`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "text/event-stream",
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify({
+              user_input: {
+                ...options,
+                agent_config: { ...options?.agent_config, language: locale },
+              },
+            }),
+          }
+        );
+
+        if (!res.ok || !res.body)
+          throw new Error(`Stream error: ${res.statusText}`);
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const raw = line.slice(6).trim();
+            if (raw === "[DONE]") {
+              setIsStreaming(false);
+              return;
+            }
+
+            try {
+              const payload = JSON.parse(raw);
+
+              if (payload.type === "token") {
+                const node = payload.langgraph_node;
+                const isChat = node === "controller_llm";
+                const isChatMessage =
+                  payload.custom_data?.metadata?.type === "chat";
+
+                if (isChat && isChatMessage) {
+                  // ————— unchanged chat logic —————
+                  chatRef.current[node] =
+                    (chatRef.current[node] || "") + payload.content;
+                  const draft = {
+                    id: "streaming_" + node,
+                    role: "ai",
+                    content: chatRef.current[node],
+                  } as ExtendedChatMessage;
+                  setChatMessages((prev) => [
+                    ...prev.filter(
+                      (m) => m.id !== draft.id && !m.id.startsWith("streaming_")
+                    ),
+                    draft,
+                  ]);
+                } else {
+                  // ————— new: tool-artifact streaming draft —————
+                  const meta = payload.custom_data?.metadata ?? {};
+                  const artifactType = meta.artifact_type as string | undefined;
+
+                  artifactRef.current[node] =
+                    (artifactRef.current[node] || "") + payload.content;
+
+                  const draft: Artifact = {
+                    id: "streaming_" + node,
+                    node,
+                    type: artifactType,
+                    title: undefined,
+                    content: artifactRef.current[node],
+                    status: "streaming",
+                    meta,
+                  };
+
+                  setArtifacts((prev) => {
+                    const draftExists = prev.some((a) => a.id === draftId);
+                    if (draftExists) {
+                      // If a streaming draft exists, map and update it.
+                      return prev.map((a) => (a.id === draftId ? complete : a));
+                    } else {
+                      // Otherwise, add the new complete artifact to the array.
+                      return [...prev, complete];
+                    }
+                  });
+                }
+              }
+
+              if (payload.type === "message") {
+                handleFinalMessage(payload.content, payload.custom_data);
+              }
+            } catch {
+              messageBufferRef.current += raw;
+              try {
+                const payload = JSON.parse(messageBufferRef.current);
+                handleFinalMessage(payload.content, payload.custom_data);
+                messageBufferRef.current = "";
+              } catch {
+                // still incomplete
+              }
+            }
+          }
+        }
+      } catch (err: any) {
+        setIsStreaming(false);
+        setError(err.message ?? "Unknown error");
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [endpoint, locale, updateTasks]
+  );
+
+  const handleFinalMessage = (final: any, sseMeta: any) => {
+    const role = final.type === "ai" ? "ai" : final.type;
+
+    if (role === "ai") {
+      const validMessageTypes = ["chat", "metadata_update"];
+      if (
+        !validMessageTypes.includes(final?.custom_data?.metadata?.type) ||
+        !final.content?.trim()
+      ) {
+        console.debug("Skipped non-chat or empty AI message", final);
+        return;
+      }
+
+      const finalChat: ExtendedChatMessage = {
+        id: final.run_id,
+        role,
+        content: final.content,
+        meta: final.custom_data,
+      };
+
+      if (final?.custom_data?.all_tasks_summary) {
+        updateTasks(
+          final.custom_data.all_tasks_summary,
+          final.custom_data.current_task_index_at_response ?? 0
+        );
+      }
+
+      setChatMessages((prev) => {
+        const filtered = prev.filter(
+          (m) => m.id !== final.run_id && !m.id.startsWith("streaming_")
+        );
+        return [...filtered, finalChat];
+      });
+
+      delete chatRef.current["controller_llm"];
+    } else if (role === "tool") {
+      try {
+        const isJson =
+          typeof final.content === "string" &&
+          (final.content.trim().startsWith("{") ||
+            final.content.trim().startsWith("["));
+        const toolData = isJson
+          ? JSON.parse(final.content)
+          : {
+              artifact_type: "markdown",
+              artifact_title: "Tool Output",
+              artifact_content: final.content,
+            };
+  
+        const isForm = toolData.artifact_type === "json_form";
+        const artifactCompleteContent = isForm
+          ? toolData
+          : toolData.artifact_content?.trim?.() ||
+            toolData.task_content?.content?.trim?.();
+  
+        if (!artifactCompleteContent) {
+          console.debug("Skipped empty tool artifact", toolData);
+          return;
+        }
+  
+        const node = sseMeta.node ?? sseMeta.langgraph_node;
+        const draftId = `streaming_${node}`;
+        const finalId = final.tool_call_id || draftId;
+  
+        const complete: Artifact = {
+          id: finalId,
+          node,
+          type: toolData.artifact_type ?? toolData.task_type ?? "unknown",
+          title: toolData.artifact_title ?? toolData.task_title ?? "Untitled",
+          content: artifactCompleteContent,
+          status: "complete",
+          meta: toolData,
+        };
+  
+        setArtifacts((prev) => {
+          const draftExists = prev.some((a) => a.id === draftId);
+          if (draftExists) {
+            // If a streaming draft exists, map and update it.
+            return prev.map((a) => (a.id === draftId ? complete : a));
+          } else {
+            // Otherwise, add the new complete artifact to the array.
+            return [...prev, complete];
+          }
+        });
+        delete artifactRef.current[node];
+      } catch (err) {
+        console.warn("Failed to finalize tool artifact:", final, err);
+      }
+    }
+  };
+
+  return {
+    chatMessages,
+    artifacts,
+    isStreaming,
+    error,
+    sendMessage: stream,
+    reset,
+    loadHistory,
+    getParsedArtifactContent,
+    clearArtifacts,
+  };
+}
 </file>
 
 </files>

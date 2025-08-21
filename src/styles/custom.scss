@@ -190,9 +190,7 @@ a:is([aria-current], :hover, :active, :focus) {
    Heading Styles
 -------------------------------- */
 h1 {
-  background: var(--gradientHeadline);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #1a1a1a;
   display: inline-block;
   --font-size: 1.625rem;
   --font-weight: 400;
@@ -200,9 +198,7 @@ h1 {
 
 .ProseMirror {
   h1 {
-    background: var(--gradientHeadline) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
+    color: #1a1a1a !important;
     display: inline-block;
   }
 }

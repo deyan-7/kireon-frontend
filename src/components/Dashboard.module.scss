@@ -5,7 +5,7 @@
   justify-content: center;
   height: 100%;
   padding: 3rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f8f9fa;
   min-height: 100vh;
 }
 
@@ -70,7 +70,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #dc2626, #f87171);
+    background: #dc2626;
     transform: scaleX(0);
     transition: transform 0.3s ease;
   }
