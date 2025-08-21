@@ -53,12 +53,6 @@ const ArtifactHeader = ({
     >
       <div className="flex flex-row justify-between items-center min-h-[55px]">
         <div className="flex flex-row gap-4 items-center justify-center">
-          <Image
-            src="/assets/images/logo.png"
-            alt="Logo"
-            width={37}
-            height={37}
-          />
           <span className="ava_title">Kireon GPT</span>
         </div>
 
@@ -77,20 +71,12 @@ const ArtifactHeader = ({
           >
             <ArrowRightStartOnRectangleIcon className="h-6 w-6 text-gray-500" />
           </button>
-          <a
-            href="https://deyan7.de/"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Zur Deyan7-Webseite"
-            className={styles.headerLink}
-          >
-            <Image
-              src="/assets/images/deyan7_logo.svg"
-              alt="Deyan7 Logo"
-              width={93}
-              height={40}
-            />
-          </a>
+          <Image
+            src="/images/logo.png"
+            alt="Kireon Logo"
+            width={40}
+            height={40}
+          />
         </div>
       </div>
 

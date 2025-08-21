@@ -9,5 +9,16 @@
   "llm_disclaimer_short": "Remember LLMs can make mistakes.",
   "email_placeholder": "user@example.com",
   "password_placeholder": "Password",
-  "sign_in_button": "Sign in"
+  "sign_in_button": "Sign in",
+  "sidebar": {
+    "consultant": "Consultant",
+    "laws": "Laws",
+    "customer": "Customer"
+  },
+  "dashboard": {
+    "consultant_title": "Consulting",
+    "laws_title": "Legal Texts",
+    "customer_title": "Customers",
+    "welcome_message": "Select an area to get started."
+  }
 }

@@ -1,4 +1,4 @@
-This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
 
 <file_summary>
 This section contains a summary of this file.
@@ -32,7 +32,6 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Files matching these patterns are excluded: **/*.json, **/.*svg
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -44,6 +43,12 @@ The content is organized as follows:
 .github/
   workflows/
     build-check.yml
+messages/
+  de.json
+  en.json
+  es.json
+  it.json
+  ro.json
 public/
   assets/
     images/
@@ -61,10 +66,16 @@ public/
 src/
   app/
     [locale]/
-      conversation/
-        [...conversationId]/
-          layout.tsx
+      (main)/
+        conversation/
+          [...conversationId]/
+            layout.tsx
+            page.tsx
+        customer/
           page.tsx
+        laws/
+          page.tsx
+        layout.tsx
       signin/
         layout.tsx
         page.tsx
@@ -92,21 +103,23 @@ src/
     ArtifactTimeline.tsx
     ArtifactView.module.scss
     ArtifactView.tsx
-    BaseLayout.tsx
     ChatMessage.module.scss
     ChatMessage.tsx
     ConversationChat.module.scss
     ConversationChat.tsx
+    Dashboard.module.scss
+    Dashboard.tsx
     LegalLinks.tsx
     Protected.tsx
     ScrollDownButton.module.scss
     ScrollDownButton.tsx
     SendMessageInput.tsx
+    Sidebar.module.scss
+    Sidebar.tsx
     SignIn.module.scss
     SignIn.tsx
     SplitView.module.scss
     SplitView.tsx
-    StartGuest.tsx
     TextInput.module.scss
     TextInput.tsx
   context/
@@ -153,15 +166,439 @@ Dockerfile
 eslint.config.mjs
 next.config.ts
 openapi-ts.config.ts
+package.json
 postcss.config.mjs
 README.md
+tsconfig.json
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
 
-<file path=".env.local">
-NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+<file path="src/app/[locale]/(main)/conversation/[...conversationId]/layout.tsx">
+import SplitView from "@/components/SplitView";
+
+export default function ChatLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <SplitView>{children}</SplitView>;
+}
+</file>
+
+<file path="src/app/[locale]/(main)/conversation/[...conversationId]/page.tsx">
+"use client";
+
+import ConversationChat from "@/components/ConversationChat";
+import Protected from "@/components/Protected";
+
+const ConversationsPage: React.FC = () => {
+  return (
+    <Protected>
+      <ConversationChat />
+    </Protected>
+  );
+};
+
+export default ConversationsPage;
+</file>
+
+<file path="src/app/[locale]/(main)/customer/page.tsx">
+import { useTranslations } from "next-intl";
+
+export default function CustomerPage() {
+  const t = useTranslations("sidebar");
+  return (
+    <div style={{ padding: "2rem" }}>
+      <h1>{t("customer")}</h1>
+      <p>This page is under construction.</p>
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(main)/laws/page.tsx">
+import { useTranslations } from "next-intl";
+
+export default function LawsPage() {
+  const t = useTranslations("sidebar");
+  return (
+    <div style={{ padding: "2rem" }}>
+      <h1>{t("laws")}</h1>
+      <p>This page is under construction.</p>
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(main)/layout.tsx">
+import Sidebar from "@/components/Sidebar";
+
+export default function MainAppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ display: "flex", height: "100vh" }}>
+      <Sidebar />
+      <main style={{ flex: 1, overflowY: "auto" }}>{children}</main>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/Dashboard.module.scss">
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 3rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 4rem;
+
+  .logoContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    margin-top: 0.5rem;
+    font-size: 1.125rem;
+    color: #6b7280;
+    font-weight: 400;
+  }
+}
+
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  border-radius: 16px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #dc2626, #f87171);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #dc2626;
+
+    &::before {
+      transform: scaleX(1);
+    }
+
+    h3 {
+      color: #dc2626;
+    }
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    transition: color 0.3s ease;
+  }
+}
+</file>
+
+<file path="src/components/Dashboard.tsx">
+"use client";
+
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { v4 as uuidv4 } from "uuid";
+import { Link } from "@/i18n/navigation";
+import styles from "./Dashboard.module.scss";
+import Image from "next/image";
+
+const Dashboard = () => {
+  const t = useTranslations("dashboard");
+  const router = useRouter();
+
+  const handleStartConsulting = () => {
+    const newThreadId = uuidv4();
+    router.push(`/conversation/${newThreadId}`);
+  };
+
+  return (
+    <div className={styles.dashboardContainer}>
+      <div className={styles.header}>
+        <div className={styles.logoContainer}>
+          <Image
+            src="/images/logo.png"
+            alt="Kireon Logo"
+            width={80}
+            height={80}
+            priority
+          />
+          <h1 className={styles.title}>Kireon GPT</h1>
+        </div>
+        <p>{t("welcome_message")}</p>
+      </div>
+      <div className={styles.tileGrid}>
+        <div className={styles.tile} onClick={handleStartConsulting}>
+          <h3>{t("consultant_title")}</h3>
+        </div>
+        <Link href="/laws" className={styles.tile}>
+          <h3>{t("laws_title")}</h3>
+        </Link>
+        <Link href="/customer" className={styles.tile}>
+          <h3>{t("customer_title")}</h3>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
+</file>
+
+<file path="src/components/Sidebar.module.scss">
+.sidebar {
+  width: 240px;
+  background-color: #ffffff;
+  height: 100vh;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 10;
+
+  &.collapsed {
+    width: 60px;
+    
+    &:hover {
+      width: 240px;
+
+      .navLabel {
+        opacity: 1;
+        width: auto;
+        transition-delay: 0.1s;
+      }
+
+      .navLink {
+        justify-content: flex-start;
+        padding: 0.75rem 1.5rem;
+      }
+
+      .navIcon {
+        margin-right: 1rem;
+      }
+    }
+  }
+}
+
+.sidebarContent {
+  flex-grow: 1;
+  padding-top: 2rem;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: #4b5563;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+
+  &.active {
+    background-color: #fee2e2;
+    color: #dc2626;
+    font-weight: 600;
+    border-left: 3px solid #dc2626;
+  }
+}
+
+.navIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  transition: margin 0.2s ease;
+}
+
+.navLabel {
+  transition: opacity 0.3s ease, width 0.3s ease;
+}
+
+.collapsed .navLabel {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.collapsed .navLink {
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+}
+
+.collapsed .navIcon {
+  margin-right: 0;
+}
+
+.toggleButton {
+  padding: 1rem;
+  background-color: transparent;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f9fafb;
+    color: #374151;
+  }
+}
+</file>
+
+<file path="src/components/Sidebar.tsx">
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
+import { v4 as uuidv4 } from "uuid";
+import clsx from "clsx";
+import styles from "./Sidebar.module.scss";
+import {
+  ChatBubbleLeftRightIcon,
+  DocumentTextIcon,
+  UsersIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+} from "@heroicons/react/24/outline";
+
+const Sidebar = () => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const t = useTranslations("sidebar");
+  const pathname = usePathname();
+
+  const navItems = [
+    {
+      href: `/conversation/${uuidv4()}`,
+      label: t("consultant"),
+      icon: ChatBubbleLeftRightIcon,
+      isActive: (path: string) => path.startsWith("/conversation"),
+    },
+    {
+      href: "/laws",
+      label: t("laws"),
+      icon: DocumentTextIcon,
+      isActive: (path: string) => path === "/laws",
+    },
+    {
+      href: "/customer",
+      label: t("customer"),
+      icon: UsersIcon,
+      isActive: (path: string) => path === "/customer",
+    },
+  ];
+
+  return (
+    <nav className={clsx(styles.sidebar, isCollapsed && styles.collapsed)}>
+      <div className={styles.sidebarContent}>
+        <ul className={styles.navList}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={clsx(
+                    styles.navLink,
+                    item.isActive(pathname) && styles.active
+                  )}
+                >
+                  <Icon className={styles.navIcon} />
+                  <span className={styles.navLabel}>{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className={styles.toggleButton}
+        title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+      >
+        {isCollapsed ? (
+          <ChevronDoubleRightIcon className="h-5 w-5" />
+        ) : (
+          <ChevronDoubleLeftIcon className="h-5 w-5" />
+        )}
+      </button>
+    </nav>
+  );
+};
+
+export default Sidebar;
 </file>
 
 <file path=".github/workflows/build-check.yml">
@@ -206,6 +643,120 @@ jobs:
       
     - name: Build check completed successfully
       run: echo "✅ All checks passed! yarn build would complete without errors."
+</file>
+
+<file path="messages/de.json">
+{
+  "start_session_button": "Session starten",
+  "start_guest_message": "Nimm dir 10 Minuten Zeit um in Ruhe die Aufgaben zu lösen.",
+  "start_guest_button": "Test starten!",
+  "impressum": "Impressum",
+  "privacy_policy": "Datenschutzerklärung",
+  "input_placeholder": "Sended Sie eine Nachricht...",
+  "llm_disclaimer": "Dies ist ein von einem LLM gesteuerter dynamischer Test. Denken Sie daran, dass LLMs Fehler machen können.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "sign_in_error": "Fehler bei der Anmeldung.",
+  "show_password": "Passwort anzeigen",
+  "hide_password": "Passwort verbergen",
+  "password_placeholder": "Passwort",
+  "sign_in_button": "Sign in",
+  "sidebar": {
+    "consultant": "Beratung",
+    "laws": "Gesetzestexte",
+    "customer": "Kunden"
+  },
+  "dashboard": {
+    "consultant_title": "Beratung",
+    "laws_title": "Gesetzestexte",
+    "customer_title": "Kunden",
+    "welcome_message": "Wählen Sie einen Bereich aus, um zu beginnen."
+  }
+}
+</file>
+
+<file path="messages/en.json">
+{
+  "start_session_button": "Start session",
+  "start_guest_message": "Take 10 minutes to carefully complete the tasks.",
+  "start_guest_button": "Start test",
+  "impressum": "Imprint",
+  "privacy_policy": "Privacy policy",
+  "input_placeholder": "Send a message...",
+  "llm_disclaimer": "This a LLM powered dynamic test. Remember LLMs can make mistakes.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "password_placeholder": "Password",
+  "sign_in_button": "Sign in",
+  "sidebar": {
+    "consultant": "Consultant",
+    "laws": "Laws",
+    "customer": "Customer"
+  },
+  "dashboard": {
+    "consultant_title": "Consulting",
+    "laws_title": "Legal Texts",
+    "customer_title": "Customers",
+    "welcome_message": "Select an area to get started."
+  }
+}
+</file>
+
+<file path="messages/es.json">
+{
+  "start_session_button": "Iniciar sesión",
+  "start_guest_message": "Tómate 10 minutos para completar cuidadosamente las tareas.",
+  "start_guest_button": "Comenzar prueba",
+  "impressum": "Aviso legal",
+  "privacy_policy": "Política de privacidad",
+  "input_placeholder": "Enviar un mensaje...",
+  "llm_disclaimer": "Esta es una prueba dinámica impulsada por un LLM. Recuerda que los LLM pueden cometer errores.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "sign_in_error": "Error al iniciar sesión.",
+  "show_password": "Mostrar contraseña",
+  "hide_password": "Ocultar contraseña",
+  "password_placeholder": "Password",
+  "sign_in_button": "Sign in"
+}
+</file>
+
+<file path="messages/it.json">
+{
+  "start_session_button": "Avvia sessione",
+  "start_guest_message": "Prenditi 10 minuti per completare attentamente i compiti.",
+  "start_guest_button": "Inizia il test",
+  "impressum": "Note legali",
+  "privacy_policy": "Informativa sulla privacy",
+  "input_placeholder": "Invia un messaggio...",
+  "llm_disclaimer": "Questo è un test dinamico alimentato da un LLM. Ricorda che gli LLM possono commettere errori.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "sign_in_error": "Errore di accesso.",
+  "show_password": "Mostra password",
+  "hide_password": "Nascondere la password",
+  "password_placeholder": "Password",
+  "sign_in_button": "Sign in"
+}
+</file>
+
+<file path="messages/ro.json">
+{
+  "start_session_button": "Începe sesiunea",
+  "start_guest_message": "Ia-ți 10 minute pentru a finaliza cu atenție sarcinile.",
+  "start_guest_button": "Începe testul",
+  "impressum": "Imprint",
+  "privacy_policy": "Politica de confidențialitate",
+  "input_placeholder": "Trimite un mesaj...",
+  "llm_disclaimer": "Acesta este un test dinamic bazat pe un LLM. Reține că LLM-urile pot greși.",
+  "llm_disclaimer_short": "Remember LLMs can make mistakes.",
+  "email_placeholder": "user@example.com",
+  "sign_in_error": "Eroare la autentificare.",
+  "show_password": "Arata parola",
+  "hide_password": "Ascunde parola",
+  "password_placeholder": "Parola",
+  "sign_in_button": "Sign in"
+}
 </file>
 
 <file path="public/assets/images/agent-logo.svg">
@@ -371,35 +922,6 @@ jobs:
 </svg>
 </file>
 
-<file path="src/app/[locale]/conversation/[...conversationId]/layout.tsx">
-import SplitView from "@/components/SplitView";
-
-export default function ChatLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <SplitView>{children}</SplitView>;
-}
-</file>
-
-<file path="src/app/[locale]/conversation/[...conversationId]/page.tsx">
-"use client";
-
-import ConversationChat from "@/components/ConversationChat";
-import Protected from "@/components/Protected";
-
-const ConversationsPage: React.FC = () => {
-  return (
-    <Protected>
-      <ConversationChat />
-    </Protected>
-  );
-};
-
-export default ConversationsPage;
-</file>
-
 <file path="src/app/[locale]/signin/layout.tsx">
 "use client";
 import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
@@ -476,17 +998,17 @@ export default async function RootLayout({
 "use client";
 
 import Protected from "@/components/Protected";
-import StartGuest from "@/components/StartGuest";
+import Dashboard from "@/components/Dashboard";
 
-const StartGuestPage: React.FC = () => {
+const DashboardPage: React.FC = () => {
   return (
     <Protected>
-      <StartGuest />
+      <Dashboard />
     </Protected>
   );
 };
 
-export default StartGuestPage;
+export default DashboardPage;
 </file>
 
 <file path="src/client/client.gen.ts">
@@ -1319,53 +1841,6 @@ export type ClientOptions = {
 }
 </file>
 
-<file path="src/components/ArtifactActionButton.tsx">
-"use client";
-
-import styles from "./ArtifactActionButton.module.scss";
-
-type Props = {
-  label: string;
-  disabled: boolean;
-  onAction: () => void;
-  isLoading?: boolean;
-};
-
-const ArtifactActionButton = ({
-  label,
-  disabled,
-  onAction,
-  isLoading = false,
-}: Props) => {
-  const showLoading = isLoading;
-
-  return (
-    <div className="relative z-[2] mb-[10px] w-full">
-      <div className="mx-auto container text-center">
-        <button
-          className="action-btn mb-3 pt-3 pb-4 w-full rounded-xl disabled:opacity-50"
-          disabled={disabled || showLoading || !label}
-          aria-disabled={disabled || showLoading}
-          onClick={onAction}
-        >
-          {showLoading ? (
-            <span className={styles.loadingDots}>
-              <span></span>
-              <span></span>
-              <span></span>
-            </span>
-          ) : (
-            label
-          )}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default ArtifactActionButton;
-</file>
-
 <file path="src/components/ArtifactEditor.module.scss">
 .bubbleMenu {
   background-color: #fff;
@@ -1531,168 +2006,6 @@ const ArtifactEval = ({ artifact }: Props) => {
 export default ArtifactEval;
 </file>
 
-<file path="src/components/ArtifactForm.tsx">
-"use client";
-
-import {
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-  forwardRef,
-} from "react";
-
-import { JsonForms } from "@jsonforms/react";
-import { vanillaRenderers, vanillaCells } from "@jsonforms/vanilla-renderers";
-import { formatMarkdownHtml } from "@/domain/markdown-service";
-
-type Props = {
-  artifact: any;
-  onModified: (val: any) => void;
-};
-
-export type ArtifactFormRef = {
-  getUpdatedArtifact: () => any;
-};
-
-const ArtifactForm = forwardRef<ArtifactFormRef, Props>(
-  ({ artifact, onModified }, ref) => {
-    const stableString = useMemo(() => {
-      return typeof artifact.content === "string"
-        ? artifact.content
-        : JSON.stringify(artifact.content ?? {});
-    }, [artifact.content]);
-
-    const parsedContent = useMemo(() => {
-      try {
-        return JSON.parse(stableString);
-      } catch {
-        return {};
-      }
-    }, [stableString]);
-
-    const payloadArray = parsedContent.payload;
-    const markdown = parsedContent.content ?? "";
-
-    const { schema, uischema, initialData } = useMemo(() => {
-      if (!Array.isArray(payloadArray)) {
-        return {
-          schema: { type: "object", properties: {} },
-          uischema: { type: "Group", elements: [] },
-          initialData: {},
-        };
-      }
-
-      const properties: Record<string, any> = {};
-      const ui: Record<string, any> = {};
-      const formData: Record<string, any> = {};
-
-      for (const field of payloadArray) {
-        const { key, type, title, enum: enumVals, uischema, data } = field;
-
-        if (!key) continue;
-
-        properties[key] = {
-          type,
-          title,
-          ...(enumVals ? { enum: enumVals } : {}),
-        };
-
-        if (uischema) {
-          ui[key] = {
-            type: "Control",
-            scope: `#/properties/${key}`,
-            options: {
-              format:
-                field.uischema?.["ui:widget"] === "radio" ? "radio" : undefined,
-            },
-          };
-        }
-
-        formData[key] = data ?? "";
-      }
-
-      return {
-        schema: {
-          type: "object",
-          properties,
-        },
-        uischema: {
-          type: "Group",
-          elements: Object.entries(ui).map(([key, schema]) => ({
-            scope: `#/properties/${key}`,
-            ...schema,
-          })),
-        },
-        initialData: formData,
-      };
-    }, [payloadArray]);
-
-    const [formData, setFormData] = useState(initialData);
-    const originalData = useRef(JSON.stringify(initialData));
-
-    const buildUpdatedArtifact = (): any => ({
-      ...artifact,
-      payload: {
-        schema,
-        uischema,
-        data: formData,
-      },
-      version: (artifact.version ?? 0) + 1,
-    });
-
-    useImperativeHandle(ref, () => ({
-      getUpdatedArtifact: () => buildUpdatedArtifact(),
-    }));
-
-    useEffect(() => {
-      const isModified = JSON.stringify(formData) !== originalData.current;
-      if (isModified) {
-        onModified(buildUpdatedArtifact());
-      } else {
-        onModified(null);
-      }
-    }, [formData]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    useEffect(() => {
-      setFormData(initialData);
-      originalData.current = JSON.stringify(initialData);
-    }, [initialData]);
-
-    const handleChange = ({ data }: { data: Record<string, unknown> }) => {
-      setFormData(data);
-    };
-
-    return (
-      <div className="flex-grow overflow-y-auto">
-        {markdown && (
-          <div
-            className="markdown-chat mb-10"
-            dangerouslySetInnerHTML={{
-              __html: formatMarkdownHtml(markdown),
-            }}
-          />
-        )}
-
-        <JsonForms
-          data={formData}
-          schema={schema}
-          uischema={uischema}
-          cells={vanillaCells}
-          renderers={vanillaRenderers}
-          onChange={handleChange}
-          config={{ validationMode: "NoValidation", useDefaults: true }}
-        />
-      </div>
-    );
-  }
-);
-
-ArtifactForm.displayName = "ArtifactForm";
-export default ArtifactForm;
-</file>
-
 <file path="src/components/ArtifactHeader.module.scss">
 .artifactHeader {
   background-color: var(--artifact-bg);
@@ -1747,139 +2060,6 @@ export default ArtifactForm;
     img {
       filter: brightness(0) invert(1);
     }
-  }
-}
-</file>
-
-<file path="src/components/ArtifactHeader.tsx">
-"use client";
-
-import {
-  ArrowRightStartOnRectangleIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import ArtifactTimeline from "./ArtifactTimeline";
-import Image from "next/image";
-import clsx from "clsx";
-import { v4 as uuidv4 } from "uuid";
-import { useAgentStreamContext } from "@/context/AgentStreamProvider";
-
-import styles from "./ArtifactHeader.module.scss";
-
-interface ArtifactHeaderProps {
-  tasks?: {
-    original_index: number;
-    task_title: string;
-    task_type: string;
-    task_icon: string;
-  }[];
-  currentTaskIndex: number;
-}
-
-const ArtifactHeader = ({
-  tasks = [],
-  currentTaskIndex,
-}: ArtifactHeaderProps) => {
-  const router = useRouter();
-  const { signOut } = useAuth();
-  const { reset } = useAgentStreamContext();
-
-  const handleNewConversation = () => {
-    const newThreadId = uuidv4();
-    reset();
-
-    router.push(`/conversation/${newThreadId}`);
-  };
-
-  const handleLogout = async () => {
-    reset();
-    await signOut();
-    router.replace("/signin");
-  };
-  return (
-    <div
-      className={clsx(
-        styles.artifactHeader,
-        "flex flex-col gap-2 px-5 md:px-10 py-4 bg-[var(--artifact-bg)]"
-      )}
-    >
-      <div className="flex flex-row justify-between items-center min-h-[55px]">
-        <div className="flex flex-row gap-4 items-center justify-center">
-          <Image
-            src="/assets/images/logo.png"
-            alt="Logo"
-            width={37}
-            height={37}
-          />
-          <span className="ava_title">Kireon GPT</span>
-        </div>
-
-        <div className="flex flex-row items-center gap-0 md:gap-6">
-          <button
-            onClick={handleNewConversation}
-            title="Neuer Chat"
-            className={styles.headerButton}
-          >
-            <PencilSquareIcon className="h-6 w-6 text-gray-500" />
-          </button>
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            className={styles.headerButton}
-          >
-            <ArrowRightStartOnRectangleIcon className="h-6 w-6 text-gray-500" />
-          </button>
-          <a
-            href="https://deyan7.de/"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Zur Deyan7-Webseite"
-            className={styles.headerLink}
-          >
-            <Image
-              src="/assets/images/deyan7_logo.svg"
-              alt="Deyan7 Logo"
-              width={93}
-              height={40}
-            />
-          </a>
-        </div>
-      </div>
-
-      {tasks.length > 0 && (
-        <ArtifactTimeline
-          tasks={tasks}
-          currentTask={currentTaskIndex}
-          totalTasks={tasks.length}
-        />
-      )}
-    </div>
-  );
-};
-
-export default ArtifactHeader;
-</file>
-
-<file path="src/components/ArtifactLoading.module.scss">
-.linkOrange {
-  color: var(--rosewood);
-  font-weight: 700;
-
-  &::after {
-    content: attr(data-icon);
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    display: inline-block;
-    text-align: center;
-    line-height: 30px;
-    margin-left: 10px;
-    transition: margin-left 300ms ease 0ms;
-  }
-
-  &:hover::after {
-    margin-left: 15px;
   }
 }
 </file>
@@ -2026,136 +2206,6 @@ const ArtifactTaskInstruction = ({ artifact }: Props) => {
 export default ArtifactTaskInstruction;
 </file>
 
-<file path="src/components/ArtifactTimeline.module.scss">
-.artifactTimeline {
-  position: relative;
-  background-color: var(--artifact-bg);
-  z-index: 10;
-  
-  &::before {
-    height: 1px;
-    width: 100%;
-    content: "";
-    position: absolute;
-    top: calc(50% - 0.5px);
-    background-color: #747f9e;
-    z-index: 1;
-  }
-  
-  .artifactTimelineBubbles {
-    width: 100%;
-  }
-  
-  .timelineItem {
-    width: 38px;
-    height: 38px;
-    border-radius: 30px;
-    border: 1px solid #747f9e;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #F5F5F5 !important;
-    z-index: 10;
-    padding: 0.4rem;
-    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    position: relative;
-    
-    img {
-      filter: invert(49%) sepia(9%) saturate(262%) hue-rotate(183deg);
-      transition: filter 0.3s ease;
-    }
-    
-    &.timelineDone {
-      border: 2px solid var(--red-crayola);
-      background-color: #FAFAFA !important;
-      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    }
-    
-    &.timelineActive {
-      width: 55px !important;
-      height: 55px !important;
-      border: 2px solid var(--red-crayola);
-      padding: 0.65rem !important;
-      background-color: var(--melon) !important;
-      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      
-      &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: 50%;
-        background: linear-gradient(45deg, rgba(232, 76, 90, 0.3), rgba(246, 189, 182, 0.2), rgba(232, 76, 90, 0.3)) !important;
-        background-size: 200% 200%;
-        z-index: 0;
-        animation: backgroundShift 6s ease-in-out infinite;
-        opacity: 0.3;
-      }
-      
-      &::after {
-        content: '';
-        position: absolute;
-        inset: -3px;
-        border-radius: 50%;
-        background: conic-gradient(from 0deg, transparent 0deg, var(--red-crayola) 90deg, transparent 180deg, var(--melon) 270deg, transparent 360deg);
-        z-index: -1;
-        animation: rotateRing 8s linear infinite;
-        opacity: 0.3;
-      }
-      
-      img {
-        filter: invert(80%) sepia(9%) saturate(262%) hue-rotate(183deg);
-        position: relative;
-        z-index: 1;
-        animation: iconPulse 4s ease-in-out infinite;
-      }
-    }
-  }
-}
-
-@keyframes backgroundShift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes rotateRing {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes iconPulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scale(0.98);
-  }
-}
-
-#artifactTimelineProgressContainer {
-  width: calc(100% - 5rem);
-  height: 2px;
-  position: absolute;
-  z-index: 5;
-}
-
-#artifactTimelineProgress {
-  height: 2px;
-  background: linear-gradient(90deg, var(--red-crayola), var(--melon));
-  top: calc(50% - 1px);
-  transition: width 0.5s ease-in-out;
-}
-</file>
-
 <file path="src/components/ArtifactTimeline.tsx">
 "use client";
 
@@ -2226,427 +2276,6 @@ const ArtifactTimeline = ({ tasks, currentTask, totalTasks }: Props) => {
 };
 
 export default ArtifactTimeline;
-</file>
-
-<file path="src/components/ArtifactView.module.scss">
-.artifactContainer {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-}
-
-.artifactContent {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  position: relative;
-
-  // Firefox scrollbar
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-color) transparent;
-
-  // WebKit scrollbar
-  &::-webkit-scrollbar {
-    width: 12px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-color);
-    border: 3px solid transparent;
-    border-radius: 10px;
-    background-clip: padding-box;
-  }
-}
-
-.artifactInnerContent {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 50px;
-  margin-top: 60px;
-}
-
-.fadeIn {
-  position: absolute;
-  top: 50px;
-  left: 0;
-  width: calc(100% - 30px);
-  height: 60px;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    #F5F5F5,
-    rgba(245, 245, 245, 0)
-  );
-  z-index: 1;
-}
-
-.fadeOut {
-  position: absolute;
-  bottom: 80px;
-  left: 0;
-  width: calc(100% - 30px);
-  height: 60px;
-  pointer-events: none;
-  background: linear-gradient(
-    to top,
-    #F5F5F5,
-    rgba(245, 245, 245, 0)
-  );
-  z-index: 1;
-}
-
-.artifactActionFooter {
-  position: relative;
-  z-index: 2;
-  margin-bottom: 10px;
-}
-
-.artifact {
-  background-color: var(--artifact-bg);
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-color) transparent;
-
-  &::-webkit-scrollbar {
-    width: 12px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-color);
-    border: 3px solid transparent;
-    border-radius: 10px;
-    background-clip: padding-box;
-  }
-}
-
-.notification {
-  position: absolute;
-  bottom: 4rem;
-  right: 1rem;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: opacity 0.3s ease;
-}
-
-.formLoadingPlaceholder {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 16px 0;
-  opacity: 0.4; /* fade everything together */
-  filter: grayscale(100%); /* turn all colors to gray */
-}
-
-.shimmerBlock {
-  height: 2.5rem; /* match your input height */
-  width: 100%;
-  background: linear-gradient(to right, #e0e0e0 0%, #f8f8f8 50%, #e0e0e0 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-}
-
-.shimmerBlock.short {
-  width: 60%;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-</file>
-
-<file path="src/components/ArtifactView.tsx">
-"use client";
-
-import { useEffect, useRef, useState, useMemo } from "react";
-import ArtifactEval from "./ArtifactEval";
-import ArtifactForm from "./ArtifactForm";
-import ArtifactHeader from "@/components/ArtifactHeader";
-import ArtifactActionButton from "@/components/ArtifactActionButton";
-import { ArtifactType } from "@/domain/constants";
-import clsx from "clsx";
-import { useAuth } from "@/context/AuthContext";
-import { useTaskContext } from "@/context/TaskContext";
-import { useAgentStreamContext } from "@/context/AgentStreamProvider";
-import { useNormalizedParam } from "@/lib/hooks/useNormalizedParam";
-import { useMediaQuery } from "react-responsive";
-
-import styles from "./ArtifactView.module.scss";
-import ArtifactMarkdown from "./ArtifactMarkdown";
-
-const ArtifactView = () => {
-  const { user, loading } = useAuth();
-
-  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
-  const [isActionLoading, setIsActionLoading] = useState(false);
-  const [updatedArtifact, setUpdatedArtifact] = useState<any>(null);
-
-  const {
-    artifacts: streamedArtifacts,
-    chatMessages,
-    sendMessage,
-    clearArtifacts,
-  } = useAgentStreamContext();
-
-  const lastMessage = chatMessages.at(-1);
-  const nextCommand = (lastMessage?.meta?.available_commands as any[])?.[0];
-  const conversationUuid = useNormalizedParam("conversationId") as string;
-
-  const scrollAnchorRef = useRef<HTMLDivElement | null>(null);
-  const artifactScrollRef = useRef<HTMLDivElement | null>(null);
-
-  const { tasks: taskSummary, currentTaskIndex } = useTaskContext();
-
-  const latestArtifact = streamedArtifacts.at(-1);
-
-  const parsedContent = useMemo(() => {
-    try {
-      if (typeof latestArtifact?.content === "string") {
-        const trimmed = latestArtifact.content.trim();
-        const isLikelyJson =
-          (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-          (trimmed.startsWith("[") && trimmed.endsWith("]"));
-        if (isLikelyJson) {
-          try {
-            return JSON.parse(trimmed);
-          } catch {
-            return trimmed;
-          }
-        }
-      }
-      return latestArtifact?.content ?? {};
-    } catch {
-      return {};
-    }
-  }, [latestArtifact]);
-
-  const artifactType: ArtifactType | undefined =
-    latestArtifact?.type ||
-    parsedContent.artifact_type ||
-    parsedContent.task_type;
-
-  const ArtifactComponent = selectArtifactComponent(artifactType);
-
-  const normalizedArtifact: any = useMemo(
-    () => ({
-      ...(latestArtifact || {}),
-      type: artifactType,
-      title:
-        latestArtifact?.title ||
-        parsedContent.artifact_title ||
-        parsedContent.task_title,
-      payload:
-        parsedContent.payload ||
-        parsedContent.artifact_content ||
-        parsedContent.task_content?.content ||
-        (typeof parsedContent === "string" ? parsedContent : ""),
-      status: latestArtifact?.status,
-    }),
-    [latestArtifact, artifactType, parsedContent]
-  );
-
-  const renderedArtifact = useMemo(() => {
-    if (!latestArtifact) return null;
-
-    if (
-      normalizedArtifact.type === "json_form" &&
-      normalizedArtifact.status === "streaming"
-    ) {
-      return (
-        <div className={styles.formLoadingPlaceholder}>
-          <div className={styles.shimmerBlock} />
-          <div className={`${styles.shimmerBlock} ${styles.short}`} />
-          <div className={styles.shimmerBlock} />
-          <div className={`${styles.shimmerBlock} ${styles.short}`} />
-        </div>
-      );
-    }
-
-    return (
-      <ArtifactComponent
-        artifact={normalizedArtifact}
-        onModified={setUpdatedArtifact}
-      />
-    );
-  }, [latestArtifact, normalizedArtifact, ArtifactComponent]);
-
-  useEffect(() => {
-    const anchor = scrollAnchorRef.current;
-    const container = artifactScrollRef.current;
-    if (anchor && container) {
-      anchor.scrollIntoView({ behavior: "smooth", block: "end" });
-    }
-  }, [renderedArtifact]);
-
-  const onAction = async () => {
-    if (loading || !user) return;
-    const updated = updatedArtifact || normalizedArtifact;
-    if (!updated) return;
-
-    const token = await user.getIdToken();
-    setIsActionLoading(true);
-    if (nextCommand?.name === "CMD_SUBMIT_TASK_WITH_ARTIFACT") {
-      clearArtifacts();
-    }
-    await sendMessage(
-      {
-        thread_id: conversationUuid,
-        user_id: user.uid,
-        model: "gpt-4o-mini",
-        stream_tokens: true,
-        message: "",
-        agent_id: "kireon-agent",
-        agent_config: {
-          command_id: nextCommand?.id,
-          artifact_content: updated,
-        },
-      },
-      token
-    );
-    setIsActionLoading(false);
-  };
-
-  return (
-    <div
-      className={clsx(
-        styles.artifact,
-        "h-full flex flex-col overflow-hidden relative"
-      )}
-    >
-      <div className={clsx(isMobile ? "mobile-header" : "")}>
-        <ArtifactHeader
-          tasks={taskSummary}
-          currentTaskIndex={currentTaskIndex}
-        />
-      </div>
-
-      <div className={styles.artifactContainer}>
-        <div className={styles.fadeIn} />
-        <div
-          className={clsx(
-            styles.artifactContent,
-            "pt-[30px] overflow-y-auto h-full"
-          )}
-          ref={artifactScrollRef}
-        >
-          <div className={clsx(styles.artifactInnerContent, "pl-10 pr-10")}>
-            {renderedArtifact}
-            <div ref={scrollAnchorRef} />
-          </div>
-        </div>
-        <div className={styles.fadeOut} />
-        <div className={clsx(styles.artifactActionFooter, "pl-10 pr-10")}>
-          <ArtifactActionButton
-            label={nextCommand?.label}
-            onAction={onAction}
-            disabled={loading || isActionLoading}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-function selectArtifactComponent(artifactType?: ArtifactType) {
-  switch (artifactType) {
-    case ArtifactType.JsonForm:
-      return ArtifactForm;
-    case ArtifactType.Markdown:
-    case ArtifactType.MarkdownEditor:
-    case ArtifactType.TaskInstruction:
-    case ArtifactType.ChatTask:
-      return ArtifactMarkdown;
-    case ArtifactType.TaskEvaluation:
-    case ArtifactType.EvaluateAll:
-      return ArtifactEval;
-    default:
-      return ArtifactMarkdown;
-  }
-}
-
-export default ArtifactView;
-</file>
-
-<file path="src/components/BaseLayout.tsx">
-"use client";
-
-import Image from "next/image";
-import type { ReactNode } from "react";
-import LegalLinks from "@/components/LegalLinks";
-
-interface BaseLayoutProps {
-  children: ReactNode;
-}
-
-const BaseLayout = ({ children }: BaseLayoutProps) => {
-  return (
-    <>
-      <div className="flex flex-col relative z-10 gap-20 justify-center h-screen w-screen overflow-hidden">
-        <div className="flex flex-col gap-4 items-center justify-center">
-          <div>
-            <Image
-              src="/assets/images/logo.png"
-              alt="Logo"
-              width={90}
-              height={90}
-              className="w-[90px]"
-              priority
-            />
-          </div>
-          <span className="ava_title">Kireon GPT</span>
-        </div>
-
-        <main className="flex justify-center">
-          <div className="box_blue_wrapper">
-            <div className="box_blue p-8">{children}</div>
-          </div>
-        </main>
-
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-20">
-          <LegalLinks />
-        </div>
-      </div>
-
-      <style jsx>{`
-        .icon_agent {
-          display: none !important;
-        }
-      `}</style>
-    </>
-  );
-};
-
-export default BaseLayout;
-</file>
-
-<file path="src/components/ChatMessage.module.scss">
-.chatMessage {
-  &.user {
-    background-color: var(--melon);
-    color: var(--rosewood-dark);
-    padding: 0 1rem 0.25rem;
-    margin: 1rem 1rem 2rem;
-    max-width: 70%;
-    border-radius: 1rem;
-  }
-}
 </file>
 
 <file path="src/components/ChatMessage.tsx">
@@ -2784,195 +2413,6 @@ export default ChatMessage;
 }
 </file>
 
-<file path="src/components/ConversationChat.tsx">
-import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import ChatMessage from "@/components/ChatMessage";
-import ScrollDownButton from "@/components/ScrollDownButton";
-import SendMessageInput, {
-  SendMessageInputRef,
-} from "@/components/SendMessageInput";
-import { formatMarkdownHtml } from "@/domain/markdown-service";
-
-import styles from "./ConversationChat.module.scss";
-
-import { useNormalizedParam } from "@/lib/hooks/useNormalizedParam";
-import { Role } from "@/domain/constants";
-import { getConversation } from "@/domain/conversation";
-import { useAuth } from "@/context/AuthContext";
-import { User } from "firebase/auth";
-import { useAgentStreamContext } from "@/context/AgentStreamProvider";
-import { NetworkingError } from "@/types/generic";
-import { useMediaQuery } from "react-responsive";
-
-const ConversationChat = () => {
-  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
-
-  const hasInitialized = useRef(false);
-
-  const conversationUuid = useNormalizedParam("conversationId") as string;
-
-  const lastMessageId = useRef<string | null>(null);
-
-  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
-  const chatContentRef = useRef<HTMLDivElement>(null);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const userRef = useRef<User | null>(null);
-
-  const sendMessageInput = useRef<SendMessageInputRef | null>(null);
-
-  const { sendMessage, isStreaming, chatMessages, error, loadHistory } =
-    useAgentStreamContext();
-
-  const { user } = useAuth();
-
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    userRef.current = user;
-  }, [user]);
-
-  function startUpdateScrollBottomRef() {
-    const chatContentValue = chatContentRef.current;
-    if (chatContentValue) {
-      chatContentValue.onscroll = () => {
-        setIsScrolledToBottom(
-          chatContentValue.scrollTop + chatContentValue.clientHeight >=
-            chatContentValue.scrollHeight - 600
-        );
-      };
-    }
-  }
-
-  useEffect(() => {
-    const newestMessage = chatMessages.at(-1);
-    const id = newestMessage?.id;
-
-    if (!id || id === lastMessageId.current || !isScrolledToBottom) return;
-
-    lastMessageId.current = id;
-    scrollToBottom("smooth");
-  }, [chatMessages, isScrolledToBottom]);
-
-  useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
-
-    const initialize = async () => {
-      setIsLoading(true);
-
-      try {
-        const conversation = await getConversation(conversationUuid);
-        if (!conversation) throw new Error("Conversation not found");
-        if (conversation instanceof NetworkingError) {
-          throw new Error("Not history found");
-        }
-        loadHistory(conversation.messages);
-      } catch {
-        try {
-          if (!user) throw new Error("User not ready");
-
-          const token = await user.getIdToken();
-
-          await sendMessage(
-            {
-              thread_id: conversationUuid,
-              user_id: user.uid,
-              model: "gpt-4o-mini",
-              stream_tokens: true,
-              message: "",
-              agent_id: "kireon-agent",
-              agent_config: {
-                require_email:
-                  searchParams.get("requireEmail")?.toLowerCase() === "true",
-                email: user?.email ?? "",
-              },
-            },
-            token
-          );
-        } catch (streamError) {
-          console.warn("Stream error:", streamError);
-        }
-      } finally {
-        setIsLoading(false);
-        setTimeout(() => scrollToBottom("instant"), 0);
-        startUpdateScrollBottomRef();
-      }
-    };
-
-    initialize();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
-    chatContentRef.current?.scrollTo({
-      left: 0,
-      top: chatContentRef.current.scrollHeight,
-      behavior: behavior,
-    });
-  };
-
-  return (
-    <div className={styles.chatContainer}>
-      <div className={styles.messagesWrapper} ref={chatContentRef}>
-        <div className={styles.messagesContent}>
-          {chatMessages.map((message) => (
-            <div key={`${message.id}`} className="w-full flex justify-end">
-              <ChatMessage
-                role={message.role as Role}
-                message={message}
-                isStartScreen={false}
-                isLoadingArtifact={false}
-              >
-                <div
-                  className="markdown-chat text-black text-lg"
-                  dangerouslySetInnerHTML={{
-                    __html: formatMarkdownHtml(message.content ?? ""),
-                  }}
-                />
-              </ChatMessage>
-            </div>
-          ))}
-
-          {error && (
-            <div className="text-center">
-              <input
-                className="container"
-                type="text"
-                placeholder={error}
-                aria-invalid
-                readOnly
-              />
-            </div>
-          )}
-          {isStreaming && (
-            <ChatMessage
-              role={Role.AI}
-              aria-busy={isLoading}
-              isStartScreen={false}
-              isLoadingArtifact={false}
-            />
-          )}
-        </div>
-      </div>
-
-      <div className={styles.inputWrapper}>
-        {!isScrolledToBottom && (
-          <div className={styles.scrollButtonContainer}>
-            <ScrollDownButton onClick={scrollToBottom} />
-          </div>
-        )}
-        {!isMobile && <SendMessageInput ref={sendMessageInput} />}
-      </div>
-    </div>
-  );
-};
-
-export default ConversationChat;
-</file>
-
 <file path="src/components/LegalLinks.tsx">
 "use client";
 
@@ -3036,12 +2476,6 @@ const Protected = ({ children }: { children: ReactNode }) => {
 export default Protected;
 </file>
 
-<file path="src/components/ScrollDownButton.module.scss">
-.textOrange {
-  color: var(--rosewood);
-}
-</file>
-
 <file path="src/components/ScrollDownButton.tsx">
 "use client";
 
@@ -3080,600 +2514,6 @@ const ScrollDownButton = ({ onClick }: ScrollDownButtonProps) => {
 };
 
 export default ScrollDownButton;
-</file>
-
-<file path="src/components/SendMessageInput.tsx">
-"use client";
-
-import { forwardRef, useImperativeHandle, useRef } from "react";
-import { useTranslations } from "next-intl";
-import { useMediaQuery } from "react-responsive";
-import TextInput, { TextInputRef } from "./TextInput";
-import { useAgentStreamContext } from "@/context/AgentStreamProvider";
-import { useNormalizedParam } from "@/lib/hooks/useNormalizedParam";
-import { useAuth } from "@/context/AuthContext";
-import LegalLinks from "./LegalLinks";
-import { useSplitViewContext } from "./SplitView";
-
-type Props = {
-  placeholder?: string;
-};
-
-export type SendMessageInputRef = {
-  focusInput: () => void;
-};
-
-const SendMessageInput = forwardRef<SendMessageInputRef, Props>(
-  ({ placeholder }, ref) => {
-    const conversationUuid = useNormalizedParam("conversationId") as string;
-    const { sendMessage, isStreaming } = useAgentStreamContext();
-    const { user, loading } = useAuth();
-    const textInputRef = useRef<TextInputRef>(null);
-    const { isCompact } = useSplitViewContext();
-
-    const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
-
-    const t = useTranslations();
-
-    useImperativeHandle(ref, () => ({
-      focusInput: () => {
-        textInputRef.current?.focusInput();
-      },
-    }));
-
-    const handleSubmit = async (message: string) => {
-      if (!user || loading) {
-        console.warn("User not authenticated yet.");
-        return;
-      }
-
-      const token = await user.getIdToken();
-
-      await sendMessage(
-        {
-          thread_id: conversationUuid,
-          user_id: user.uid,
-          model: "gpt-4o-mini",
-          stream_tokens: true,
-          message: message,
-          agent_id: "kireon-agent",
-        },
-        token
-      );
-    };
-
-    return (
-      <div className="container text-center mb-2 mt-1 px-0 md:px-8">
-        <div className="relative mb-2">
-          <TextInput
-            ref={textInputRef}
-            inputEnabled={!isStreaming}
-            placeholder={placeholder}
-            onSubmit={handleSubmit}
-          />
-        </div>
-        <div className="flex flex-wrap justify-center sm:justify-between items-center gap-x-4 gap-y-1 text-[0.6rem] text-gray-400">
-          <span
-            className={`${
-              isMobile
-                ? "hidden min-[480px]:inline"
-                : isCompact
-                ? "hidden"
-                : "inline"
-            } sm:text-left`}
-          >
-            {t("llm_disclaimer")}
-          </span>
-          <span
-            className={`${
-              isMobile
-                ? "inline min-[480px]:hidden text-center"
-                : isCompact
-                ? "inline text-center"
-                : "hidden"
-            }`}
-          >
-            {t("llm_disclaimer_short")}
-          </span>
-          <LegalLinks className="shrink-0" />
-        </div>
-      </div>
-    );
-  }
-);
-
-SendMessageInput.displayName = "SendMessageInput";
-export default SendMessageInput;
-</file>
-
-<file path="src/components/SignIn.module.scss">
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes logoFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes inputFocusGlow {
-  0% { box-shadow: 0 0 0 0 rgba(232, 76, 90, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(232, 76, 90, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(232, 76, 90, 0); }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-.logoSection {
-  animation: fadeInUp 0.8s ease-out;
-}
-
-.logo {
-  animation: logoFloat 4s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(232, 76, 90, 0.3));
-  transition: transform 0.3s ease, filter 0.3s ease;
-
-  &:hover {
-    transform: scale(1.05);
-    filter: drop-shadow(0 15px 40px rgba(232, 76, 90, 0.5));
-  }
-
-  @media (max-width: 767px) {
-    width: 70px !important;
-    height: 70px !important;
-  }
-}
-
-.contentContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5rem;
-  max-width: 565px;
-  width: 50%;
-  
-  @media (max-width: 767px) {
-    width: 90%;
-    gap: 3rem;
-  }
-}
-
-.formSection {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.formWrapper {
-  animation: fadeInUp 0.8s ease-out 0.2s both;
-  width: 100%;
-}
-
-.inputWrapper {
-  position: relative;
-}
-
-.input {
-  border: 2px solid rgba(232, 76, 90, 0.2) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  height: auto !important;
-  margin: 0 !important;
-
-  &::placeholder {
-    color: var(--grey) !important;
-    transition: color 0.3s ease !important;
-  }
-
-  &:hover:not(:disabled) {
-    border-color: rgba(232, 76, 90, 0.4) !important;
-    
-    &::placeholder {
-      color: rgba(255, 255, 255, 0.6) !important;
-    }
-  }
-
-  &:focus {
-    outline: none !important;
-    border-color: var(--red-crayola) !important;
-    box-shadow: 0 0 0 4px rgba(232, 76, 90, 0.1) !important;
-    animation: inputFocusGlow 0.75s ease !important;
-
-    &::placeholder {
-      color: rgba(255, 255, 255, 0.7) !important;
-    }
-  }
-
-  &:disabled {
-    opacity: 0.6 !important;
-    cursor: not-allowed !important;
-    border-color: rgba(232, 76, 90, 0.1) !important;
-  }
-}
-
-.inputError {
-  border-color: #ff5757 !important;
-  box-shadow: 0 0 0 4px rgba(255, 87, 87, 0.1) !important;
-  background: linear-gradient(135deg, rgba(255, 87, 87, 0.15), rgba(255, 87, 87, 0.08)) !important;
-  
-  &:focus {
-    border-color: #ff5757 !important;
-    box-shadow: 0 0 0 4px rgba(255, 87, 87, 0.2) !important;
-    background: linear-gradient(135deg, rgba(255, 87, 87, 0.2), rgba(255, 87, 87, 0.1)) !important;
-  }
-  
-  &:hover:not(:disabled) {
-    border-color: #ff5757 !important;
-    background: linear-gradient(135deg, rgba(255, 87, 87, 0.18), rgba(255, 87, 87, 0.1)) !important;
-  }
-}
-
-.shake {
-  animation: shake 0.6s ease-in-out;
-}
-
-.passwordToggle {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--grey);
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  opacity: 0.7;
-  border-radius: 6px;
-
-  &:hover {
-    color: var(--red-crayola);
-    opacity: 1;
-    background: rgba(232, 76, 90, 0.1);
-  }
-
-  &:focus {
-    outline: none;
-    color: var(--red-crayola);
-    opacity: 1;
-  }
-
-  @media (max-width: 767px) {
-    right: 0.75rem;
-    padding: 0.375rem;
-  }
-}
-
-.errorContainer {
-  width: 100%;
-  height: 60px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  margin-top: 1rem;
-  z-index: 10;
-}
-
-.errorMessage {
-  color: #ff5757;
-  font-size: 0.875rem;
-  margin: 0;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 87, 87, 0.1);
-  border-radius: 6px;
-  border-left: 3px solid #ff5757;
-  text-align: center;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 87, 87, 0.2);
-  animation: fadeInUp 0.3s ease-out;
-  width: 100%;
-  max-width: 565px;
-}
-</file>
-
-<file path="src/components/SignIn.tsx">
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { useTranslations } from "next-intl";
-import { useAuth } from "@/context/AuthContext";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import styles from "./SignIn.module.scss";
-
-const SignInPage = () => {
-  const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [signInRunning, setSignInRunning] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  const t = useTranslations();
-
-  const { signInWithEmail } = useAuth();
-
-  const handleSignIn = async () => {
-    setAuthError(null);
-    setHasError(false);
-    setSignInRunning(true);
-    try {
-      await signInWithEmail(email, password);
-      router.replace("/start");
-    } catch (error) {
-      setHasError(true);
-      setAuthError(error instanceof Error ? error.message : "Sign in failed");
-
-      setTimeout(() => {
-        setHasError(false);
-      }, 600);
-    } finally {
-      setSignInRunning(false);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!signInRunning && email && password) {
-      handleSignIn();
-    }
-  };
-
-  return (
-    <>
-      <main className="w-screen h-screen flex flex-col justify-center items-center z-10 bg-white">
-        <div className={styles.contentContainer}>
-          <div
-            className={`flex flex-col gap-4 items-center justify-center z-10 ${styles.logoSection}`}
-          >
-            <Image
-              src="/assets/images/logo.png"
-              alt="Logo"
-              width={90}
-              height={90}
-              className={`w-[90px] ${styles.logo}`}
-              priority
-            />
-            <span className="ava_title">Kireon GPT</span>
-          </div>
-          <div className={styles.formSection}>
-            <article
-              className={`box_blue_wrapper max-w-[565px] w-full z-10 ${styles.formWrapper}`}
-            >
-              <form
-                onSubmit={handleSubmit}
-                className="box_blue p-8 flex flex-col gap-6"
-              >
-                <input
-                  type="email"
-                  placeholder={t("email_placeholder") || "Email"}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={{
-                    background: "var(--gradientDarkblue)",
-                  }}
-                  className={`w-full rounded-[9px] p-3 text-black placeholder-gray-500 focus:outline-none ${
-                    styles.input
-                  } ${hasError ? styles.inputError : ""} ${
-                    hasError ? styles.shake : ""
-                  }`}
-                  disabled={signInRunning}
-                />
-                <div className={styles.inputWrapper}>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder={t("password_placeholder") || "Password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={{
-                      background: "var(--gradientDarkblue)",
-                    }}
-                    className={`w-full rounded-[9px] p-3 text-black placeholder-gray-500 focus:outline-none ${
-                      styles.input
-                    } ${hasError ? styles.inputError : ""} ${
-                      hasError ? styles.shake : ""
-                    }`}
-                    disabled={signInRunning}
-                  />
-                  <button
-                    type="button"
-                    className={styles.passwordToggle}
-                    onClick={() => setShowPassword(!showPassword)}
-                    tabIndex={-1}
-                    aria-label={
-                      showPassword ? t("hide_password") : t("show_password")
-                    }
-                  >
-                    {showPassword ? (
-                      <EyeSlashIcon className="w-5 h-5" />
-                    ) : (
-                      <EyeIcon className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                <button
-                  type="submit"
-                  className="action-btn mb-0 w-full"
-                  disabled={signInRunning || !email || !password}
-                >
-                  {signInRunning
-                    ? "Signing in..."
-                    : t("sign_in_button") || "Sign In"}
-                </button>
-              </form>
-            </article>
-            <div className={styles.errorContainer}>
-              {authError && (
-                <p className={styles.errorMessage}>
-                  {t("sign_in_error") || authError}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </main>
-    </>
-  );
-};
-
-export default SignInPage;
-</file>
-
-<file path="src/components/SplitView.module.scss">
-@media (max-width: 767px) {
-  .mobileLayout {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-    background: #FFFFFF;
-    transform: translateZ(0);
-  }
-
-  .mobileArtifact {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 100px;
-    z-index: 1;
-  }
-
-  .mobileChatPanel {
-    position: absolute;
-    top: 70px;
-    left: 0;
-    right: 0;
-    bottom: 100px;
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(1px);
-    z-index: 15;
-    transition: transform 0.3s ease-in-out;
-  }
-
-  .mobileChatCollapsed {
-    transform: translateY(100vh);
-  }
-
-  .mobileChatExpanded {
-    transform: translateY(0);
-  }
-
-  .mobileMessagesOnly {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .mobileMessagesOnly :global([class*="inputWrapper"]) {
-    display: none !important;
-  }
-
-  .mobileInputFixed {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 100px;
-    background: #FFFFFF;
-    border-top: 1px solid var(--melon);
-    z-index: 25;
-    display: flex;
-    align-items: center;
-    padding: 0 1rem;
-  }
-
-  .mobileInputContent :global([class*="messagesWrapper"]) {
-    display: none !important;
-  }
-
-  .mobileInputContent :global([class*="inputWrapper"]) {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .mobileInputContent {
-    flex: 1;
-    margin-left: 3rem;
-  }
-
-  .mobileToggle {
-    position: absolute;
-    top: 8px;
-    left: 1rem;
-    width: 32px;
-    height: 32px;
-    background: var(--melon);
-    border: 1px solid var(--red-crayola);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 35;
-  }
-
-  .mobileChevron {
-    width: 20px;
-    height: 20px;
-    color: var(--rosewood);
-    transition: transform 0.3s ease;
-  }
-
-  .mobileChevronUp {
-    transform: rotate(0deg);
-  }
-
-  .mobileChevronDown {
-    transform: rotate(180deg);
-  }
-
-  .mobileCloseButton {
-    position: absolute;
-    top: 8px;
-    right: 1rem;
-    width: 32px;
-    height: 32px;
-    background: var(--melon);
-    border: 1px solid var(--red-crayola);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 35;
-  }
-
-  .mobileCloseIcon {
-    width: 16px;
-    height: 16px;
-    color: var(--rosewood);
-  }
-}
 </file>
 
 <file path="src/components/SplitView.tsx">
@@ -3956,85 +2796,6 @@ const SplitViewLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default SplitViewLayout;
-</file>
-
-<file path="src/components/StartGuest.tsx">
-"use client";
-
-import { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
-
-import BaseLayout from "@/components/BaseLayout";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-
-const StartGuest = () => {
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const t = useTranslations();
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const startTest = async () => {
-    setIsLoading(true);
-    setError(null);
-    const newThreadId = uuidv4();
-
-    setIsLoading(false);
-
-    const queryString = searchParams.toString();
-    const url = `/conversation/${newThreadId}${
-      queryString ? `?${queryString}` : ""
-    }`;
-    router.push(url);
-  };
-
-  return (
-    <BaseLayout>
-      <div className="flex flex-col gap-8">
-        <div className="overflow-y-auto relative">
-          {error && (
-            <div className="text-center">
-              <input
-                className="container"
-                type="text"
-                placeholder={error}
-                aria-invalid="true"
-                readOnly
-              />
-            </div>
-          )}
-
-          <div className="container max-w-3xl text-black">
-            {t("start_guest_message")}
-          </div>
-        </div>
-
-        {error && (
-          <input
-            readOnly
-            aria-invalid="true"
-            className="border-red-500 text-red-600 mb-4"
-            value={`Error: ${error}`}
-          />
-        )}
-
-        <button
-          onClick={startTest}
-          className="action-btn w-full"
-          aria-busy={isLoading}
-          disabled={isLoading}
-        >
-          {isLoading ? "Starting..." : t("start_guest_button")}
-        </button>
-      </div>
-    </BaseLayout>
-  );
-};
-
-export default StartGuest;
 </file>
 
 <file path="src/components/TextInput.module.scss">
@@ -4893,6 +3654,2154 @@ export const routing = defineRouting({
 });
 </file>
 
+<file path="src/lib/hooks/useAuthGuard.ts">
+"use client";
+
+import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+
+export const useAuthGuard = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (loading) return;
+
+    const onSignIn = pathname === "/signin";
+
+    if (!user && !onSignIn) {
+      router.replace("/signin");
+      return;
+    }
+
+    if (user && onSignIn) {
+      router.replace("/");
+      return;
+    }
+
+    if (user) {
+      router.replace("/");
+    }
+  }, [pathname, user, loading, router]);
+};
+</file>
+
+<file path="src/lib/hooks/useLocale.ts">
+"use client";
+
+import { usePathname } from "next/navigation";
+
+export const useLocale = (): string => {
+  const pathname = usePathname();
+  const locale = pathname?.split("/")?.[1] || "en";
+  return locale;
+};
+</file>
+
+<file path="src/lib/hooks/useNormalizedParam.ts">
+import { useParams } from "next/navigation";
+
+export const useNormalizedParam = (key: string): string | undefined => {
+  const params = useParams();
+  const value = params?.[key];
+  if (Array.isArray(value)) return value[0];
+  return typeof value === "string" ? value : undefined;
+};
+</file>
+
+<file path="src/lib/api.ts">
+import { createClient, createConfig } from "@hey-api/client-fetch";
+import { type ClientOptions } from "@/client/types.gen";
+import { auth } from "@/lib/auth";
+
+let authToken: string | undefined = undefined;
+
+let tokenReadyResolver: (() => void) | null = null;
+const tokenReady = new Promise<void>((resolve) => {
+  tokenReadyResolver = resolve;
+});
+
+auth.onIdTokenChanged(async (user) => {
+  if (user) {
+    try {
+      authToken = await user.getIdToken();
+    } catch (err) {
+      console.error("Failed to refresh token", err);
+      authToken = undefined;
+    }
+  } else {
+    authToken = undefined;
+  }
+
+  if (tokenReadyResolver) {
+    tokenReadyResolver();
+    tokenReadyResolver = null;
+  }
+});
+
+const baseUrl =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "https://hiring-agent-backend-staging-474483908861.europe-west3.run.app";
+
+export const customClient = createClient(
+  createConfig<ClientOptions>({
+    baseUrl,
+    async fetch(request: Request): Promise<Response> {
+      await tokenReady;
+
+      const headers = new Headers(request.headers);
+      if (authToken) {
+        headers.set("Authorization", `Bearer ${authToken}`);
+      }
+
+      const modifiedRequest = new Request(request, {
+        headers,
+        credentials: "include",
+      });
+
+      return fetch(modifiedRequest);
+    },
+  })
+);
+</file>
+
+<file path="src/lib/auth.ts">
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInAnonymously,
+  signInWithPopup,
+  signOut,
+  type User,
+} from "firebase/auth";
+import config from "@/config";
+
+export const firebaseApp = initializeApp(config.firebaseConfig);
+export const auth = getAuth(firebaseApp);
+
+const provider = new GoogleAuthProvider();
+
+provider.setCustomParameters({
+  hd: "deyan7.de",
+});
+
+export const googleSignIn = async (): Promise<User | null> => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const email = result.user.email;
+
+    if (!email?.endsWith("@deyan7.de")) {
+      console.error("Unauthorized domain:", email);
+      await signOut(auth);
+      return null;
+    }
+
+    return result.user;
+  } catch (error) {
+    console.error("Google Sign-In Error:", error);
+    return null;
+  }
+};
+
+export const ensureAnonymousUser = async (): Promise<void> => {
+  if (!auth.currentUser) {
+    await signInAnonymously(auth);
+  }
+};
+</file>
+
+<file path="src/types/generic.ts">
+export class NetworkingError {
+  code: number | null;
+  message: string;
+
+  constructor(code: number | null, message: string) {
+    this.code = code;
+    this.message = message;
+  }
+}
+
+export interface SourceDocument {
+  id: string;
+  filename: string;
+  content: string;
+  created?: Date;
+  updated?: Date;
+}
+
+export interface Task {
+  original_index: number;
+  task_title: string;
+  task_type: string;
+  task_icon: string;
+}
+</file>
+
+<file path="src/utils/asset.tsx">
+export const getAssetImageUrl = (name: string): string => {
+  return `/assets/images/${name}`;
+};
+</file>
+
+<file path="src/middleware.ts">
+import createMiddleware from "next-intl/middleware";
+import { routing } from "./i18n/routing";
+
+export default createMiddleware(routing);
+
+export const config = {
+  matcher: "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
+};
+</file>
+
+<file path=".dockerignore">
+node_modules
+.next
+.dockerignore
+Dockerfile
+*.log
+*.env
+</file>
+
+<file path=".env.example">
+NEXT_PUBLIC_BACKEND_URL=https://hiring-agent-backend-staging-474483908861.europe-west3.run.app
+</file>
+
+<file path=".env.local">
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# repomix
+repomix-output.xml
+memory/*
+**/source_code.xml
+</file>
+
+<file path="docker-compose.yaml">
+version: '3.8'
+
+services:
+  hiring-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_BACKEND_URL: "http://localhost:8080"
+    image: hiring-frontend:latest
+    ports:
+      - "3000:8080"
+    restart: unless-stopped
+</file>
+
+<file path="Dockerfile">
+FROM node:20-alpine AS deps
+
+ARG NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_ALLOW_ANONYMOUS=true
+ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS
+RUN echo "NEXT_PUBLIC_BACKEND_URL is: $NEXT_PUBLIC_BACKEND_URL"
+
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+
+# Create .env file from build argument
+RUN echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" > .env && \
+    echo "NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS" >> .env
+
+RUN yarn install --frozen-lockfile
+
+FROM node:20-alpine AS builder
+
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_ALLOW_ANONYMOUS=true
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Create .env file from build argument
+RUN echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" > .env && \
+    echo "NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS" >> .env
+
+RUN yarn build
+
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=8080
+ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=true
+
+
+
+COPY --from=builder /app ./
+
+EXPOSE 8080
+
+CMD ["yarn", "start", "-p", "8080"]
+</file>
+
+<file path="eslint.config.mjs">
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
+];
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const nextConfig: NextConfig = {
+  output: "standalone",
+};
+
+const withNextIntl = createNextIntlPlugin();
+export default withNextIntl(nextConfig);
+</file>
+
+<file path="openapi-ts.config.ts">
+import { defineConfig } from "@hey-api/openapi-ts";
+
+export default defineConfig({
+  input:
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/openapi.json` ||
+    "https://hiring-agent-backend-staging-474483908861.europe-west3.run.app/openapi.json",
+  output: "src/client",
+  plugins: ["@hey-api/client-fetch"],
+});
+</file>
+
+<file path="package.json">
+{
+  "name": "d7-hiring-frontend-react",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "generate-types": "openapi-ts"
+  },
+  "dependencies": {
+    "@heroicons/react": "2.2.0",
+    "@hey-api/client-fetch": "0.10.0",
+    "@jsonforms/core": "3.5.1",
+    "@jsonforms/react": "3.5.1",
+    "@jsonforms/vanilla-renderers": "3.5.1",
+    "@tiptap/extension-code-block": "2.12.0",
+    "@tiptap/extension-code-block-lowlight": "^2.24.0",
+    "@tiptap/extension-image": "2.22.0",
+    "@tiptap/extension-link": "2.22.0",
+    "@tiptap/extension-table": "2.12.0",
+    "@tiptap/extension-table-cell": "2.12.0",
+    "@tiptap/extension-table-header": "2.12.0",
+    "@tiptap/extension-table-row": "2.12.0",
+    "@tiptap/react": "2.12.0",
+    "@tiptap/starter-kit": "2.12.0",
+    "chart.js": "4.4.9",
+    "firebase": "11.7.1",
+    "framer-motion": "12.13.0",
+    "highlight.js": "^11.11.1",
+    "katex": "0.16.22",
+    "lowlight": "^3.3.0",
+    "markdown-it": "14.1.0",
+    "mitt": "3.0.1",
+    "next": "15.3.2",
+    "next-intl": "4.1.0",
+    "react": "19.0.0",
+    "react-chartjs-2": "5.3.0",
+    "react-dom": "19.0.0",
+    "react-responsive": "^10.0.1",
+    "sass": "1.89.0",
+    "turndown": "7.2.0",
+    "uuid": "11.1.0",
+    "zustand": "5.0.4"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "3",
+    "@hey-api/openapi-ts": "0.67.3",
+    "@tailwindcss/postcss": "4.1.7",
+    "@types/lowlight": "^2.0.1",
+    "@types/node": "20",
+    "@types/react": "19",
+    "@types/react-dom": "19",
+    "@types/turndown": "5.0.5",
+    "clsx": "2.1.1",
+    "eslint": "9",
+    "eslint-config-next": "15.3.2",
+    "tailwindcss": "4.1.7",
+    "typescript": "5"
+  }
+}
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: ["@tailwindcss/postcss"],
+};
+
+export default config;
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="src/components/ArtifactActionButton.tsx">
+"use client";
+
+import styles from "./ArtifactActionButton.module.scss";
+
+type Props = {
+  label: string;
+  disabled: boolean;
+  onAction: () => void;
+  isLoading?: boolean;
+};
+
+const ArtifactActionButton = ({
+  label,
+  disabled,
+  onAction,
+  isLoading = false,
+}: Props) => {
+  const showLoading = isLoading;
+
+  return (
+    <div className="relative z-[2] mb-[10px] w-full">
+      <div className="mx-auto container text-center">
+        <button
+          className="action-btn mb-3 pt-3 pb-4 w-full rounded-xl disabled:opacity-50"
+          disabled={disabled || showLoading || !label}
+          aria-disabled={disabled || showLoading}
+          onClick={onAction}
+        >
+          {showLoading ? (
+            <span className={styles.loadingDots}>
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          ) : (
+            label
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ArtifactActionButton;
+</file>
+
+<file path="src/components/ArtifactForm.tsx">
+"use client";
+
+import {
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  forwardRef,
+} from "react";
+
+import { JsonForms } from "@jsonforms/react";
+import { vanillaRenderers, vanillaCells } from "@jsonforms/vanilla-renderers";
+import { formatMarkdownHtml } from "@/domain/markdown-service";
+
+type Props = {
+  artifact: any;
+  onModified: (val: any) => void;
+};
+
+export type ArtifactFormRef = {
+  getUpdatedArtifact: () => any;
+};
+
+const ArtifactForm = forwardRef<ArtifactFormRef, Props>(
+  ({ artifact, onModified }, ref) => {
+    const stableString = useMemo(() => {
+      return typeof artifact.content === "string"
+        ? artifact.content
+        : JSON.stringify(artifact.content ?? {});
+    }, [artifact.content]);
+
+    const parsedContent = useMemo(() => {
+      try {
+        return JSON.parse(stableString);
+      } catch {
+        return {};
+      }
+    }, [stableString]);
+
+    const payloadArray = parsedContent.payload;
+    const markdown = parsedContent.content ?? "";
+
+    const { schema, uischema, initialData } = useMemo(() => {
+      if (!Array.isArray(payloadArray)) {
+        return {
+          schema: { type: "object", properties: {} },
+          uischema: { type: "Group", elements: [] },
+          initialData: {},
+        };
+      }
+
+      const properties: Record<string, any> = {};
+      const uiElements: any[] = [];
+      const formData: Record<string, any> = {};
+
+      for (const field of payloadArray) {
+        // Unpack all potential properties from the backend payload
+        const { key, type, title, enum: enumVals, uischema, data, format } = field;
+
+        if (!key) continue;
+
+        // Build the schema property for this field
+        properties[key] = {
+          type,
+          title,
+          // FIX: Include the 'format' property if it exists (for date-pickers)
+          ...(format && { format }),
+          ...(enumVals && { enum: enumVals }),
+        };
+
+        // Build the UI schema element for this field
+        if (uischema) {
+          uiElements.push({
+            type: "Control",
+            scope: `#/properties/${key}`,
+            // FIX: Pass through all options from the backend directly
+            // This allows for things like multi-line text areas, radios, etc.
+            ...(uischema.options && { options: uischema.options }),
+          });
+        }
+
+        // Set the initial form data for this field
+        formData[key] = data ?? "";
+      }
+
+      return {
+        schema: {
+          type: "object",
+          properties,
+        },
+        uischema: {
+          type: "Group",
+          elements: uiElements,
+        },
+        initialData: formData,
+      };
+    }, [payloadArray]);
+
+    const [formData, setFormData] = useState(initialData);
+    const originalData = useRef(JSON.stringify(initialData));
+
+    const buildUpdatedArtifact = (): any => ({
+      ...artifact,
+      payload: {
+        schema,
+        uischema,
+        data: formData,
+      },
+      version: (artifact.version ?? 0) + 1,
+    });
+
+    useImperativeHandle(ref, () => ({
+      getUpdatedArtifact: () => buildUpdatedArtifact(),
+    }));
+
+    useEffect(() => {
+      const isModified = JSON.stringify(formData) !== originalData.current;
+      if (isModified) {
+        onModified(buildUpdatedArtifact());
+      } else {
+        onModified(null);
+      }
+    }, [formData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+      setFormData(initialData);
+      originalData.current = JSON.stringify(initialData);
+    }, [initialData]);
+
+    const handleChange = ({ data }: { data: Record<string, unknown> }) => {
+      setFormData(data);
+    };
+
+    return (
+      <div className="flex-grow overflow-y-auto">
+        {markdown && (
+          <div
+            className="markdown-chat mb-10"
+            dangerouslySetInnerHTML={{
+              __html: formatMarkdownHtml(markdown),
+            }}
+          />
+        )}
+
+        <JsonForms
+          data={formData}
+          schema={schema}
+          uischema={uischema}
+          cells={vanillaCells}
+          renderers={vanillaRenderers}
+          onChange={handleChange}
+          config={{ validationMode: "NoValidation", useDefaults: true }}
+        />
+      </div>
+    );
+  }
+);
+
+ArtifactForm.displayName = "ArtifactForm";
+export default ArtifactForm;
+</file>
+
+<file path="src/components/ArtifactHeader.tsx">
+"use client";
+
+import {
+  ArrowRightStartOnRectangleIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import ArtifactTimeline from "./ArtifactTimeline";
+import Image from "next/image";
+import clsx from "clsx";
+import { v4 as uuidv4 } from "uuid";
+import { useAgentStreamContext } from "@/context/AgentStreamProvider";
+
+import styles from "./ArtifactHeader.module.scss";
+
+interface ArtifactHeaderProps {
+  tasks?: {
+    original_index: number;
+    task_title: string;
+    task_type: string;
+    task_icon: string;
+  }[];
+  currentTaskIndex: number;
+}
+
+const ArtifactHeader = ({
+  tasks = [],
+  currentTaskIndex,
+}: ArtifactHeaderProps) => {
+  const router = useRouter();
+  const { signOut } = useAuth();
+  const { reset } = useAgentStreamContext();
+
+  const handleNewConversation = () => {
+    const newThreadId = uuidv4();
+    reset();
+
+    router.push(`/conversation/${newThreadId}`);
+  };
+
+  const handleLogout = async () => {
+    reset();
+    await signOut();
+    router.replace("/signin");
+  };
+  return (
+    <div
+      className={clsx(
+        styles.artifactHeader,
+        "flex flex-col gap-2 px-5 md:px-10 py-4 bg-[var(--artifact-bg)]"
+      )}
+    >
+      <div className="flex flex-row justify-between items-center min-h-[55px]">
+        <div className="flex flex-row gap-4 items-center justify-center">
+          <span className="ava_title">Kireon GPT</span>
+        </div>
+
+        <div className="flex flex-row items-center gap-0 md:gap-6">
+          <button
+            onClick={handleNewConversation}
+            title="Neuer Chat"
+            className={styles.headerButton}
+          >
+            <PencilSquareIcon className="h-6 w-6 text-gray-500" />
+          </button>
+          <button
+            onClick={handleLogout}
+            title="Logout"
+            className={styles.headerButton}
+          >
+            <ArrowRightStartOnRectangleIcon className="h-6 w-6 text-gray-500" />
+          </button>
+          <Image
+            src="/images/logo.png"
+            alt="Kireon Logo"
+            width={40}
+            height={40}
+          />
+        </div>
+      </div>
+
+      {tasks.length > 0 && (
+        <ArtifactTimeline
+          tasks={tasks}
+          currentTask={currentTaskIndex}
+          totalTasks={tasks.length}
+        />
+      )}
+    </div>
+  );
+};
+
+export default ArtifactHeader;
+</file>
+
+<file path="src/components/ArtifactLoading.module.scss">
+.linkOrange {
+  color: var(--rosewood);
+  font-weight: 700;
+
+  &::after {
+    content: attr(data-icon);
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    display: inline-block;
+    text-align: center;
+    line-height: 30px;
+    margin-left: 10px;
+    transition: margin-left 300ms ease 0ms;
+  }
+
+  &:hover::after {
+    margin-left: 15px;
+  }
+}
+</file>
+
+<file path="src/components/ArtifactTimeline.module.scss">
+.artifactTimeline {
+  position: relative;
+  background-color: var(--artifact-bg);
+  z-index: 10;
+  
+  &::before {
+    height: 1px;
+    width: 100%;
+    content: "";
+    position: absolute;
+    top: calc(50% - 0.5px);
+    background-color: #747f9e;
+    z-index: 1;
+  }
+  
+  .artifactTimelineBubbles {
+    width: 100%;
+  }
+  
+  .timelineItem {
+    width: 38px;
+    height: 38px;
+    border-radius: 30px;
+    border: 1px solid #747f9e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #F5F5F5 !important;
+    z-index: 10;
+    padding: 0.4rem;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+    
+    img {
+      filter: invert(49%) sepia(9%) saturate(262%) hue-rotate(183deg);
+      transition: filter 0.3s ease;
+    }
+    
+    &.timelineDone {
+      border: 2px solid var(--red-crayola);
+      background-color: #FAFAFA !important;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    &.timelineActive {
+      width: 55px !important;
+      height: 55px !important;
+      border: 2px solid var(--red-crayola);
+      padding: 0.65rem !important;
+      background-color: var(--melon) !important;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: linear-gradient(45deg, rgba(232, 76, 90, 0.3), rgba(246, 189, 182, 0.2), rgba(232, 76, 90, 0.3)) !important;
+        background-size: 200% 200%;
+        z-index: 0;
+        animation: backgroundShift 6s ease-in-out infinite;
+        opacity: 0.3;
+      }
+      
+      &::after {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg, transparent 0deg, var(--red-crayola) 90deg, transparent 180deg, var(--melon) 270deg, transparent 360deg);
+        z-index: -1;
+        animation: rotateRing 8s linear infinite;
+        opacity: 0.3;
+      }
+      
+      img {
+        filter: invert(80%) sepia(9%) saturate(262%) hue-rotate(183deg);
+        position: relative;
+        z-index: 1;
+        animation: iconPulse 4s ease-in-out infinite;
+      }
+    }
+  }
+}
+
+@keyframes backgroundShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes rotateRing {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+#artifactTimelineProgressContainer {
+  width: calc(100% - 5rem);
+  height: 2px;
+  position: absolute;
+  z-index: 5;
+}
+
+#artifactTimelineProgress {
+  height: 2px;
+  background: linear-gradient(90deg, var(--red-crayola), var(--melon));
+  top: calc(50% - 1px);
+  transition: width 0.5s ease-in-out;
+}
+</file>
+
+<file path="src/components/ArtifactView.module.scss">
+.artifactContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.artifactContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+
+  // Firefox scrollbar
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-color) transparent;
+
+  // WebKit scrollbar
+  &::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-color);
+    border: 3px solid transparent;
+    border-radius: 10px;
+    background-clip: padding-box;
+  }
+}
+
+.artifactInnerContent {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 50px;
+  margin-top: 60px;
+}
+
+.fadeIn {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: calc(100% - 30px);
+  height: 60px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    #F5F5F5,
+    rgba(245, 245, 245, 0)
+  );
+  z-index: 1;
+}
+
+.fadeOut {
+  position: absolute;
+  bottom: 80px;
+  left: 0;
+  width: calc(100% - 30px);
+  height: 60px;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    #F5F5F5,
+    rgba(245, 245, 245, 0)
+  );
+  z-index: 1;
+}
+
+.artifactActionFooter {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 10px;
+}
+
+.artifact {
+  background-color: var(--artifact-bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-color) transparent;
+
+  &::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-color);
+    border: 3px solid transparent;
+    border-radius: 10px;
+    background-clip: padding-box;
+  }
+}
+
+.notification {
+  position: absolute;
+  bottom: 4rem;
+  right: 1rem;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: opacity 0.3s ease;
+}
+
+.formLoadingPlaceholder {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+  opacity: 0.4; /* fade everything together */
+  filter: grayscale(100%); /* turn all colors to gray */
+}
+
+.shimmerBlock {
+  height: 2.5rem; /* match your input height */
+  width: 100%;
+  background: linear-gradient(to right, #e0e0e0 0%, #f8f8f8 50%, #e0e0e0 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+.shimmerBlock.short {
+  width: 60%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+</file>
+
+<file path="src/components/ArtifactView.tsx">
+"use client";
+
+import { useEffect, useRef, useState, useMemo } from "react";
+import ArtifactEval from "./ArtifactEval";
+import ArtifactForm from "./ArtifactForm";
+import ArtifactHeader from "@/components/ArtifactHeader";
+import ArtifactActionButton from "@/components/ArtifactActionButton";
+import { ArtifactType } from "@/domain/constants";
+import clsx from "clsx";
+import { useAuth } from "@/context/AuthContext";
+import { useTaskContext } from "@/context/TaskContext";
+import { useAgentStreamContext } from "@/context/AgentStreamProvider";
+import { useNormalizedParam } from "@/lib/hooks/useNormalizedParam";
+import { useMediaQuery } from "react-responsive";
+
+import styles from "./ArtifactView.module.scss";
+import ArtifactMarkdown from "./ArtifactMarkdown";
+
+const ArtifactView = () => {
+  const { user, loading } = useAuth();
+
+  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const [updatedArtifact, setUpdatedArtifact] = useState<any>(null);
+
+  const {
+    artifacts: streamedArtifacts,
+    chatMessages,
+    sendMessage,
+    clearArtifacts,
+  } = useAgentStreamContext();
+
+  const lastMessage = chatMessages.at(-1);
+  const nextCommand = (lastMessage?.meta?.available_commands as any[])?.[0];
+  const conversationUuid = useNormalizedParam("conversationId") as string;
+
+  const scrollAnchorRef = useRef<HTMLDivElement | null>(null);
+  const artifactScrollRef = useRef<HTMLDivElement | null>(null);
+
+  const { tasks: taskSummary, currentTaskIndex } = useTaskContext();
+
+  const latestArtifact = streamedArtifacts.at(-1);
+
+  const parsedContent = useMemo(() => {
+    try {
+      if (typeof latestArtifact?.content === "string") {
+        const trimmed = latestArtifact.content.trim();
+        const isLikelyJson =
+          (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+          (trimmed.startsWith("[") && trimmed.endsWith("]"));
+        if (isLikelyJson) {
+          try {
+            return JSON.parse(trimmed);
+          } catch {
+            return trimmed;
+          }
+        }
+      }
+      return latestArtifact?.content ?? {};
+    } catch {
+      return {};
+    }
+  }, [latestArtifact]);
+
+  const artifactType: ArtifactType | undefined =
+    latestArtifact?.type ||
+    parsedContent.artifact_type ||
+    parsedContent.task_type;
+
+  const ArtifactComponent = selectArtifactComponent(artifactType);
+
+  const normalizedArtifact: any = useMemo(
+    () => ({
+      ...(latestArtifact || {}),
+      type: artifactType,
+      title:
+        latestArtifact?.title ||
+        parsedContent.artifact_title ||
+        parsedContent.task_title,
+      payload:
+        parsedContent.payload ||
+        parsedContent.artifact_content ||
+        parsedContent.task_content?.content ||
+        (typeof parsedContent === "string" ? parsedContent : ""),
+      status: latestArtifact?.status,
+    }),
+    [latestArtifact, artifactType, parsedContent]
+  );
+
+  const renderedArtifact = useMemo(() => {
+    if (!latestArtifact) return null;
+
+    if (
+      normalizedArtifact.type === "json_form" &&
+      normalizedArtifact.status === "streaming"
+    ) {
+      return (
+        <div className={styles.formLoadingPlaceholder}>
+          <div className={styles.shimmerBlock} />
+          <div className={`${styles.shimmerBlock} ${styles.short}`} />
+          <div className={styles.shimmerBlock} />
+          <div className={`${styles.shimmerBlock} ${styles.short}`} />
+        </div>
+      );
+    }
+
+    return (
+      <ArtifactComponent
+        artifact={normalizedArtifact}
+        onModified={setUpdatedArtifact}
+      />
+    );
+  }, [latestArtifact, normalizedArtifact, ArtifactComponent]);
+
+  useEffect(() => {
+    const anchor = scrollAnchorRef.current;
+    const container = artifactScrollRef.current;
+    if (anchor && container) {
+      anchor.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [renderedArtifact]);
+
+  const onAction = async () => {
+    if (loading || !user) return;
+    const updated = updatedArtifact || normalizedArtifact;
+    if (!updated) return;
+
+    const token = await user.getIdToken();
+    setIsActionLoading(true);
+    if (nextCommand?.name === "CMD_SUBMIT_TASK_WITH_ARTIFACT") {
+      clearArtifacts();
+    }
+    await sendMessage(
+      {
+        thread_id: conversationUuid,
+        user_id: user.uid,
+        model: "gpt-4o-mini",
+        stream_tokens: true,
+        message: "",
+        agent_id: "kireon-agent",
+        agent_config: {
+          command_id: nextCommand?.id,
+          artifact_content: updated,
+        },
+      },
+      token
+    );
+    setIsActionLoading(false);
+  };
+
+  return (
+    <div
+      className={clsx(
+        styles.artifact,
+        "h-full flex flex-col overflow-hidden relative"
+      )}
+    >
+      <div className={clsx(isMobile ? "mobile-header" : "")}>
+        <ArtifactHeader
+          tasks={taskSummary}
+          currentTaskIndex={currentTaskIndex}
+        />
+      </div>
+
+      <div className={styles.artifactContainer}>
+        <div className={styles.fadeIn} />
+        <div
+          className={clsx(
+            styles.artifactContent,
+            "pt-[30px] overflow-y-auto h-full"
+          )}
+          ref={artifactScrollRef}
+        >
+          <div className={clsx(styles.artifactInnerContent, "pl-10 pr-10")}>
+            {renderedArtifact}
+            <div ref={scrollAnchorRef} />
+          </div>
+        </div>
+        <div className={styles.fadeOut} />
+        <div className={clsx(styles.artifactActionFooter, "pl-10 pr-10")}>
+          <ArtifactActionButton
+            label={nextCommand?.label}
+            onAction={onAction}
+            disabled={loading || isActionLoading}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+function selectArtifactComponent(artifactType?: ArtifactType) {
+  switch (artifactType) {
+    case ArtifactType.JsonForm:
+      return ArtifactForm;
+    case ArtifactType.Markdown:
+    case ArtifactType.MarkdownEditor:
+    case ArtifactType.TaskInstruction:
+    case ArtifactType.ChatTask:
+      return ArtifactMarkdown;
+    case ArtifactType.TaskEvaluation:
+    case ArtifactType.EvaluateAll:
+      return ArtifactEval;
+    default:
+      return ArtifactMarkdown;
+  }
+}
+
+export default ArtifactView;
+</file>
+
+<file path="src/components/ChatMessage.module.scss">
+.chatMessage {
+  &.user {
+    background-color: var(--melon);
+    color: var(--rosewood-dark);
+    padding: 0 1rem 0.25rem;
+    margin: 1rem 1rem 2rem;
+    max-width: 70%;
+    border-radius: 1rem;
+  }
+}
+</file>
+
+<file path="src/components/ConversationChat.tsx">
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import ChatMessage from "@/components/ChatMessage";
+import ScrollDownButton from "@/components/ScrollDownButton";
+import SendMessageInput, {
+  SendMessageInputRef,
+} from "@/components/SendMessageInput";
+import { formatMarkdownHtml } from "@/domain/markdown-service";
+
+import styles from "./ConversationChat.module.scss";
+
+import { useNormalizedParam } from "@/lib/hooks/useNormalizedParam";
+import { Role } from "@/domain/constants";
+import { getConversation } from "@/domain/conversation";
+import { useAuth } from "@/context/AuthContext";
+import { User } from "firebase/auth";
+import { useAgentStreamContext } from "@/context/AgentStreamProvider";
+import { NetworkingError } from "@/types/generic";
+import { useMediaQuery } from "react-responsive";
+
+const ConversationChat = () => {
+  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+
+  const hasInitialized = useRef(false);
+
+  const conversationUuid = useNormalizedParam("conversationId") as string;
+
+  const lastMessageId = useRef<string | null>(null);
+
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
+  const chatContentRef = useRef<HTMLDivElement>(null);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const userRef = useRef<User | null>(null);
+
+  const sendMessageInput = useRef<SendMessageInputRef | null>(null);
+
+  const { sendMessage, isStreaming, chatMessages, error, loadHistory } =
+    useAgentStreamContext();
+
+  const { user } = useAuth();
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  function startUpdateScrollBottomRef() {
+    const chatContentValue = chatContentRef.current;
+    if (chatContentValue) {
+      chatContentValue.onscroll = () => {
+        setIsScrolledToBottom(
+          chatContentValue.scrollTop + chatContentValue.clientHeight >=
+            chatContentValue.scrollHeight - 600
+        );
+      };
+    }
+  }
+
+  useEffect(() => {
+    const newestMessage = chatMessages.at(-1);
+    const id = newestMessage?.id;
+
+    if (!id || id === lastMessageId.current || !isScrolledToBottom) return;
+
+    lastMessageId.current = id;
+    scrollToBottom("smooth");
+  }, [chatMessages, isScrolledToBottom]);
+
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
+    const initialize = async () => {
+      setIsLoading(true);
+
+      try {
+        const conversation = await getConversation(conversationUuid);
+        if (!conversation) throw new Error("Conversation not found");
+        if (conversation instanceof NetworkingError) {
+          throw new Error("Not history found");
+        }
+        loadHistory(conversation.messages);
+      } catch {
+        try {
+          if (!user) throw new Error("User not ready");
+
+          const token = await user.getIdToken();
+
+          await sendMessage(
+            {
+              thread_id: conversationUuid,
+              user_id: user.uid,
+              model: "gpt-4o-mini",
+              stream_tokens: true,
+              message: "",
+              agent_id: "kireon-agent",
+              agent_config: {
+                require_email:
+                  searchParams.get("requireEmail")?.toLowerCase() === "true",
+                email: user?.email ?? "",
+              },
+            },
+            token
+          );
+        } catch (streamError) {
+          console.warn("Stream error:", streamError);
+        }
+      } finally {
+        setIsLoading(false);
+        setTimeout(() => scrollToBottom("instant"), 0);
+        startUpdateScrollBottomRef();
+      }
+    };
+
+    initialize();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    chatContentRef.current?.scrollTo({
+      left: 0,
+      top: chatContentRef.current.scrollHeight,
+      behavior: behavior,
+    });
+  };
+
+  return (
+    <div className={styles.chatContainer}>
+      <div className={styles.messagesWrapper} ref={chatContentRef}>
+        <div className={styles.messagesContent}>
+          {chatMessages.map((message) => (
+            <div key={`${message.id}`} className="w-full flex justify-end">
+              <ChatMessage
+                role={message.role as Role}
+                message={message}
+                isStartScreen={false}
+                isLoadingArtifact={false}
+              >
+                <div
+                  className="markdown-chat text-black text-lg"
+                  dangerouslySetInnerHTML={{
+                    __html: formatMarkdownHtml(message.content ?? ""),
+                  }}
+                />
+              </ChatMessage>
+            </div>
+          ))}
+
+          {error && (
+            <div className="text-center">
+              <input
+                className="container"
+                type="text"
+                placeholder={error}
+                aria-invalid
+                readOnly
+              />
+            </div>
+          )}
+          {isStreaming && (
+            <ChatMessage
+              role={Role.AI}
+              aria-busy={isLoading}
+              isStartScreen={false}
+              isLoadingArtifact={false}
+            />
+          )}
+        </div>
+      </div>
+
+      <div className={styles.inputWrapper}>
+        {!isScrolledToBottom && (
+          <div className={styles.scrollButtonContainer}>
+            <ScrollDownButton onClick={scrollToBottom} />
+          </div>
+        )}
+        {!isMobile && <SendMessageInput ref={sendMessageInput} />}
+      </div>
+    </div>
+  );
+};
+
+export default ConversationChat;
+</file>
+
+<file path="src/components/ScrollDownButton.module.scss">
+.textOrange {
+  color: var(--rosewood);
+}
+</file>
+
+<file path="src/components/SendMessageInput.tsx">
+"use client";
+
+import { forwardRef, useImperativeHandle, useRef } from "react";
+import { useTranslations } from "next-intl";
+import { useMediaQuery } from "react-responsive";
+import TextInput, { TextInputRef } from "./TextInput";
+import { useAgentStreamContext } from "@/context/AgentStreamProvider";
+import { useNormalizedParam } from "@/lib/hooks/useNormalizedParam";
+import { useAuth } from "@/context/AuthContext";
+import LegalLinks from "./LegalLinks";
+import { useSplitViewContext } from "./SplitView";
+
+type Props = {
+  placeholder?: string;
+};
+
+export type SendMessageInputRef = {
+  focusInput: () => void;
+};
+
+const SendMessageInput = forwardRef<SendMessageInputRef, Props>(
+  ({ placeholder }, ref) => {
+    const conversationUuid = useNormalizedParam("conversationId") as string;
+    const { sendMessage, isStreaming } = useAgentStreamContext();
+    const { user, loading } = useAuth();
+    const textInputRef = useRef<TextInputRef>(null);
+    const { isCompact } = useSplitViewContext();
+
+    const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+
+    const t = useTranslations();
+
+    useImperativeHandle(ref, () => ({
+      focusInput: () => {
+        textInputRef.current?.focusInput();
+      },
+    }));
+
+    const handleSubmit = async (message: string) => {
+      if (!user || loading) {
+        console.warn("User not authenticated yet.");
+        return;
+      }
+
+      const token = await user.getIdToken();
+
+      await sendMessage(
+        {
+          thread_id: conversationUuid,
+          user_id: user.uid,
+          model: "gpt-4o-mini",
+          stream_tokens: true,
+          message: message,
+          agent_id: "kireon-agent",
+        },
+        token
+      );
+    };
+
+    return (
+      <div className="container text-center mb-2 mt-1 px-0 md:px-8">
+        <div className="relative mb-2">
+          <TextInput
+            ref={textInputRef}
+            inputEnabled={!isStreaming}
+            placeholder={placeholder}
+            onSubmit={handleSubmit}
+          />
+        </div>
+        <div className="flex flex-wrap justify-center sm:justify-between items-center gap-x-4 gap-y-1 text-[0.6rem] text-gray-400">
+          <span
+            className={`${
+              isMobile
+                ? "hidden min-[480px]:inline"
+                : isCompact
+                ? "hidden"
+                : "inline"
+            } sm:text-left`}
+          >
+            {t("llm_disclaimer")}
+          </span>
+          <span
+            className={`${
+              isMobile
+                ? "inline min-[480px]:hidden text-center"
+                : isCompact
+                ? "inline text-center"
+                : "hidden"
+            }`}
+          >
+            {t("llm_disclaimer_short")}
+          </span>
+          <LegalLinks className="shrink-0" />
+        </div>
+      </div>
+    );
+  }
+);
+
+SendMessageInput.displayName = "SendMessageInput";
+export default SendMessageInput;
+</file>
+
+<file path="src/components/SignIn.module.scss">
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes inputFocusGlow {
+  0% { box-shadow: 0 0 0 0 rgba(232, 76, 90, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(232, 76, 90, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(232, 76, 90, 0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.logoSection {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.logo {
+  animation: logoFloat 4s ease-in-out infinite;
+  filter: drop-shadow(0 10px 30px rgba(232, 76, 90, 0.3));
+  transition: transform 0.3s ease, filter 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 15px 40px rgba(232, 76, 90, 0.5));
+  }
+
+  @media (max-width: 767px) {
+    width: 70px !important;
+    height: 70px !important;
+  }
+}
+
+.contentContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5rem;
+  max-width: 565px;
+  width: 50%;
+  
+  @media (max-width: 767px) {
+    width: 90%;
+    gap: 3rem;
+  }
+}
+
+.formSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.formWrapper {
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+  width: 100%;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.input {
+  border: 2px solid rgba(232, 76, 90, 0.2) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  height: auto !important;
+  margin: 0 !important;
+
+  &::placeholder {
+    color: var(--grey) !important;
+    transition: color 0.3s ease !important;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: rgba(232, 76, 90, 0.4) !important;
+    
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.6) !important;
+    }
+  }
+
+  &:focus {
+    outline: none !important;
+    border-color: var(--red-crayola) !important;
+    box-shadow: 0 0 0 4px rgba(232, 76, 90, 0.1) !important;
+    animation: inputFocusGlow 0.75s ease !important;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    border-color: rgba(232, 76, 90, 0.1) !important;
+  }
+}
+
+.inputError {
+  border-color: #ff5757 !important;
+  box-shadow: 0 0 0 4px rgba(255, 87, 87, 0.1) !important;
+  background: linear-gradient(135deg, rgba(255, 87, 87, 0.15), rgba(255, 87, 87, 0.08)) !important;
+  
+  &:focus {
+    border-color: #ff5757 !important;
+    box-shadow: 0 0 0 4px rgba(255, 87, 87, 0.2) !important;
+    background: linear-gradient(135deg, rgba(255, 87, 87, 0.2), rgba(255, 87, 87, 0.1)) !important;
+  }
+  
+  &:hover:not(:disabled) {
+    border-color: #ff5757 !important;
+    background: linear-gradient(135deg, rgba(255, 87, 87, 0.18), rgba(255, 87, 87, 0.1)) !important;
+  }
+}
+
+.shake {
+  animation: shake 0.6s ease-in-out;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--grey);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  opacity: 0.7;
+  border-radius: 6px;
+
+  &:hover {
+    color: var(--red-crayola);
+    opacity: 1;
+    background: rgba(232, 76, 90, 0.1);
+  }
+
+  &:focus {
+    outline: none;
+    color: var(--red-crayola);
+    opacity: 1;
+  }
+
+  @media (max-width: 767px) {
+    right: 0.75rem;
+    padding: 0.375rem;
+  }
+}
+
+.errorContainer {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 1rem;
+  z-index: 10;
+}
+
+.errorMessage {
+  color: #ff5757;
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 87, 87, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #ff5757;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 87, 87, 0.2);
+  animation: fadeInUp 0.3s ease-out;
+  width: 100%;
+  max-width: 565px;
+}
+</file>
+
+<file path="src/components/SignIn.tsx">
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { useAuth } from "@/context/AuthContext";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import styles from "./SignIn.module.scss";
+
+const SignInPage = () => {
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [signInRunning, setSignInRunning] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  const t = useTranslations();
+
+  const { signInWithEmail } = useAuth();
+
+  const handleSignIn = async () => {
+    setAuthError(null);
+    setHasError(false);
+    setSignInRunning(true);
+    try {
+      await signInWithEmail(email, password);
+      router.replace("/start");
+    } catch (error) {
+      setHasError(true);
+      setAuthError(error instanceof Error ? error.message : "Sign in failed");
+
+      setTimeout(() => {
+        setHasError(false);
+      }, 600);
+    } finally {
+      setSignInRunning(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signInRunning && email && password) {
+      handleSignIn();
+    }
+  };
+
+  return (
+    <>
+      <main className="w-screen h-screen flex flex-col justify-center items-center z-10 bg-white">
+        <div className={styles.contentContainer}>
+          <div
+            className={`flex flex-col gap-4 items-center justify-center z-10 ${styles.logoSection}`}
+          >
+            <Image
+              src="/assets/images/logo.png"
+              alt="Logo"
+              width={90}
+              height={90}
+              className={`w-[90px] ${styles.logo}`}
+              priority
+            />
+            <span className="ava_title">Kireon GPT</span>
+          </div>
+          <div className={styles.formSection}>
+            <article
+              className={`box_blue_wrapper max-w-[565px] w-full z-10 ${styles.formWrapper}`}
+            >
+              <form
+                onSubmit={handleSubmit}
+                className="box_blue p-8 flex flex-col gap-6"
+              >
+                <input
+                  type="email"
+                  placeholder={t("email_placeholder") || "Email"}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{
+                    background: "var(--gradientDarkblue)",
+                  }}
+                  className={`w-full rounded-[9px] p-3 text-black placeholder-gray-500 focus:outline-none ${
+                    styles.input
+                  } ${hasError ? styles.inputError : ""} ${
+                    hasError ? styles.shake : ""
+                  }`}
+                  disabled={signInRunning}
+                />
+                <div className={styles.inputWrapper}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder={t("password_placeholder") || "Password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{
+                      background: "var(--gradientDarkblue)",
+                    }}
+                    className={`w-full rounded-[9px] p-3 text-black placeholder-gray-500 focus:outline-none ${
+                      styles.input
+                    } ${hasError ? styles.inputError : ""} ${
+                      hasError ? styles.shake : ""
+                    }`}
+                    disabled={signInRunning}
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    aria-label={
+                      showPassword ? t("hide_password") : t("show_password")
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="w-5 h-5" />
+                    ) : (
+                      <EyeIcon className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                <button
+                  type="submit"
+                  className="action-btn mb-0 w-full"
+                  disabled={signInRunning || !email || !password}
+                >
+                  {signInRunning
+                    ? "Signing in..."
+                    : t("sign_in_button") || "Sign In"}
+                </button>
+              </form>
+            </article>
+            <div className={styles.errorContainer}>
+              {authError && (
+                <p className={styles.errorMessage}>
+                  {t("sign_in_error") || authError}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+    </>
+  );
+};
+
+export default SignInPage;
+</file>
+
+<file path="src/components/SplitView.module.scss">
+@media (max-width: 767px) {
+  .mobileLayout {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: #FFFFFF;
+    transform: translateZ(0);
+  }
+
+  .mobileArtifact {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 100px;
+    z-index: 1;
+  }
+
+  .mobileChatPanel {
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 100px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(1px);
+    z-index: 15;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .mobileChatCollapsed {
+    transform: translateY(100vh);
+  }
+
+  .mobileChatExpanded {
+    transform: translateY(0);
+  }
+
+  .mobileMessagesOnly {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .mobileMessagesOnly :global([class*="inputWrapper"]) {
+    display: none !important;
+  }
+
+  .mobileInputFixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: #FFFFFF;
+    border-top: 1px solid var(--melon);
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+  }
+
+  .mobileInputContent :global([class*="messagesWrapper"]) {
+    display: none !important;
+  }
+
+  .mobileInputContent :global([class*="inputWrapper"]) {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .mobileInputContent {
+    flex: 1;
+    margin-left: 3rem;
+  }
+
+  .mobileToggle {
+    position: absolute;
+    top: 8px;
+    left: 1rem;
+    width: 32px;
+    height: 32px;
+    background: var(--melon);
+    border: 1px solid var(--red-crayola);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 35;
+  }
+
+  .mobileChevron {
+    width: 20px;
+    height: 20px;
+    color: var(--rosewood);
+    transition: transform 0.3s ease;
+  }
+
+  .mobileChevronUp {
+    transform: rotate(0deg);
+  }
+
+  .mobileChevronDown {
+    transform: rotate(180deg);
+  }
+
+  .mobileCloseButton {
+    position: absolute;
+    top: 8px;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    background: var(--melon);
+    border: 1px solid var(--red-crayola);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 35;
+  }
+
+  .mobileCloseIcon {
+    width: 16px;
+    height: 16px;
+    color: var(--rosewood);
+  }
+}
+</file>
+
 <file path="src/lib/hooks/useAgentStream.ts">
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
@@ -5203,8 +6112,9 @@ export function useAgentStream(endpoint: string) {
     const role = final.type === "ai" ? "ai" : final.type;
 
     if (role === "ai") {
+      const validMessageTypes = ["chat", "metadata_update"];
       if (
-        final?.custom_data?.metadata?.type !== "chat" ||
+        !validMessageTypes.includes(final?.custom_data?.metadata?.type) ||
         !final.content?.trim()
       ) {
         console.debug("Skipped non-chat or empty AI message", final);
@@ -5301,165 +6211,6 @@ export function useAgentStream(endpoint: string) {
     clearArtifacts,
   };
 }
-</file>
-
-<file path="src/lib/hooks/useAuthGuard.ts">
-"use client";
-
-import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-
-export const useAuthGuard = () => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const { user, loading } = useAuth();
-
-  useEffect(() => {
-    if (loading) return;
-
-    const onSignIn = pathname === "/signin";
-
-    if (!user && !onSignIn) {
-      router.replace("/signin");
-      return;
-    }
-
-    if (user && onSignIn) {
-      router.replace("/");
-      return;
-    }
-
-    if (user) {
-      router.replace("/");
-    }
-  }, [pathname, user, loading, router]);
-};
-</file>
-
-<file path="src/lib/hooks/useLocale.ts">
-"use client";
-
-import { usePathname } from "next/navigation";
-
-export const useLocale = (): string => {
-  const pathname = usePathname();
-  const locale = pathname?.split("/")?.[1] || "en";
-  return locale;
-};
-</file>
-
-<file path="src/lib/hooks/useNormalizedParam.ts">
-import { useParams } from "next/navigation";
-
-export const useNormalizedParam = (key: string): string | undefined => {
-  const params = useParams();
-  const value = params?.[key];
-  if (Array.isArray(value)) return value[0];
-  return typeof value === "string" ? value : undefined;
-};
-</file>
-
-<file path="src/lib/api.ts">
-import { createClient, createConfig } from "@hey-api/client-fetch";
-import { type ClientOptions } from "@/client/types.gen";
-import { auth } from "@/lib/auth";
-
-let authToken: string | undefined = undefined;
-
-let tokenReadyResolver: (() => void) | null = null;
-const tokenReady = new Promise<void>((resolve) => {
-  tokenReadyResolver = resolve;
-});
-
-auth.onIdTokenChanged(async (user) => {
-  if (user) {
-    try {
-      authToken = await user.getIdToken();
-    } catch (err) {
-      console.error("Failed to refresh token", err);
-      authToken = undefined;
-    }
-  } else {
-    authToken = undefined;
-  }
-
-  if (tokenReadyResolver) {
-    tokenReadyResolver();
-    tokenReadyResolver = null;
-  }
-});
-
-const baseUrl =
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "https://hiring-agent-backend-staging-474483908861.europe-west3.run.app";
-
-export const customClient = createClient(
-  createConfig<ClientOptions>({
-    baseUrl,
-    async fetch(request: Request): Promise<Response> {
-      await tokenReady;
-
-      const headers = new Headers(request.headers);
-      if (authToken) {
-        headers.set("Authorization", `Bearer ${authToken}`);
-      }
-
-      const modifiedRequest = new Request(request, {
-        headers,
-        credentials: "include",
-      });
-
-      return fetch(modifiedRequest);
-    },
-  })
-);
-</file>
-
-<file path="src/lib/auth.ts">
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInAnonymously,
-  signInWithPopup,
-  signOut,
-  type User,
-} from "firebase/auth";
-import config from "@/config";
-
-export const firebaseApp = initializeApp(config.firebaseConfig);
-export const auth = getAuth(firebaseApp);
-
-const provider = new GoogleAuthProvider();
-
-provider.setCustomParameters({
-  hd: "deyan7.de",
-});
-
-export const googleSignIn = async (): Promise<User | null> => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const email = result.user.email;
-
-    if (!email?.endsWith("@deyan7.de")) {
-      console.error("Unauthorized domain:", email);
-      await signOut(auth);
-      return null;
-    }
-
-    return result.user;
-  } catch (error) {
-    console.error("Google Sign-In Error:", error);
-    return null;
-  }
-};
-
-export const ensureAnonymousUser = async (): Promise<void> => {
-  if (!auth.currentUser) {
-    await signInAnonymously(auth);
-  }
-};
 </file>
 
 <file path="src/styles/custom.scss">
@@ -6303,39 +7054,6 @@ textarea:focus {
 }
 </file>
 
-<file path="src/types/generic.ts">
-export class NetworkingError {
-  code: number | null;
-  message: string;
-
-  constructor(code: number | null, message: string) {
-    this.code = code;
-    this.message = message;
-  }
-}
-
-export interface SourceDocument {
-  id: string;
-  filename: string;
-  content: string;
-  created?: Date;
-  updated?: Date;
-}
-
-export interface Task {
-  original_index: number;
-  task_title: string;
-  task_type: string;
-  task_icon: string;
-}
-</file>
-
-<file path="src/utils/asset.tsx">
-export const getAssetImageUrl = (name: string): string => {
-  return `/assets/images/${name}`;
-};
-</file>
-
 <file path="src/config.ts">
 import type { ForwardRefExoticComponent, SVGProps, RefAttributes } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
@@ -6394,240 +7112,6 @@ export function setIsProduction(isProd: boolean) {
 export let isProduction = false;
 
 export default config;
-</file>
-
-<file path="src/middleware.ts">
-import createMiddleware from "next-intl/middleware";
-import { routing } from "./i18n/routing";
-
-export default createMiddleware(routing);
-
-export const config = {
-  matcher: "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
-};
-</file>
-
-<file path=".dockerignore">
-node_modules
-.next
-.dockerignore
-Dockerfile
-*.log
-*.env
-</file>
-
-<file path=".env.example">
-NEXT_PUBLIC_BACKEND_URL=https://hiring-agent-backend-staging-474483908861.europe-west3.run.app
-</file>
-
-<file path=".gitignore">
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-</file>
-
-<file path="docker-compose.yaml">
-version: '3.8'
-
-services:
-  hiring-frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_BACKEND_URL: "http://localhost:8080"
-    image: hiring-frontend:latest
-    ports:
-      - "3000:8080"
-    restart: unless-stopped
-</file>
-
-<file path="Dockerfile">
-FROM node:20-alpine AS deps
-
-ARG NEXT_PUBLIC_BACKEND_URL
-ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
-ARG NEXT_PUBLIC_ALLOW_ANONYMOUS=true
-ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS
-RUN echo "NEXT_PUBLIC_BACKEND_URL is: $NEXT_PUBLIC_BACKEND_URL"
-
-WORKDIR /app
-
-COPY package.json yarn.lock ./
-
-# Create .env file from build argument
-RUN echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" > .env && \
-    echo "NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS" >> .env
-
-RUN yarn install --frozen-lockfile
-
-FROM node:20-alpine AS builder
-
-ARG NEXT_PUBLIC_BACKEND_URL
-ARG NEXT_PUBLIC_ALLOW_ANONYMOUS=true
-ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
-ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS
-
-WORKDIR /app
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-
-# Create .env file from build argument
-RUN echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" > .env && \
-    echo "NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS" >> .env
-
-RUN yarn build
-
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-ENV PORT=8080
-ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=true
-
-
-
-COPY --from=builder /app ./
-
-EXPOSE 8080
-
-CMD ["yarn", "start", "-p", "8080"]
-</file>
-
-<file path="eslint.config.mjs">
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
-    files: ["**/*.ts", "**/*.tsx"],
-    rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-    },
-  },
-];
-
-export default eslintConfig;
-</file>
-
-<file path="next.config.ts">
-import type { NextConfig } from "next";
-import createNextIntlPlugin from "next-intl/plugin";
-
-const nextConfig: NextConfig = {
-  output: "standalone",
-};
-
-const withNextIntl = createNextIntlPlugin();
-export default withNextIntl(nextConfig);
-</file>
-
-<file path="openapi-ts.config.ts">
-import { defineConfig } from "@hey-api/openapi-ts";
-
-export default defineConfig({
-  input:
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/openapi.json` ||
-    "https://hiring-agent-backend-staging-474483908861.europe-west3.run.app/openapi.json",
-  output: "src/client",
-  plugins: ["@hey-api/client-fetch"],
-});
-</file>
-
-<file path="postcss.config.mjs">
-const config = {
-  plugins: ["@tailwindcss/postcss"],
-};
-
-export default config;
-</file>
-
-<file path="README.md">
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 </file>
 
 </files>

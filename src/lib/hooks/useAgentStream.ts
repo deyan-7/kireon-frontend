@@ -307,8 +307,9 @@ export function useAgentStream(endpoint: string) {
     const role = final.type === "ai" ? "ai" : final.type;
 
     if (role === "ai") {
+      const validMessageTypes = ["chat", "metadata_update"];
       if (
-        final?.custom_data?.metadata?.type !== "chat" ||
+        !validMessageTypes.includes(final?.custom_data?.metadata?.type) ||
         !final.content?.trim()
       ) {
         console.debug("Skipped non-chat or empty AI message", final);
