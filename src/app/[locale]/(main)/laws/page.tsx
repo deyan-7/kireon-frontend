@@ -6,7 +6,7 @@ import { useLegislation } from '@/lib/hooks/useLegislation';
 import LawsSplitView from '@/components/LawsSplitView';
 import GesetzeskuerzelSidebar from '@/components/laws/GesetzeskuerzelSidebar';
 import LegislationTable from '@/components/laws/LegislationTable';
-import { LegislationDetailDialog } from '@/components/laws/LegislationDetailDialog';
+import { UnifiedLegislationDialog } from '@/components/laws/UnifiedLegislationDialog';
 import { AddUrlModal } from '@/components/laws/AddUrlModal';
 import { ReviewEntryModal } from '@/components/laws/ReviewEntryModal';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ export default function LawsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [pendingEntry, setPendingEntry] = useState<LegislationEntry | null>(null);
+  const [editingEntry, setEditingEntry] = useState<LegislationEntry | null>(null);
 
   const handleUrlProcessed = (entry: LegislationEntry) => {
     setPendingEntry(entry);
@@ -43,8 +44,20 @@ export default function LawsPage() {
     // TODO: Add the new entry to the list
     setShowReviewModal(false);
     setPendingEntry(null);
+    setEditingEntry(null);
     // Reload entries or add to state
     window.location.reload();
+  };
+
+  const handleEditClick = () => {
+    if (selectedEntry) {
+      setEditingEntry(selectedEntry);
+      closeDialog();
+    }
+  };
+
+  const handleEditSave = (updatedEntry: LegislationEntry) => {
+    handleEntrySaved(updatedEntry);
   };
 
   const sidebar = (
@@ -88,10 +101,21 @@ export default function LawsPage() {
         />
       </LawsSplitView>
 
-      {selectedEntry && (
-        <LegislationDetailDialog
+      {selectedEntry && !editingEntry && (
+        <UnifiedLegislationDialog
           entry={selectedEntry}
+          mode="view"
           onClose={closeDialog}
+          onEdit={handleEditClick}
+        />
+      )}
+
+      {editingEntry && (
+        <UnifiedLegislationDialog
+          entry={editingEntry}
+          mode="edit"
+          onClose={() => setEditingEntry(null)}
+          onSave={handleEditSave}
         />
       )}
 
