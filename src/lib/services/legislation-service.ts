@@ -92,3 +92,28 @@ export async function deleteLegislationEntry(id: string): Promise<void> {
     throw new Error(response.error.message || 'Entry could not be deleted');
   }
 }
+
+/**
+ * Fetches the full details for a single legislation entry, including its full text.
+ * @param id - The ID of the entry to fetch
+ * @returns The full LegislationEntry object
+ */
+export async function getLegislationEntryDetails(id: string): Promise<LegislationEntry> {
+  // TODO: Replace with an actual API call, e.g., customClient.GET(`/api/laws/${id}`);
+  console.log(`Fetching details for entry ID: ${id}`);
+  
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 750));
+  
+  const entry = MOCK_LEGISLATION_ENTRIES.find(e => e.id === id);
+  if (!entry) {
+    throw new Error('Legislation entry not found');
+  }
+
+  // Ensure mock data has a volltext property
+  if (!entry.volltext) {
+    entry.volltext = `Vollständiger Text für "${entry.kurztitel}" konnte nicht geladen werden. Dies ist ein Platzhalter.`;
+  }
+  
+  return Promise.resolve(entry);
+}

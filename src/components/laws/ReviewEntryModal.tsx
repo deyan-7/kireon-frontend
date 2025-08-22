@@ -13,18 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { createLegislationEntry } from '@/lib/services/legislation-service';
-import { LegislationEntry, LegislationStatus } from '@/types/legislation-entry';
+import { LegislationEntry } from '@/types/legislation-entry';
 
 interface ReviewEntryModalProps {
   entry: LegislationEntry;
@@ -73,7 +66,7 @@ export function ReviewEntryModal({ entry, onClose, onSave }: ReviewEntryModalPro
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
+      <DialogContent className="max-w-5xl max-h-[90vh]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Gesetzestext überprüfen und bearbeiten</DialogTitle>
@@ -83,262 +76,204 @@ export function ReviewEntryModal({ entry, onClose, onSave }: ReviewEntryModalPro
           </DialogHeader>
 
           <ScrollArea className="h-[60vh] px-1">
-            <div className="grid gap-4 py-4">
-              {/* Basic Information */}
-              <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
+              {/* Column 1 - Core Information */}
+              <div className="flex flex-col gap-4">
                 <div>
                   <Label htmlFor="thema">Thema *</Label>
-                  <Input
-                    id="thema"
-                    value={formData.thema}
-                    onChange={(e) => handleInputChange('thema', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="stichwort">Stichwort *</Label>
-                  <Input
-                    id="stichwort"
-                    value={formData.stichwort}
-                    onChange={(e) => handleInputChange('stichwort', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Document Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="dokument">Dokument *</Label>
-                  <Input
-                    id="dokument"
-                    value={formData.dokument}
-                    onChange={(e) => handleInputChange('dokument', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="dokument_jahr">Dokument Jahr</Label>
-                  <Input
-                    id="dokument_jahr"
-                    type="number"
-                    value={formData.dokument_jahr || ''}
-                    onChange={(e) => handleInputChange('dokument_jahr', e.target.value ? parseInt(e.target.value) : null)}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Legislation Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="gesetzgebung">Gesetzgebung *</Label>
-                  <Input
-                    id="gesetzgebung"
-                    value={formData.gesetzgebung}
-                    onChange={(e) => handleInputChange('gesetzgebung', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="gesetzgebung_jahr">Gesetzgebung Jahr</Label>
-                  <Input
-                    id="gesetzgebung_jahr"
-                    type="number"
-                    value={formData.gesetzgebung_jahr || ''}
-                    onChange={(e) => handleInputChange('gesetzgebung_jahr', e.target.value ? parseInt(e.target.value) : null)}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Titles */}
-              <div>
-                <Label htmlFor="kurztitel">Kurztitel (Deutsch) *</Label>
-                <Input
-                  id="kurztitel"
-                  value={formData.kurztitel}
-                  onChange={(e) => handleInputChange('kurztitel', e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="kurztitel_englisch">Kurztitel (Englisch)</Label>
-                <Input
-                  id="kurztitel_englisch"
-                  value={formData.kurztitel_englisch || ''}
-                  onChange={(e) => handleInputChange('kurztitel_englisch', e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="vollzitat">Vollzitat *</Label>
-                <Textarea
-                  id="vollzitat"
-                  value={formData.vollzitat}
-                  onChange={(e) => handleInputChange('vollzitat', e.target.value)}
-                  required
-                  disabled={loading}
-                  rows={3}
-                />
-              </div>
-
-              {/* Publication Information */}
-              <div>
-                <Label htmlFor="fundstelle">Fundstelle *</Label>
-                <Input
-                  id="fundstelle"
-                  value={formData.fundstelle}
-                  onChange={(e) => handleInputChange('fundstelle', e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="fundstelle_url">Fundstelle URL</Label>
-                  <Input
-                    id="fundstelle_url"
-                    type="url"
-                    value={formData.fundstelle_url || ''}
-                    onChange={(e) => handleInputChange('fundstelle_url', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="volltext_url">Volltext URL</Label>
-                  <Input
-                    id="volltext_url"
-                    type="url"
-                    value={formData.volltext_url || ''}
-                    onChange={(e) => handleInputChange('volltext_url', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Status and Date */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="status">Status *</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => handleInputChange('status', value as LegislationStatus)}
-                    disabled={loading}
-                  >
-                    <SelectTrigger id="status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={LegislationStatus.ENTWURF}>Entwurf</SelectItem>
-                      <SelectItem value={LegislationStatus.IN_KRAFT}>In Kraft</SelectItem>
-                      <SelectItem value={LegislationStatus.AUFGEHOBEN}>Aufgehoben</SelectItem>
-                      <SelectItem value={LegislationStatus.AUSSER_KRAFT}>Außer Kraft</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="stichtag">Stichtag *</Label>
-                  <Input
-                    id="stichtag"
-                    type="date"
-                    value={formData.stichtag}
-                    onChange={(e) => handleInputChange('stichtag', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Legal Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="rechtsakt">Rechtsakt</Label>
-                  <Input
-                    id="rechtsakt"
-                    value={formData.rechtsakt || ''}
-                    onChange={(e) => handleInputChange('rechtsakt', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="typ">Typ *</Label>
-                  <Input
-                    id="typ"
-                    value={formData.typ}
-                    onChange={(e) => handleInputChange('typ', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="rechtsgrundlage">Rechtsgrundlage</Label>
-                  <Input
-                    id="rechtsgrundlage"
-                    value={formData.rechtsgrundlage || ''}
-                    onChange={(e) => handleInputChange('rechtsgrundlage', e.target.value)}
+                  <Input 
+                    id="thema" 
+                    value={formData.thema} 
+                    onChange={(e) => handleInputChange('thema', e.target.value)} 
+                    required 
                     disabled={loading}
                   />
                 </div>
                 <div>
                   <Label htmlFor="gesetzeskuerzel">Gesetzeskürzel</Label>
-                  <Input
-                    id="gesetzeskuerzel"
-                    value={formData.gesetzeskuerzel || ''}
-                    onChange={(e) => handleInputChange('gesetzeskuerzel', e.target.value)}
+                  <Input 
+                    id="gesetzeskuerzel" 
+                    value={formData.gesetzeskuerzel || ''} 
+                    onChange={(e) => handleInputChange('gesetzeskuerzel', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gesetzgebung">Gesetzgebung *</Label>
+                  <Input 
+                    id="gesetzgebung" 
+                    value={formData.gesetzgebung} 
+                    onChange={(e) => handleInputChange('gesetzgebung', e.target.value)} 
+                    required 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Input 
+                    id="status" 
+                    value={formData.status || ''} 
+                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    placeholder="z.B. In Kraft, Entwurf" 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="produktbereich">Produktbereich</Label>
+                  <Input 
+                    id="produktbereich" 
+                    value={formData.produktbereich || ''} 
+                    onChange={(e) => handleInputChange('produktbereich', e.target.value)} 
                     disabled={loading}
                   />
                 </div>
               </div>
 
-              {/* Additional Fields */}
-              <div>
-                <Label htmlFor="durchfuehrung_von">Durchführung von</Label>
-                <Input
-                  id="durchfuehrung_von"
-                  value={formData.durchfuehrung_von || ''}
-                  onChange={(e) => handleInputChange('durchfuehrung_von', e.target.value)}
-                  disabled={loading}
-                />
+              {/* Column 2 - Timing and Market */}
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label htmlFor="stichtag">Stichtag *</Label>
+                  <Input 
+                    id="stichtag" 
+                    type="date" 
+                    value={formData.stichtag} 
+                    onChange={(e) => handleInputChange('stichtag', e.target.value)} 
+                    required 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="folgestatus">Folgestatus</Label>
+                  <Input 
+                    id="folgestatus" 
+                    value={formData.folgestatus || ''} 
+                    onChange={(e) => handleInputChange('folgestatus', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="markt">Markt</Label>
+                  <Input 
+                    id="markt" 
+                    value={formData.markt || ''} 
+                    onChange={(e) => handleInputChange('markt', e.target.value)}
+                    placeholder="z.B. EU, UK, Global" 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bereich">Bereich</Label>
+                  <Input 
+                    id="bereich" 
+                    value={formData.bereich || ''} 
+                    onChange={(e) => handleInputChange('bereich', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="initiative">Initiative</Label>
+                  <Input 
+                    id="initiative" 
+                    value={formData.initiative || ''} 
+                    onChange={(e) => handleInputChange('initiative', e.target.value)}
+                    placeholder="z.B. DOC-Nummer" 
+                    disabled={loading}
+                  />
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="richtlinie">Richtlinie</Label>
-                <Input
-                  id="richtlinie"
-                  value={formData.richtlinie || ''}
-                  onChange={(e) => handleInputChange('richtlinie', e.target.value)}
-                  disabled={loading}
-                />
+              {/* Column 3 - References and URLs */}
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label htmlFor="bezug">Bezug</Label>
+                  <Input 
+                    id="bezug" 
+                    value={formData.bezug || ''} 
+                    onChange={(e) => handleInputChange('bezug', e.target.value)}
+                    placeholder="z.B. Löst 2007/46/EG ab" 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="zitiert">Zitierte Gesetze</Label>
+                  <Input 
+                    id="zitiert" 
+                    value={formData.zitiert || ''} 
+                    onChange={(e) => handleInputChange('zitiert', e.target.value)}
+                    placeholder="Kommagetrennte Liste" 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="textquelle_url">Textquelle URL</Label>
+                  <Input 
+                    id="textquelle_url" 
+                    type="url" 
+                    value={formData.textquelle_url || ''} 
+                    onChange={(e) => handleInputChange('textquelle_url', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="infoquelle_url">Infoquelle URL</Label>
+                  <Input 
+                    id="infoquelle_url" 
+                    type="url" 
+                    value={formData.infoquelle_url || ''} 
+                    onChange={(e) => handleInputChange('infoquelle_url', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="anmerkungen">Anmerkungen</Label>
-                <Textarea
-                  id="anmerkungen"
-                  value={formData.anmerkungen || ''}
-                  onChange={(e) => handleInputChange('anmerkungen', e.target.value)}
-                  disabled={loading}
-                  rows={3}
-                />
+              {/* Full Width Text Areas */}
+              <div className="md:col-span-2 lg:col-span-3 flex flex-col gap-4">
+                <div>
+                  <Label htmlFor="information">Information (max. 600 Zeichen)</Label>
+                  <Textarea 
+                    id="information" 
+                    value={formData.information || ''} 
+                    onChange={(e) => handleInputChange('information', e.target.value)}
+                    rows={4}
+                    maxLength={600}
+                    placeholder="Wesentliche Informationen zum Gesetz"
+                    disabled={loading}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {(formData.information?.length || 0)} / 600 Zeichen
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="betroffene">Betroffene Akteure</Label>
+                  <Textarea 
+                    id="betroffene" 
+                    value={formData.betroffene || ''} 
+                    onChange={(e) => handleInputChange('betroffene', e.target.value)}
+                    rows={2}
+                    placeholder="z.B. Hersteller, Importeure, Händler"
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ausblick">Ausblick & Handlungsempfehlungen</Label>
+                  <Textarea 
+                    id="ausblick" 
+                    value={formData.ausblick || ''} 
+                    onChange={(e) => handleInputChange('ausblick', e.target.value)}
+                    rows={3}
+                    placeholder="Was müssen betroffene Unternehmen beachten?"
+                    disabled={loading}
+                  />
+                </div>
               </div>
 
               {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+                <div className="md:col-span-2 lg:col-span-3">
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                </div>
               )}
             </div>
           </ScrollArea>

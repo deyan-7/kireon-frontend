@@ -101,6 +101,7 @@ src/
       AddUrlModal.tsx
       LawAcronymsView.tsx
       LawsDashboard.tsx
+      LegislationDetailDialog.tsx
       LegislationTable.tsx
       ReviewEntryModal.tsx
     shared/
@@ -136,6 +137,8 @@ src/
     ArtifactTimeline.tsx
     ArtifactView.module.scss
     ArtifactView.tsx
+    BereicheSidebar.module.scss
+    BereicheSidebar.tsx
     ChatMessage.module.scss
     ChatMessage.tsx
     CollapsibleSection.module.scss
@@ -146,6 +149,8 @@ src/
     Dashboard.tsx
     LawDetailDialog.module.scss
     LawDetailDialog.tsx
+    LawsSplitView.module.scss
+    LawsSplitView.tsx
     LawsTable.module.scss
     LawsTable.tsx
     LegalLinks.tsx
@@ -191,6 +196,7 @@ src/
       useLocale.ts
       useNormalizedParam.ts
     services/
+      laws-service.ts
       legislation-service.ts
     api.ts
     auth.ts
@@ -226,1821 +232,243 @@ tsconfig.json
 <files>
 This section contains the contents of the repository's files.
 
-<file path="src/app/[locale]/(main)/laws/acronyms/page.tsx">
-import { LawsDashboard } from '@/components/laws/LawsDashboard';
-import { LawAcronymsView } from '@/components/laws/LawAcronymsView';
-
-export default function LawAcronymsPage() {
-  return (
-    <LawsDashboard>
-      <LawAcronymsView />
-    </LawsDashboard>
-  );
-}
-</file>
-
-<file path="src/app/[locale]/(main)/laws/layout.tsx">
-import { ReactNode } from 'react';
-
-export default function LawsLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  return <>{children}</>;
-}
-</file>
-
-<file path="src/components/laws/AddUrlModal.tsx">
+<file path="src/components/laws/LegislationDetailDialog.tsx">
 'use client';
 
-import { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { processLegislationUrl } from '@/lib/services/legislation-service';
-import { LegislationEntry } from '@/types/legislation-entry';
-
-interface AddUrlModalProps {
-  onClose: () => void;
-  onSuccess: (entry: LegislationEntry) => void;
-}
-
-export function AddUrlModal({ onClose, onSuccess }: AddUrlModalProps) {
-  const [url, setUrl] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!url.trim()) {
-      setError('Bitte geben Sie eine URL ein');
-      return;
-    }
-
-    // Basic EUR-Lex URL validation
-    if (!url.includes('eur-lex.europa.eu')) {
-      setError('Bitte geben Sie eine gültige EUR-Lex URL ein');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      // For development, create a mock response
-      // TODO: Replace with actual API call when backend is ready
-      const mockEntry: LegislationEntry = {
-        thema: 'Datenschutz',
-        stichwort: 'DSGVO',
-        dokument: '2016/679',
-        dokument_jahr: 2016,
-        gesetzgebung: '(EU) 2016/679',
-        gesetzgebung_jahr: 2016,
-        kurztitel: 'Datenschutz-Grundverordnung',
-        kurztitel_englisch: 'General Data Protection Regulation',
-        vollzitat: 'Verordnung (EU) 2016/679 des Europäischen Parlaments und des Rates vom 27. April 2016 zum Schutz natürlicher Personen bei der Verarbeitung personenbezogener Daten',
-        fundstelle: 'ABl. L 119 vom 4.5.2016, S. 1',
-        fundstelle_url: url,
-        volltext_url: url,
-        status: 'In Kraft' as any,
-        stichtag: '2018-05-25',
-        rechtsakt: 'Verordnung',
-        typ: 'EU-Verordnung',
-        rechtsgrundlage: 'Art. 16 AEUV',
-        gesetzeskuerzel: 'DSGVO',
-      };
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // In production, use the actual service
-      // const entry = await processLegislationUrl(url);
-      
-      onSuccess(mockEntry);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[525px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Neuen Gesetzestext hinzufügen</DialogTitle>
-            <DialogDescription>
-              Geben Sie die EUR-Lex URL ein, um die Gesetzesdaten automatisch zu extrahieren.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="url">EUR-Lex URL</Label>
-              <Input
-                id="url"
-                type="url"
-                placeholder="https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:..."
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                disabled={loading}
-                autoFocus
-              />
-              <p className="text-sm text-muted-foreground">
-                Beispiel: https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32018R0858
-              </p>
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Abbrechen
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? 'Verarbeite...' : 'Verarbeiten'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-</file>
-
-<file path="src/components/laws/LawAcronymsView.tsx">
-'use client';
-
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
-
-interface LawAcronym {
-  id: string;
-  acronym: string;
-  fullName: string;
-  category: string;
-  isActive: boolean;
-}
-
-// Mock data for law acronyms
-const mockAcronyms: LawAcronym[] = [
-  { id: '1', acronym: 'TG-VO', fullName: 'Typgenehmigungsverordnung', category: 'Fahrzeuggenehmigung', isActive: true },
-  { id: '2', acronym: 'GSR', fullName: 'General Safety Regulation', category: 'Sicherheit', isActive: true },
-  { id: '3', acronym: 'WLTP', fullName: 'Worldwide Harmonized Light Vehicles Test Procedure', category: 'Emissionen', isActive: true },
-  { id: '4', acronym: 'RDE', fullName: 'Real Driving Emissions', category: 'Emissionen', isActive: true },
-  { id: '5', acronym: 'UNECE', fullName: 'United Nations Economic Commission for Europe', category: 'International', isActive: true },
-];
-
-export function LawAcronymsView() {
-  const t = useTranslations();
-  const [acronyms, setAcronyms] = useState<LawAcronym[]>(mockAcronyms);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredAcronyms = acronyms.filter(
-    (acronym) =>
-      acronym.acronym.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      acronym.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      acronym.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleDelete = (id: string) => {
-    // TODO: Implement delete functionality with API
-    setAcronyms(acronyms.filter((a) => a.id !== id));
-  };
-
-  const handleEdit = (id: string) => {
-    // TODO: Implement edit functionality with modal
-    console.log('Edit acronym:', id);
-  };
-
-  const handleAdd = () => {
-    // TODO: Implement add functionality with modal
-    console.log('Add new acronym');
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Gesetzeskürzel verwalten</CardTitle>
-        <CardDescription>
-          Verwaltung von Abkürzungen und Kurzbezeichnungen für Gesetze und Verordnungen
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-2 flex-1 max-w-sm">
-            <Search className="w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Suche nach Kürzel, Name oder Kategorie..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
-          </div>
-          <Button onClick={handleAdd}>
-            <Plus className="w-4 h-4 mr-2" />
-            Neues Kürzel
-          </Button>
-        </div>
-
-        <Table>
-          <TableCaption>
-            {filteredAcronyms.length} von {acronyms.length} Gesetzeskürzeln
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Kürzel</TableHead>
-              <TableHead>Vollständiger Name</TableHead>
-              <TableHead>Kategorie</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Aktionen</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAcronyms.map((acronym) => (
-              <TableRow key={acronym.id}>
-                <TableCell className="font-medium">{acronym.acronym}</TableCell>
-                <TableCell>{acronym.fullName}</TableCell>
-                <TableCell>{acronym.category}</TableCell>
-                <TableCell>
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      acronym.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {acronym.isActive ? 'Aktiv' : 'Inaktiv'}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(acronym.id)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(acronym.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-}
-</file>
-
-<file path="src/components/laws/LawsDashboard.tsx">
-'use client';
-
-import { usePathname } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ReactNode } from 'react';
-
-interface LawsDashboardProps {
-  children: ReactNode;
-}
-
-export function LawsDashboard({ children }: LawsDashboardProps) {
-  const pathname = usePathname();
-  
-  // Extract the current tab from pathname
-  const isAcronymsPage = pathname.includes('/laws/acronyms');
-  const currentTab = isAcronymsPage ? 'acronyms' : 'overview';
-
-  return (
-    <div className="container mx-auto py-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Gesetzes-Dashboard</h1>
-        <p className="text-muted-foreground">
-          Verwalten Sie Gesetzestexte und Gesetzeskürzel
-        </p>
-      </div>
-
-      <Tabs value={currentTab} className="mb-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="overview" asChild>
-            <Link href="/laws">Übersicht</Link>
-          </TabsTrigger>
-          <TabsTrigger value="acronyms" asChild>
-            <Link href="/laws/acronyms">Gesetzeskürzel verwalten</Link>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <div>{children}</div>
-    </div>
-  );
-}
-</file>
-
-<file path="src/components/laws/LegislationTable.tsx">
-'use client';
-
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Search, ExternalLink, FileText } from 'lucide-react';
-import { LegislationEntry, LegislationStatus } from '@/types/legislation-entry';
-import { getLegislationEntries } from '@/lib/services/legislation-service';
-import { AddUrlModal } from '@/components/laws/AddUrlModal';
-import { ReviewEntryModal } from '@/components/laws/ReviewEntryModal';
-
-export function LegislationTable() {
-  const [entries, setEntries] = useState<LegislationEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [pendingEntry, setPendingEntry] = useState<LegislationEntry | null>(null);
-
-  useEffect(() => {
-    loadEntries();
-  }, []);
-
-  const loadEntries = async () => {
-    try {
-      setLoading(true);
-      const data = await getLegislationEntries();
-      setEntries(data);
-    } catch (error) {
-      console.error('Failed to load legislation entries:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredEntries = entries.filter((entry) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      entry.thema.toLowerCase().includes(searchLower) ||
-      entry.gesetzgebung.toLowerCase().includes(searchLower) ||
-      entry.kurztitel.toLowerCase().includes(searchLower) ||
-      (entry.kurztitel_englisch?.toLowerCase().includes(searchLower) ?? false) ||
-      entry.status.toLowerCase().includes(searchLower)
-    );
-  });
-
-  const getStatusBadgeVariant = (status: LegislationStatus) => {
-    switch (status) {
-      case LegislationStatus.IN_KRAFT:
-        return 'default';
-      case LegislationStatus.ENTWURF:
-        return 'secondary';
-      case LegislationStatus.AUFGEHOBEN:
-      case LegislationStatus.AUSSER_KRAFT:
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
-
-  const handleAddNew = () => {
-    setShowAddModal(true);
-  };
-
-  const handleUrlProcessed = (entry: LegislationEntry) => {
-    setPendingEntry(entry);
-    setShowAddModal(false);
-    setShowReviewModal(true);
-  };
-
-  const handleEntrySaved = (entry: LegislationEntry) => {
-    setEntries([...entries, entry]);
-    setShowReviewModal(false);
-    setPendingEntry(null);
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd.MM.yyyy', { locale: de });
-    } catch {
-      return dateString;
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Lade Gesetzestexte...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Gesetzestexte</CardTitle>
-          <CardDescription>
-            Übersicht aller erfassten Gesetzestexte und Verordnungen
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center space-x-2 flex-1 max-w-sm">
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Suche nach Thema, Gesetz, Titel oder Status..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1"
-              />
-            </div>
-            <Button onClick={handleAddNew}>
-              <Plus className="w-4 h-4 mr-2" />
-              Neuen Eintrag hinzufügen
-            </Button>
-          </div>
-
-          <Table>
-            <TableCaption>
-              {filteredEntries.length} von {entries.length} Gesetzestexten
-            </TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Thema</TableHead>
-                <TableHead>Gesetzgebung</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Stichtag</TableHead>
-                <TableHead className="text-right">Aktionen</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEntries.map((entry) => (
-                <TableRow key={entry.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{entry.thema}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {entry.kurztitel}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-mono text-sm">{entry.gesetzgebung}</div>
-                      {entry.gesetzeskuerzel && (
-                        <div className="text-xs text-muted-foreground">
-                          {entry.gesetzeskuerzel}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(entry.status)}>
-                      {entry.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatDate(entry.stichtag)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      {entry.fundstelle_url && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                        >
-                          <a
-                            href={entry.fundstelle_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </Button>
-                      )}
-                      {entry.volltext_url && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                        >
-                          <a
-                            href={entry.volltext_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <FileText className="w-4 h-4" />
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {showAddModal && (
-        <AddUrlModal
-          onClose={() => setShowAddModal(false)}
-          onSuccess={handleUrlProcessed}
-        />
-      )}
-
-      {showReviewModal && pendingEntry && (
-        <ReviewEntryModal
-          entry={pendingEntry}
-          onClose={() => {
-            setShowReviewModal(false);
-            setPendingEntry(null);
-          }}
-          onSave={handleEntrySaved}
-        />
-      )}
-    </>
-  );
-}
-</file>
-
-<file path="src/components/laws/ReviewEntryModal.tsx">
-'use client';
-
-import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { createLegislationEntry } from '@/lib/services/legislation-service';
-import { LegislationEntry, LegislationStatus } from '@/types/legislation-entry';
+import { Badge } from '@/components/ui/badge';
+import { LegislationEntry } from '@/types/legislation-entry';
+import { ExternalLink } from 'lucide-react';
 
-interface ReviewEntryModalProps {
+interface LegislationDetailDialogProps {
   entry: LegislationEntry;
   onClose: () => void;
-  onSave: (entry: LegislationEntry) => void;
 }
 
-export function ReviewEntryModal({ entry, onClose, onSave }: ReviewEntryModalProps) {
-  const [formData, setFormData] = useState<LegislationEntry>(entry);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleInputChange = (
-    field: keyof LegislationEntry,
-    value: string | number | null
-  ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // For development, simulate saving
-      // TODO: Replace with actual API call when backend is ready
-      const savedEntry = { ...formData, id: Date.now().toString() };
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In production, use the actual service
-      // const savedEntry = await createLegislationEntry(formData);
-      
-      onSave(savedEntry);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export function LegislationDetailDialog({ entry, onClose }: LegislationDetailDialogProps) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Gesetzestext überprüfen und bearbeiten</DialogTitle>
-            <DialogDescription>
-              Überprüfen Sie die extrahierten Daten und nehmen Sie bei Bedarf Anpassungen vor.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="text-2xl pr-8">{entry.thema}</DialogTitle>
+          <DialogDescription className="flex items-center gap-4">
+            <span>{entry.gesetzgebung}</span>
+            {entry.gesetzeskuerzel && <Badge variant="outline">{entry.gesetzeskuerzel}</Badge>}
+            {entry.status && <Badge>{entry.status}</Badge>}
+          </DialogDescription>
+        </DialogHeader>
 
-          <ScrollArea className="h-[60vh] px-1">
-            <div className="grid gap-4 py-4">
-              {/* Basic Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="thema">Thema *</Label>
-                  <Input
-                    id="thema"
-                    value={formData.thema}
-                    onChange={(e) => handleInputChange('thema', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="stichwort">Stichwort *</Label>
-                  <Input
-                    id="stichwort"
-                    value={formData.stichwort}
-                    onChange={(e) => handleInputChange('stichwort', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
+        <ScrollArea className="flex-1 -mx-6 px-6">
+          <div className="grid md:grid-cols-2 gap-x-6 gap-y-4 py-4 text-sm">
+            <DetailItem label="Produktbereich" value={entry.produktbereich} />
+            <DetailItem label="Stichtag" value={entry.stichtag} />
+            <DetailItem label="Markt" value={entry.markt} />
+            <DetailItem label="Folgestatus" value={entry.folgestatus} />
+            <DetailItem label="Bezug" value={entry.bezug} />
+            <DetailItem label="Initiative" value={entry.initiative} />
+            <DetailItem label="Betroffene Akteure" value={entry.betroffene} />
+            <DetailItem label="Zitierte Gesetze" value={entry.zitiert} />
+            <DetailLink label="Textquelle" url={entry.textquelle_url} />
+            <DetailLink label="Infoquelle" url={entry.infoquelle_url} />
+          </div>
 
-              {/* Document Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="dokument">Dokument *</Label>
-                  <Input
-                    id="dokument"
-                    value={formData.dokument}
-                    onChange={(e) => handleInputChange('dokument', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="dokument_jahr">Dokument Jahr</Label>
-                  <Input
-                    id="dokument_jahr"
-                    type="number"
-                    value={formData.dokument_jahr || ''}
-                    onChange={(e) => handleInputChange('dokument_jahr', e.target.value ? parseInt(e.target.value) : null)}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Legislation Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="gesetzgebung">Gesetzgebung *</Label>
-                  <Input
-                    id="gesetzgebung"
-                    value={formData.gesetzgebung}
-                    onChange={(e) => handleInputChange('gesetzgebung', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="gesetzgebung_jahr">Gesetzgebung Jahr</Label>
-                  <Input
-                    id="gesetzgebung_jahr"
-                    type="number"
-                    value={formData.gesetzgebung_jahr || ''}
-                    onChange={(e) => handleInputChange('gesetzgebung_jahr', e.target.value ? parseInt(e.target.value) : null)}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Titles */}
-              <div>
-                <Label htmlFor="kurztitel">Kurztitel (Deutsch) *</Label>
-                <Input
-                  id="kurztitel"
-                  value={formData.kurztitel}
-                  onChange={(e) => handleInputChange('kurztitel', e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="kurztitel_englisch">Kurztitel (Englisch)</Label>
-                <Input
-                  id="kurztitel_englisch"
-                  value={formData.kurztitel_englisch || ''}
-                  onChange={(e) => handleInputChange('kurztitel_englisch', e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="vollzitat">Vollzitat *</Label>
-                <Textarea
-                  id="vollzitat"
-                  value={formData.vollzitat}
-                  onChange={(e) => handleInputChange('vollzitat', e.target.value)}
-                  required
-                  disabled={loading}
-                  rows={3}
-                />
-              </div>
-
-              {/* Publication Information */}
-              <div>
-                <Label htmlFor="fundstelle">Fundstelle *</Label>
-                <Input
-                  id="fundstelle"
-                  value={formData.fundstelle}
-                  onChange={(e) => handleInputChange('fundstelle', e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="fundstelle_url">Fundstelle URL</Label>
-                  <Input
-                    id="fundstelle_url"
-                    type="url"
-                    value={formData.fundstelle_url || ''}
-                    onChange={(e) => handleInputChange('fundstelle_url', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="volltext_url">Volltext URL</Label>
-                  <Input
-                    id="volltext_url"
-                    type="url"
-                    value={formData.volltext_url || ''}
-                    onChange={(e) => handleInputChange('volltext_url', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Status and Date */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="status">Status *</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => handleInputChange('status', value as LegislationStatus)}
-                    disabled={loading}
-                  >
-                    <SelectTrigger id="status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={LegislationStatus.ENTWURF}>Entwurf</SelectItem>
-                      <SelectItem value={LegislationStatus.IN_KRAFT}>In Kraft</SelectItem>
-                      <SelectItem value={LegislationStatus.AUFGEHOBEN}>Aufgehoben</SelectItem>
-                      <SelectItem value={LegislationStatus.AUSSER_KRAFT}>Außer Kraft</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="stichtag">Stichtag *</Label>
-                  <Input
-                    id="stichtag"
-                    type="date"
-                    value={formData.stichtag}
-                    onChange={(e) => handleInputChange('stichtag', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Legal Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="rechtsakt">Rechtsakt</Label>
-                  <Input
-                    id="rechtsakt"
-                    value={formData.rechtsakt || ''}
-                    onChange={(e) => handleInputChange('rechtsakt', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="typ">Typ *</Label>
-                  <Input
-                    id="typ"
-                    value={formData.typ}
-                    onChange={(e) => handleInputChange('typ', e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="rechtsgrundlage">Rechtsgrundlage</Label>
-                  <Input
-                    id="rechtsgrundlage"
-                    value={formData.rechtsgrundlage || ''}
-                    onChange={(e) => handleInputChange('rechtsgrundlage', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="gesetzeskuerzel">Gesetzeskürzel</Label>
-                  <Input
-                    id="gesetzeskuerzel"
-                    value={formData.gesetzeskuerzel || ''}
-                    onChange={(e) => handleInputChange('gesetzeskuerzel', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Additional Fields */}
-              <div>
-                <Label htmlFor="durchfuehrung_von">Durchführung von</Label>
-                <Input
-                  id="durchfuehrung_von"
-                  value={formData.durchfuehrung_von || ''}
-                  onChange={(e) => handleInputChange('durchfuehrung_von', e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="richtlinie">Richtlinie</Label>
-                <Input
-                  id="richtlinie"
-                  value={formData.richtlinie || ''}
-                  onChange={(e) => handleInputChange('richtlinie', e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="anmerkungen">Anmerkungen</Label>
-                <Textarea
-                  id="anmerkungen"
-                  value={formData.anmerkungen || ''}
-                  onChange={(e) => handleInputChange('anmerkungen', e.target.value)}
-                  disabled={loading}
-                  rows={3}
-                />
-              </div>
-
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </ScrollArea>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Abbrechen
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? 'Speichere...' : 'Speichern'}
-            </Button>
-          </DialogFooter>
-        </form>
+          <div className="space-y-4 mt-4">
+            <InfoSection title="Wesentliche Informationen" content={entry.information} />
+            <InfoSection title="Ausblick & Handlungsempfehlungen" content={entry.ausblick} />
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
 }
+
+// Helper components for the dialog
+const DetailItem = ({ label, value }: { label: string, value: string | null | undefined }) => value ? (
+  <div className="flex flex-col">
+    <span className="font-semibold text-gray-800">{label}</span>
+    <span className="text-muted-foreground">{value}</span>
+  </div>
+) : null;
+
+const DetailLink = ({ label, url }: { label: string, url: string | null | undefined }) => url ? (
+  <div className="flex flex-col">
+    <span className="font-semibold text-gray-800">{label}</span>
+    <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1 truncate">
+      <ExternalLink className="w-4 h-4 shrink-0" /> {url}
+    </a>
+  </div>
+) : null;
+
+const InfoSection = ({ title, content }: { title: string, content: string | null | undefined }) => content ? (
+  <div>
+    <h3 className="font-semibold text-lg mb-2 border-b pb-1">{title}</h3>
+    <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted/50 p-3 rounded-md">{content}</p>
+  </div>
+) : null;
 </file>
 
-<file path="src/components/ui/alert.tsx">
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-
-import { cn } from "@/lib/utils"
-
-const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
-  {
-    variants: {
-      variant: {
-        default: "bg-card text-card-foreground",
-        destructive:
-          "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-function Alert({
-  className,
-  variant,
-  ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
-  return (
-    <div
-      data-slot="alert"
-      role="alert"
-      className={cn(alertVariants({ variant }), className)}
-      {...props}
-    />
-  )
+<file path="src/components/BereicheSidebar.module.scss">
+.sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="alert-title"
-      className={cn(
-        "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function AlertDescription({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="alert-description"
-      className={cn(
-        "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-export { Alert, AlertTitle, AlertDescription }
-</file>
-
-<file path="src/components/ui/card.tsx">
-import * as React from "react"
-
-import { cn } from "@/lib/utils"
-
-function Card({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card"
-      className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-header"
-      className={cn(
-        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-title"
-      className={cn("leading-none font-semibold", className)}
-      {...props}
-    />
-  )
-}
-
-function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-description"
-      className={cn("text-muted-foreground text-sm", className)}
-      {...props}
-    />
-  )
-}
-
-function CardAction({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-action"
-      className={cn(
-        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-content"
-      className={cn("px-6", className)}
-      {...props}
-    />
-  )
-}
-
-function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-footer"
-      className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
-      {...props}
-    />
-  )
-}
-
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardAction,
-  CardDescription,
-  CardContent,
-}
-</file>
-
-<file path="src/components/ui/input.tsx">
-import * as React from "react"
-
-import { cn } from "@/lib/utils"
-
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
-  return (
-    <input
-      type={type}
-      data-slot="input"
-      className={cn(
-        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-export { Input }
-</file>
-
-<file path="src/components/ui/label.tsx">
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
-
-import { cn } from "@/lib/utils"
-
-function Label({
-  className,
-  ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
-  return (
-    <LabelPrimitive.Root
-      data-slot="label"
-      className={cn(
-        "flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-export { Label }
-</file>
-
-<file path="src/components/ui/scroll-area.tsx">
-"use client"
-
-import * as React from "react"
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
-
-import { cn } from "@/lib/utils"
-
-function ScrollArea({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
-  return (
-    <ScrollAreaPrimitive.Root
-      data-slot="scroll-area"
-      className={cn("relative", className)}
-      {...props}
-    >
-      <ScrollAreaPrimitive.Viewport
-        data-slot="scroll-area-viewport"
-        className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
-      >
-        {children}
-      </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
-    </ScrollAreaPrimitive.Root>
-  )
-}
-
-function ScrollBar({
-  className,
-  orientation = "vertical",
-  ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
-  return (
-    <ScrollAreaPrimitive.ScrollAreaScrollbar
-      data-slot="scroll-area-scrollbar"
-      orientation={orientation}
-      className={cn(
-        "flex touch-none p-px transition-colors select-none",
-        orientation === "vertical" &&
-          "h-full w-2.5 border-l border-l-transparent",
-        orientation === "horizontal" &&
-          "h-2.5 flex-col border-t border-t-transparent",
-        className
-      )}
-      {...props}
-    >
-      <ScrollAreaPrimitive.ScrollAreaThumb
-        data-slot="scroll-area-thumb"
-        className="bg-border relative flex-1 rounded-full"
-      />
-    </ScrollAreaPrimitive.ScrollAreaScrollbar>
-  )
-}
-
-export { ScrollArea, ScrollBar }
-</file>
-
-<file path="src/components/ui/select.tsx">
-"use client"
-
-import * as React from "react"
-import * as SelectPrimitive from "@radix-ui/react-select"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
-
-import { cn } from "@/lib/utils"
-
-function Select({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
-}
-
-function SelectGroup({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Group>) {
-  return <SelectPrimitive.Group data-slot="select-group" {...props} />
-}
-
-function SelectValue({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />
-}
-
-function SelectTrigger({
-  className,
-  size = "default",
-  children,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
-  size?: "sm" | "default"
-}) {
-  return (
-    <SelectPrimitive.Trigger
-      data-slot="select-trigger"
-      data-size={size}
-      className={cn(
-        "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
-      </SelectPrimitive.Icon>
-    </SelectPrimitive.Trigger>
-  )
-}
-
-function SelectContent({
-  className,
-  children,
-  position = "popper",
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
-  return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Content
-        data-slot="select-content"
-        className={cn(
-          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
-          position === "popper" &&
-            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-          className
-        )}
-        position={position}
-        {...props}
-      >
-        <SelectScrollUpButton />
-        <SelectPrimitive.Viewport
-          className={cn(
-            "p-1",
-            position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
-          )}
-        >
-          {children}
-        </SelectPrimitive.Viewport>
-        <SelectScrollDownButton />
-      </SelectPrimitive.Content>
-    </SelectPrimitive.Portal>
-  )
-}
-
-function SelectLabel({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Label>) {
-  return (
-    <SelectPrimitive.Label
-      data-slot="select-label"
-      className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
-      {...props}
-    />
-  )
-}
-
-function SelectItem({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
-  return (
-    <SelectPrimitive.Item
-      data-slot="select-item"
-      className={cn(
-        "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
-        className
-      )}
-      {...props}
-    >
-      <span className="absolute right-2 flex size-3.5 items-center justify-center">
-        <SelectPrimitive.ItemIndicator>
-          <CheckIcon className="size-4" />
-        </SelectPrimitive.ItemIndicator>
-      </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    </SelectPrimitive.Item>
-  )
-}
-
-function SelectSeparator({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Separator>) {
-  return (
-    <SelectPrimitive.Separator
-      data-slot="select-separator"
-      className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
-      {...props}
-    />
-  )
-}
-
-function SelectScrollUpButton({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
-  return (
-    <SelectPrimitive.ScrollUpButton
-      data-slot="select-scroll-up-button"
-      className={cn(
-        "flex cursor-default items-center justify-center py-1",
-        className
-      )}
-      {...props}
-    >
-      <ChevronUpIcon className="size-4" />
-    </SelectPrimitive.ScrollUpButton>
-  )
-}
-
-function SelectScrollDownButton({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
-  return (
-    <SelectPrimitive.ScrollDownButton
-      data-slot="select-scroll-down-button"
-      className={cn(
-        "flex cursor-default items-center justify-center py-1",
-        className
-      )}
-      {...props}
-    >
-      <ChevronDownIcon className="size-4" />
-    </SelectPrimitive.ScrollDownButton>
-  )
-}
-
-export {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-}
-</file>
-
-<file path="src/components/ui/table.tsx">
-import * as React from "react"
-
-import { cn } from "@/lib/utils"
-
-function Table({ className, ...props }: React.ComponentProps<"table">) {
-  return (
-    <div
-      data-slot="table-container"
-      className="relative w-full overflow-x-auto"
-    >
-      <table
-        data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
-        {...props}
-      />
-    </div>
-  )
-}
-
-function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-  return (
-    <thead
-      data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
-      {...props}
-    />
-  )
-}
-
-function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
-  return (
-    <tbody
-      data-slot="table-body"
-      className={cn("[&_tr:last-child]:border-0", className)}
-      {...props}
-    />
-  )
-}
-
-function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
-  return (
-    <tfoot
-      data-slot="table-footer"
-      className={cn(
-        "bg-muted/50 border-t font-medium [&>tr]:last:border-b-0",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
-  return (
-    <tr
-      data-slot="table-row"
-      className={cn(
-        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
-  return (
-    <th
-      data-slot="table-head"
-      className={cn(
-        "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
-  return (
-    <td
-      data-slot="table-cell"
-      className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function TableCaption({
-  className,
-  ...props
-}: React.ComponentProps<"caption">) {
-  return (
-    <caption
-      data-slot="table-caption"
-      className={cn("text-muted-foreground mt-4 text-sm", className)}
-      {...props}
-    />
-  )
-}
-
-export {
-  Table,
-  TableHeader,
-  TableBody,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableCaption,
-}
-</file>
-
-<file path="src/components/ui/tabs.tsx">
-import * as React from "react"
-import * as TabsPrimitive from "@radix-ui/react-tabs"
-
-import { cn } from "@/lib/utils"
-
-function Tabs({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root>) {
-  return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      className={cn("flex flex-col gap-2", className)}
-      {...props}
-    />
-  )
-}
-
-function TabsList({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
-  return (
-    <TabsPrimitive.List
-      data-slot="tabs-list"
-      className={cn(
-        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function TabsTrigger({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
-  return (
-    <TabsPrimitive.Trigger
-      data-slot="tabs-trigger"
-      className={cn(
-        "data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function TabsContent({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Content>) {
-  return (
-    <TabsPrimitive.Content
-      data-slot="tabs-content"
-      className={cn("flex-1 outline-none", className)}
-      {...props}
-    />
-  )
-}
-
-export { Tabs, TabsList, TabsTrigger, TabsContent }
-</file>
-
-<file path="src/components/ui/textarea.tsx">
-import * as React from "react"
-
-import { cn } from "@/lib/utils"
-
-function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
-  return (
-    <textarea
-      data-slot="textarea"
-      className={cn(
-        "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-export { Textarea }
-</file>
-
-<file path="src/lib/services/legislation-service.ts">
-import { customClient } from '@/lib/api';
-import { LegislationEntry, MOCK_LEGISLATION_ENTRIES } from '@/types/legislation-entry';
-
-/**
- * Service for managing legislation entries (Gesetzestexte)
- */
-
-/**
- * Fetches all existing legislation entries
- * Initially returns mock data, replace with actual API call
- */
-export async function getLegislationEntries(): Promise<LegislationEntry[]> {
-  // TODO: Replace with actual API call once backend is ready
-  // return customClient.GET('/api/laws').then(response => response.data);
+.header {
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid var(--border-color, #e1e4e8);
   
-  // For now, return mock data
-  return Promise.resolve(MOCK_LEGISLATION_ENTRIES);
+  h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a1a);
+  }
 }
 
-/**
- * Processes a EUR-Lex URL to extract legislation information
- * @param url - The EUR-Lex URL to process
- * @returns A pre-filled LegislationEntry object
- */
-export async function processLegislationUrl(url: string): Promise<LegislationEntry> {
-  const response = await customClient.POST('/api/laws/process-from-url', {
-    body: { url }
-  });
-
-  if (response.error) {
-    throw new Error(response.error.message || 'URL could not be processed');
-  }
-
-  if (!response.data) {
-    throw new Error('No data received from server');
-  }
-
-  return response.data as LegislationEntry;
+.bereichList {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  flex: 1;
+  overflow-y: auto;
 }
 
-/**
- * Creates a new legislation entry in the database
- * @param entryData - The legislation entry data to save
- * @returns The newly created entry with its database ID
- */
-export async function createLegislationEntry(entryData: LegislationEntry): Promise<LegislationEntry> {
-  const response = await customClient.POST('/api/laws', {
-    body: entryData
-  });
-
-  if (response.error) {
-    throw new Error(response.error.message || 'Entry could not be saved');
+.bereichItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: var(--hover-background, #f0f1f3);
   }
-
-  if (!response.data) {
-    throw new Error('No data received from server');
+  
+  &.active {
+    background-color: var(--primary-light, #e3f2fd);
+    border-left: 3px solid var(--primary, #2196f3);
+    padding-left: calc(1rem - 3px);
+    
+    .bereichName {
+      font-weight: 600;
+      color: var(--primary, #2196f3);
+    }
   }
-
-  return response.data as LegislationEntry;
 }
 
-/**
- * Updates an existing legislation entry
- * @param id - The ID of the entry to update
- * @param entryData - The updated entry data
- * @returns The updated entry
- */
-export async function updateLegislationEntry(id: string, entryData: Partial<LegislationEntry>): Promise<LegislationEntry> {
-  const response = await customClient.PATCH(`/api/laws/${id}`, {
-    body: entryData
-  });
-
-  if (response.error) {
-    throw new Error(response.error.message || 'Entry could not be updated');
-  }
-
-  if (!response.data) {
-    throw new Error('No data received from server');
-  }
-
-  return response.data as LegislationEntry;
+.bereichName {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #4a4a4a);
 }
 
-/**
- * Deletes a legislation entry
- * @param id - The ID of the entry to delete
- */
-export async function deleteLegislationEntry(id: string): Promise<void> {
-  const response = await customClient.DELETE(`/api/laws/${id}`);
-
-  if (response.error) {
-    throw new Error(response.error.message || 'Entry could not be deleted');
-  }
+.count {
+  background-color: var(--badge-background, #e8e8e8);
+  color: var(--text-secondary, #666);
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  min-width: 1.5rem;
+  text-align: center;
 }
 </file>
 
-<file path="src/types/legislation-entry.ts">
-/**
- * Frontend model for legislative entries (Gesetzgebungseinträge)
- * Matches the backend Pydantic model 1:1
- */
+<file path="src/components/BereicheSidebar.tsx">
+import React from 'react';
+import styles from './BereicheSidebar.module.scss';
+import { Bereich } from '@/lib/hooks/useLaws';
 
-export interface LegislationEntry {
-  id?: string;
-  thema: string;
-  stichwort: string;
-  dokument: string;
-  dokument_jahr?: number | null;
-  gesetzgebung: string;
-  gesetzgebung_jahr?: number | null;
-  kurztitel: string;
-  kurztitel_englisch?: string | null;
-  vollzitat: string;
-  fundstelle: string;
-  fundstelle_url?: string | null;
-  volltext_url?: string | null;
-  status: LegislationStatus;
-  stichtag: string; // ISO date string, will be parsed to Date when needed
-  rechtsakt?: string | null;
-  durchfuehrung_von?: string | null;
-  typ: string;
-  rechtsgrundlage?: string | null;
-  richtlinie?: string | null;
-  gesetzeskuerzel?: string | null;
-  anmerkungen?: string | null;
+type Props = {
+  bereiche: Bereich[];
+  bereichCounts: Map<string, number>;
+  selected: Bereich | null;
+  onSelect: (bereich: Bereich | null) => void;
+};
+
+export default function BereicheSidebar({ bereiche, bereichCounts, selected, onSelect }: Props) {
+  return (
+    <div className={styles.sidebar}>
+      <div className={styles.header}>
+        <h3>Bereiche</h3>
+      </div>
+      <ul className={styles.bereichList}>
+        <li 
+          className={`${styles.bereichItem} ${!selected ? styles.active : ''}`}
+          onClick={() => onSelect(null)}
+        >
+          <span className={styles.bereichName}>Alle anzeigen</span>
+          <span className={styles.count}>
+            {Array.from(bereichCounts.values()).reduce((a, b) => a + b, 0)}
+          </span>
+        </li>
+        {bereiche.map((bereich) => {
+          const count = bereichCounts.get(bereich.name) || 0;
+          return (
+            <li
+              key={bereich.name}
+              className={`${styles.bereichItem} ${
+                selected?.name === bereich.name ? styles.active : ''
+              }`}
+              onClick={() => onSelect(bereich)}
+            >
+              <span className={styles.bereichName}>{bereich.name}</span>
+              <span className={styles.count}>{count}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/LawsSplitView.module.scss">
+.splitViewContainer {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  gap: 0;
 }
 
-export enum LegislationStatus {
-  ENTWURF = 'Entwurf',
-  IN_KRAFT = 'In Kraft',
-  AUFGEHOBEN = 'Aufgehoben',
-  AUSSER_KRAFT = 'Außer Kraft'
+.sidebarPanel {
+  width: 280px;
+  background-color: var(--background-secondary, #f8f9fa);
+  border-right: 1px solid var(--border-color, #e1e4e8);
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
-// Mock data for initial development
-export const MOCK_LEGISLATION_ENTRIES: LegislationEntry[] = [
-  {
-    id: '1',
-    thema: 'Typgenehmigung',
-    stichwort: 'Typgenehmigung',
-    dokument: '2018/858',
-    dokument_jahr: 2018,
-    gesetzgebung: '(EU) 2018/858',
-    gesetzgebung_jahr: 2018,
-    kurztitel: 'Verordnung über die Genehmigung und Marktüberwachung von Kraftfahrzeugen',
-    kurztitel_englisch: 'Regulation on approval and market surveillance of motor vehicles',
-    vollzitat: 'Verordnung (EU) 2018/858 des Europäischen Parlaments und des Rates vom 30. Mai 2018 über die Genehmigung und die Marktüberwachung von Kraftfahrzeugen und Kraftfahrzeuganhängern sowie von Systemen, Bauteilen und selbstständigen technischen Einheiten für diese Fahrzeuge',
-    fundstelle: 'ABl. L 151 vom 14.6.2018, S. 1',
-    fundstelle_url: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32018R0858',
-    volltext_url: 'https://eur-lex.europa.eu/legal-content/DE/TXT/HTML/?uri=CELEX:32018R0858',
-    status: LegislationStatus.IN_KRAFT,
-    stichtag: '2020-09-01',
-    rechtsakt: 'Verordnung',
-    durchfuehrung_von: null,
-    typ: 'EU-Verordnung',
-    rechtsgrundlage: 'Art. 114 AEUV',
-    richtlinie: null,
-    gesetzeskuerzel: 'TG-VO',
-    anmerkungen: 'Ersetzt Richtlinie 2007/46/EG'
-  },
-  {
-    id: '2',
-    thema: 'Cybersicherheit',
-    stichwort: 'Cybersecurity',
-    dokument: '2019/2144',
-    dokument_jahr: 2019,
-    gesetzgebung: '(EU) 2019/2144',
-    gesetzgebung_jahr: 2019,
-    kurztitel: 'Verordnung über Anforderungen an die Typgenehmigung von Fahrzeugen hinsichtlich der Cybersicherheit',
-    kurztitel_englisch: 'Regulation on type-approval requirements for vehicles regarding cybersecurity',
-    vollzitat: 'Verordnung (EU) 2019/2144 des Europäischen Parlaments und des Rates vom 27. November 2019 über die Typgenehmigungsanforderungen für Kraftfahrzeuge und Kraftfahrzeuganhänger',
-    fundstelle: 'ABl. L 325 vom 16.12.2019, S. 1',
-    fundstelle_url: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32019R2144',
-    volltext_url: 'https://eur-lex.europa.eu/legal-content/DE/TXT/HTML/?uri=CELEX:32019R2144',
-    status: LegislationStatus.IN_KRAFT,
-    stichtag: '2022-07-06',
-    rechtsakt: 'Verordnung',
-    durchfuehrung_von: null,
-    typ: 'EU-Verordnung',
-    rechtsgrundlage: 'Art. 114 AEUV',
-    richtlinie: null,
-    gesetzeskuerzel: 'GSR',
-    anmerkungen: 'General Safety Regulation - Enthält Cybersecurity-Anforderungen'
-  }
-];
+.contentPanel {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: var(--background, #ffffff);
+}
+</file>
+
+<file path="src/components/LawsSplitView.tsx">
+import React from 'react';
+import styles from './LawsSplitView.module.scss';
+
+type Props = {
+  sidebar: React.ReactNode;
+  children: React.ReactNode;
+};
+
+export default function LawsSplitView({ sidebar, children }: Props) {
+  return (
+    <div className={styles.splitViewContainer}>
+      <aside className={styles.sidebarPanel}>{sidebar}</aside>
+      <main className={styles.contentPanel}>{children}</main>
+    </div>
+  );
+}
 </file>
 
 <file path=".github/workflows/build-check.yml">
@@ -2334,6 +762,31 @@ const ConversationsPage: React.FC = () => {
 };
 
 export default ConversationsPage;
+</file>
+
+<file path="src/app/[locale]/(main)/laws/acronyms/page.tsx">
+import { LawsDashboard } from '@/components/laws/LawsDashboard';
+import { LawAcronymsView } from '@/components/laws/LawAcronymsView';
+
+export default function LawAcronymsPage() {
+  return (
+    <LawsDashboard>
+      <LawAcronymsView />
+    </LawsDashboard>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(main)/laws/layout.tsx">
+import { ReactNode } from 'react';
+
+export default function LawsLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return <>{children}</>;
+}
 </file>
 
 <file path="src/app/[locale]/(main)/layout.tsx">
@@ -3576,6 +2029,869 @@ export function CustomerView() {
 }
 </file>
 
+<file path="src/components/laws/AddUrlModal.tsx">
+'use client';
+
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { processLegislationUrl } from '@/lib/services/legislation-service';
+import { LegislationEntry } from '@/types/legislation-entry';
+
+interface AddUrlModalProps {
+  onClose: () => void;
+  onSuccess: (entry: LegislationEntry) => void;
+}
+
+export function AddUrlModal({ onClose, onSuccess }: AddUrlModalProps) {
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!url.trim()) {
+      setError('Bitte geben Sie eine URL ein');
+      return;
+    }
+
+    // Basic EUR-Lex URL validation
+    if (!url.includes('eur-lex.europa.eu')) {
+      setError('Bitte geben Sie eine gültige EUR-Lex URL ein');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // For development, create a mock response
+      // TODO: Replace with actual API call when backend is ready
+      const mockEntry: LegislationEntry = {
+        bereich: 'Datenschutz',
+        gesetzeskuerzel: 'DSGVO',
+        gesetzgebung: '(EU) 2016/679',
+        textquelle_url: url,
+        bezug: 'Ersetzt Richtlinie 95/46/EG',
+        zitiert: '95/46/EG',
+        initiative: 'COM/2012/11',
+        status: 'In Kraft',
+        markt: 'EU',
+        stichtag: '2018-05-25',
+        folgestatus: 'Vollständig anwendbar',
+        infoquelle_url: url,
+        produktbereich: 'Personenbezogene Daten',
+        thema: 'Datenschutz-Grundverordnung',
+        information: 'Diese Verordnung schützt die Grundrechte und Grundfreiheiten natürlicher Personen und insbesondere deren Recht auf Schutz personenbezogener Daten.',
+        betroffene: 'Alle Unternehmen, die personenbezogene Daten von EU-Bürgern verarbeiten',
+        ausblick: 'Unternehmen müssen Datenschutz-Folgenabschätzungen durchführen und einen Datenschutzbeauftragten benennen.',
+      };
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // In production, use the actual service
+      // const entry = await processLegislationUrl(url);
+      
+      onSuccess(mockEntry);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[525px]">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Neuen Gesetzestext hinzufügen</DialogTitle>
+            <DialogDescription>
+              Geben Sie die EUR-Lex URL ein, um die Gesetzesdaten automatisch zu extrahieren.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="url">EUR-Lex URL</Label>
+              <Input
+                id="url"
+                type="url"
+                placeholder="https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:..."
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                disabled={loading}
+                autoFocus
+              />
+              <p className="text-sm text-muted-foreground">
+                Beispiel: https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32018R0858
+              </p>
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Abbrechen
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading ? 'Verarbeite...' : 'Verarbeiten'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+</file>
+
+<file path="src/components/laws/LawAcronymsView.tsx">
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, Edit, Trash2, ExternalLink } from 'lucide-react';
+import { getLawAcronyms } from '@/lib/services/laws-service';
+import { LawAcronym } from '@/types/laws';
+
+export function LawAcronymsView() {
+  const t = useTranslations();
+  const [acronyms, setAcronyms] = useState<LawAcronym[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const loadAcronyms = async () => {
+      try {
+        setLoading(true);
+        const data = await getLawAcronyms();
+        setAcronyms(data);
+      } catch (error) {
+        console.error('Failed to load law acronyms:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAcronyms();
+  }, []);
+
+  const filteredAcronyms = acronyms.filter(
+    (acronym) =>
+      acronym.acronym.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      acronym.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleEdit = (id: string) => {
+    // TODO: Implement edit functionality with modal
+    console.log('Edit law:', id);
+  };
+
+  const handleAdd = () => {
+    // TODO: Implement add functionality with modal
+    console.log('Add new law acronym');
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="text-muted-foreground">Lade Gesetzeskürzel...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Gesetzeskürzel verwalten</CardTitle>
+        <CardDescription>
+          Verwaltung von Abkürzungen und Kurzbezeichnungen für Gesetze und Verordnungen
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-2 flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Suche nach Stichwort, Gesetz oder Titel..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+          </div>
+          <Button onClick={handleAdd}>
+            <Plus className="w-4 h-4 mr-2" />
+            Neues Kürzel
+          </Button>
+        </div>
+
+        <Table>
+          <TableCaption>
+            {filteredAcronyms.length} von {acronyms.length} Gesetzeskürzeln
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Kürzel</TableHead>
+              <TableHead>Vollständiger Name</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Aktionen</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAcronyms.map((acronym) => (
+              <TableRow key={acronym.id}>
+                <TableCell className="font-medium">{acronym.acronym}</TableCell>
+                <TableCell>{acronym.fullName}</TableCell>
+                <TableCell>
+                  <Badge variant={acronym.isActive ? 'default' : 'secondary'}>
+                    {acronym.isActive ? 'Aktiv' : 'Inaktiv'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(acronym.id)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+</file>
+
+<file path="src/components/laws/LawsDashboard.tsx">
+'use client';
+
+import { usePathname } from 'next/navigation';
+import { Link } from '@/i18n/navigation';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ReactNode } from 'react';
+
+interface LawsDashboardProps {
+  children: ReactNode;
+}
+
+export function LawsDashboard({ children }: LawsDashboardProps) {
+  const pathname = usePathname();
+  
+  // Extract the current tab from pathname
+  const isAcronymsPage = pathname.includes('/laws/acronyms');
+  const currentTab = isAcronymsPage ? 'acronyms' : 'overview';
+
+  return (
+    <div className="container mx-auto py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Gesetzes-Dashboard</h1>
+        <p className="text-muted-foreground">
+          Verwalten Sie Gesetzestexte und Gesetzeskürzel
+        </p>
+      </div>
+
+      <Tabs value={currentTab} className="mb-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="overview" asChild>
+            <Link href="/laws">Übersicht</Link>
+          </TabsTrigger>
+          <TabsTrigger value="acronyms" asChild>
+            <Link href="/laws/acronyms">Gesetzeskürzel verwalten</Link>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <div>{children}</div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/laws/LegislationTable.tsx">
+'use client';
+
+import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, ExternalLink, FileText, Loader2 } from 'lucide-react';
+import { LegislationEntry } from '@/types/legislation-entry';
+import { getLegislationEntries, getLegislationEntryDetails } from '@/lib/services/legislation-service';
+import { AddUrlModal } from '@/components/laws/AddUrlModal';
+import { ReviewEntryModal } from '@/components/laws/ReviewEntryModal';
+import { LegislationDetailDialog } from '@/components/laws/LegislationDetailDialog';
+
+export function LegislationTable() {
+  const [entries, setEntries] = useState<LegislationEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [pendingEntry, setPendingEntry] = useState<LegislationEntry | null>(null);
+  const [selectedEntryDetails, setSelectedEntryDetails] = useState<LegislationEntry | null>(null);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+
+  useEffect(() => {
+    loadEntries();
+  }, []);
+
+  const loadEntries = async () => {
+    try {
+      setLoading(true);
+      const data = await getLegislationEntries();
+      setEntries(data);
+    } catch (error) {
+      console.error('Failed to load legislation entries:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredEntries = entries.filter((entry) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      entry.thema.toLowerCase().includes(searchLower) ||
+      entry.gesetzgebung.toLowerCase().includes(searchLower) ||
+      (entry.gesetzeskuerzel?.toLowerCase().includes(searchLower) ?? false) ||
+      (entry.produktbereich?.toLowerCase().includes(searchLower) ?? false) ||
+      (entry.status?.toLowerCase().includes(searchLower) ?? false) ||
+      (entry.markt?.toLowerCase().includes(searchLower) ?? false)
+    );
+  });
+
+  const getStatusBadgeVariant = (status: string | null | undefined) => {
+    if (!status) return 'outline';
+    switch (status) {
+      case 'In Kraft':
+        return 'default';
+      case 'Entwurf':
+        return 'secondary';
+      case 'Aufgehoben':
+      case 'Außer Kraft':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
+  const handleAddNew = () => {
+    setShowAddModal(true);
+  };
+
+  const handleUrlProcessed = (entry: LegislationEntry) => {
+    setPendingEntry(entry);
+    setShowAddModal(false);
+    setShowReviewModal(true);
+  };
+
+  const handleEntrySaved = (entry: LegislationEntry) => {
+    setEntries([...entries, entry]);
+    setShowReviewModal(false);
+    setPendingEntry(null);
+  };
+
+  const handleRowClick = async (entry: LegislationEntry) => {
+    if (!entry.id) return;
+    setIsDetailsLoading(true);
+    try {
+      const details = await getLegislationEntryDetails(entry.id);
+      setSelectedEntryDetails(details);
+    } catch (error) {
+      console.error("Failed to load legislation details:", error);
+      // Optional: Show an error toast/alert to the user
+    } finally {
+      setIsDetailsLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'dd.MM.yyyy', { locale: de });
+    } catch {
+      return dateString;
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="text-muted-foreground">Lade Gesetzestexte...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Gesetzestexte</CardTitle>
+          <CardDescription>
+            Übersicht aller erfassten Gesetzestexte und Verordnungen
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center space-x-2 flex-1 max-w-sm">
+              <Search className="w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Suche nach Thema, Gesetz, Titel oder Status..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
+            </div>
+            <Button onClick={handleAddNew}>
+              <Plus className="w-4 h-4 mr-2" />
+              Neuen Eintrag hinzufügen
+            </Button>
+          </div>
+
+          <Table>
+            <TableCaption>
+              {filteredEntries.length} von {entries.length} Gesetzestexten
+            </TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Thema</TableHead>
+                <TableHead>Gesetzeskürzel</TableHead>
+                <TableHead>Gesetzgebung</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Stichtag</TableHead>
+                <TableHead>Markt</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredEntries.map((entry) => (
+                <TableRow 
+                  key={entry.id}
+                  onClick={() => handleRowClick(entry)}
+                  className="cursor-pointer hover:bg-muted/50">
+                  <TableCell>
+                    <div className="font-medium">{entry.thema}</div>
+                    <div className="text-sm text-muted-foreground truncate max-w-xs">
+                      {entry.produktbereich}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {entry.gesetzeskuerzel && (
+                      <Badge variant="secondary">{entry.gesetzeskuerzel}</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-mono text-sm">{entry.gesetzgebung}</div>
+                  </TableCell>
+                  <TableCell>
+                    {entry.status && (
+                      <Badge variant={getStatusBadgeVariant(entry.status)}>
+                        {entry.status}
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>{formatDate(entry.stichtag)}</TableCell>
+                  <TableCell>{entry.markt}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {showAddModal && (
+        <AddUrlModal
+          onClose={() => setShowAddModal(false)}
+          onSuccess={handleUrlProcessed}
+        />
+      )}
+
+      {showReviewModal && pendingEntry && (
+        <ReviewEntryModal
+          entry={pendingEntry}
+          onClose={() => {
+            setShowReviewModal(false);
+            setPendingEntry(null);
+          }}
+          onSave={handleEntrySaved}
+        />
+      )}
+
+      {selectedEntryDetails && (
+        <LegislationDetailDialog
+          entry={selectedEntryDetails}
+          onClose={() => setSelectedEntryDetails(null)}
+        />
+      )}
+
+      {isDetailsLoading && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <Loader2 className="h-12 w-12 text-white animate-spin" />
+        </div>
+      )}
+    </>
+  );
+}
+</file>
+
+<file path="src/components/laws/ReviewEntryModal.tsx">
+'use client';
+
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { createLegislationEntry } from '@/lib/services/legislation-service';
+import { LegislationEntry } from '@/types/legislation-entry';
+
+interface ReviewEntryModalProps {
+  entry: LegislationEntry;
+  onClose: () => void;
+  onSave: (entry: LegislationEntry) => void;
+}
+
+export function ReviewEntryModal({ entry, onClose, onSave }: ReviewEntryModalProps) {
+  const [formData, setFormData] = useState<LegislationEntry>(entry);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleInputChange = (
+    field: keyof LegislationEntry,
+    value: string | number | null
+  ) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      // For development, simulate saving
+      // TODO: Replace with actual API call when backend is ready
+      const savedEntry = { ...formData, id: Date.now().toString() };
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In production, use the actual service
+      // const savedEntry = await createLegislationEntry(formData);
+      
+      onSave(savedEntry);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-5xl max-h-[90vh]">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Gesetzestext überprüfen und bearbeiten</DialogTitle>
+            <DialogDescription>
+              Überprüfen Sie die extrahierten Daten und nehmen Sie bei Bedarf Anpassungen vor.
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[60vh] px-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
+              {/* Column 1 - Core Information */}
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label htmlFor="thema">Thema *</Label>
+                  <Input 
+                    id="thema" 
+                    value={formData.thema} 
+                    onChange={(e) => handleInputChange('thema', e.target.value)} 
+                    required 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gesetzeskuerzel">Gesetzeskürzel</Label>
+                  <Input 
+                    id="gesetzeskuerzel" 
+                    value={formData.gesetzeskuerzel || ''} 
+                    onChange={(e) => handleInputChange('gesetzeskuerzel', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gesetzgebung">Gesetzgebung *</Label>
+                  <Input 
+                    id="gesetzgebung" 
+                    value={formData.gesetzgebung} 
+                    onChange={(e) => handleInputChange('gesetzgebung', e.target.value)} 
+                    required 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Input 
+                    id="status" 
+                    value={formData.status || ''} 
+                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    placeholder="z.B. In Kraft, Entwurf" 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="produktbereich">Produktbereich</Label>
+                  <Input 
+                    id="produktbereich" 
+                    value={formData.produktbereich || ''} 
+                    onChange={(e) => handleInputChange('produktbereich', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Column 2 - Timing and Market */}
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label htmlFor="stichtag">Stichtag *</Label>
+                  <Input 
+                    id="stichtag" 
+                    type="date" 
+                    value={formData.stichtag} 
+                    onChange={(e) => handleInputChange('stichtag', e.target.value)} 
+                    required 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="folgestatus">Folgestatus</Label>
+                  <Input 
+                    id="folgestatus" 
+                    value={formData.folgestatus || ''} 
+                    onChange={(e) => handleInputChange('folgestatus', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="markt">Markt</Label>
+                  <Input 
+                    id="markt" 
+                    value={formData.markt || ''} 
+                    onChange={(e) => handleInputChange('markt', e.target.value)}
+                    placeholder="z.B. EU, UK, Global" 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bereich">Bereich</Label>
+                  <Input 
+                    id="bereich" 
+                    value={formData.bereich || ''} 
+                    onChange={(e) => handleInputChange('bereich', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="initiative">Initiative</Label>
+                  <Input 
+                    id="initiative" 
+                    value={formData.initiative || ''} 
+                    onChange={(e) => handleInputChange('initiative', e.target.value)}
+                    placeholder="z.B. DOC-Nummer" 
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Column 3 - References and URLs */}
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label htmlFor="bezug">Bezug</Label>
+                  <Input 
+                    id="bezug" 
+                    value={formData.bezug || ''} 
+                    onChange={(e) => handleInputChange('bezug', e.target.value)}
+                    placeholder="z.B. Löst 2007/46/EG ab" 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="zitiert">Zitierte Gesetze</Label>
+                  <Input 
+                    id="zitiert" 
+                    value={formData.zitiert || ''} 
+                    onChange={(e) => handleInputChange('zitiert', e.target.value)}
+                    placeholder="Kommagetrennte Liste" 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="textquelle_url">Textquelle URL</Label>
+                  <Input 
+                    id="textquelle_url" 
+                    type="url" 
+                    value={formData.textquelle_url || ''} 
+                    onChange={(e) => handleInputChange('textquelle_url', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="infoquelle_url">Infoquelle URL</Label>
+                  <Input 
+                    id="infoquelle_url" 
+                    type="url" 
+                    value={formData.infoquelle_url || ''} 
+                    onChange={(e) => handleInputChange('infoquelle_url', e.target.value)} 
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Full Width Text Areas */}
+              <div className="md:col-span-2 lg:col-span-3 flex flex-col gap-4">
+                <div>
+                  <Label htmlFor="information">Information (max. 600 Zeichen)</Label>
+                  <Textarea 
+                    id="information" 
+                    value={formData.information || ''} 
+                    onChange={(e) => handleInputChange('information', e.target.value)}
+                    rows={4}
+                    maxLength={600}
+                    placeholder="Wesentliche Informationen zum Gesetz"
+                    disabled={loading}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {(formData.information?.length || 0)} / 600 Zeichen
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="betroffene">Betroffene Akteure</Label>
+                  <Textarea 
+                    id="betroffene" 
+                    value={formData.betroffene || ''} 
+                    onChange={(e) => handleInputChange('betroffene', e.target.value)}
+                    rows={2}
+                    placeholder="z.B. Hersteller, Importeure, Händler"
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ausblick">Ausblick & Handlungsempfehlungen</Label>
+                  <Textarea 
+                    id="ausblick" 
+                    value={formData.ausblick || ''} 
+                    onChange={(e) => handleInputChange('ausblick', e.target.value)}
+                    rows={3}
+                    placeholder="Was müssen betroffene Unternehmen beachten?"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="md:col-span-2 lg:col-span-3">
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Abbrechen
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading ? 'Speichere...' : 'Speichern'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+</file>
+
 <file path="src/components/shared/SearchableTagSelector.tsx">
 "use client";
 
@@ -3711,6 +3027,75 @@ export function SearchableTagSelector({
 }
 </file>
 
+<file path="src/components/ui/alert.tsx">
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const alertVariants = cva(
+  "relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
+  {
+    variants: {
+      variant: {
+        default: "bg-card text-card-foreground",
+        destructive:
+          "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+function Alert({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
+  return (
+    <div
+      data-slot="alert"
+      role="alert"
+      className={cn(alertVariants({ variant }), className)}
+      {...props}
+    />
+  )
+}
+
+function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="alert-title"
+      className={cn(
+        "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function AlertDescription({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="alert-description"
+      className={cn(
+        "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Alert, AlertTitle, AlertDescription }
+</file>
+
 <file path="src/components/ui/badge.tsx">
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
@@ -3820,6 +3205,101 @@ function Button({
 }
 
 export { Button, buttonVariants }
+</file>
+
+<file path="src/components/ui/card.tsx">
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+function Card({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card"
+      className={cn(
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-header"
+      className={cn(
+        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-title"
+      className={cn("leading-none font-semibold", className)}
+      {...props}
+    />
+  )
+}
+
+function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-description"
+      className={cn("text-muted-foreground text-sm", className)}
+      {...props}
+    />
+  )
+}
+
+function CardAction({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-action"
+      className={cn(
+        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-content"
+      className={cn("px-6", className)}
+      {...props}
+    />
+  )
+}
+
+function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+}
 </file>
 
 <file path="src/components/ui/command.tsx">
@@ -4009,46 +3489,20 @@ export {
 }
 </file>
 
-<file path="src/components/ui/dialog.tsx">
+<file path="src/components/ui/input.tsx">
 import * as React from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function Dialog({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
-}
-
-function DialogTrigger({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
-}
-
-function DialogPortal({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
-}
-
-function DialogClose({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Close>) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
-}
-
-function DialogOverlay({
-  className,
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
-    <DialogPrimitive.Overlay
-      data-slot="dialog-overlay"
+    <input
+      type={type}
+      data-slot="input"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         className
       )}
       {...props}
@@ -4056,56 +3510,24 @@ function DialogOverlay({
   )
 }
 
-function DialogContent({
+export { Input }
+</file>
+
+<file path="src/components/ui/label.tsx">
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+
+import { cn } from "@/lib/utils"
+
+function Label({
   className,
-  children,
-  showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
-  showCloseButton?: boolean
-}) {
+}: React.ComponentProps<typeof LabelPrimitive.Root>) {
   return (
-    <DialogPortal data-slot="dialog-portal">
-      <DialogOverlay />
-      <DialogPrimitive.Content
-        data-slot="dialog-content"
-        className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
-          className
-        )}
-        {...props}
-      >
-        {children}
-        {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-          >
-            <XIcon />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Content>
-    </DialogPortal>
-  )
-}
-
-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
-      {...props}
-    />
-  )
-}
-
-function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="dialog-footer"
+    <LabelPrimitive.Root
+      data-slot="label"
       className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        "flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
         className
       )}
       {...props}
@@ -4113,44 +3535,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function DialogTitle({
-  className,
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Title>) {
-  return (
-    <DialogPrimitive.Title
-      data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold", className)}
-      {...props}
-    />
-  )
-}
-
-function DialogDescription({
-  className,
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Description>) {
-  return (
-    <DialogPrimitive.Description
-      data-slot="dialog-description"
-      className={cn("text-muted-foreground text-sm", className)}
-      {...props}
-    />
-  )
-}
-
-export {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogOverlay,
-  DialogPortal,
-  DialogTitle,
-  DialogTrigger,
-}
+export { Label }
 </file>
 
 <file path="src/components/ui/popover.tsx">
@@ -4200,6 +3585,460 @@ function PopoverAnchor({
 }
 
 export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }
+</file>
+
+<file path="src/components/ui/scroll-area.tsx">
+"use client"
+
+import * as React from "react"
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
+
+import { cn } from "@/lib/utils"
+
+function ScrollArea({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+  return (
+    <ScrollAreaPrimitive.Root
+      data-slot="scroll-area"
+      className={cn("relative", className)}
+      {...props}
+    >
+      <ScrollAreaPrimitive.Viewport
+        data-slot="scroll-area-viewport"
+        className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
+      >
+        {children}
+      </ScrollAreaPrimitive.Viewport>
+      <ScrollBar />
+      <ScrollAreaPrimitive.Corner />
+    </ScrollAreaPrimitive.Root>
+  )
+}
+
+function ScrollBar({
+  className,
+  orientation = "vertical",
+  ...props
+}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
+  return (
+    <ScrollAreaPrimitive.ScrollAreaScrollbar
+      data-slot="scroll-area-scrollbar"
+      orientation={orientation}
+      className={cn(
+        "flex touch-none p-px transition-colors select-none",
+        orientation === "vertical" &&
+          "h-full w-2.5 border-l border-l-transparent",
+        orientation === "horizontal" &&
+          "h-2.5 flex-col border-t border-t-transparent",
+        className
+      )}
+      {...props}
+    >
+      <ScrollAreaPrimitive.ScrollAreaThumb
+        data-slot="scroll-area-thumb"
+        className="bg-border relative flex-1 rounded-full"
+      />
+    </ScrollAreaPrimitive.ScrollAreaScrollbar>
+  )
+}
+
+export { ScrollArea, ScrollBar }
+</file>
+
+<file path="src/components/ui/select.tsx">
+"use client"
+
+import * as React from "react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+function Select({
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Root>) {
+  return <SelectPrimitive.Root data-slot="select" {...props} />
+}
+
+function SelectGroup({
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Group>) {
+  return <SelectPrimitive.Group data-slot="select-group" {...props} />
+}
+
+function SelectValue({
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Value>) {
+  return <SelectPrimitive.Value data-slot="select-value" {...props} />
+}
+
+function SelectTrigger({
+  className,
+  size = "default",
+  children,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
+  size?: "sm" | "default"
+}) {
+  return (
+    <SelectPrimitive.Trigger
+      data-slot="select-trigger"
+      data-size={size}
+      className={cn(
+        "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <SelectPrimitive.Icon asChild>
+        <ChevronDownIcon className="size-4 opacity-50" />
+      </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
+  )
+}
+
+function SelectContent({
+  className,
+  children,
+  position = "popper",
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        data-slot="select-content"
+        className={cn(
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
+          position === "popper" &&
+            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+          className
+        )}
+        position={position}
+        {...props}
+      >
+        <SelectScrollUpButton />
+        <SelectPrimitive.Viewport
+          className={cn(
+            "p-1",
+            position === "popper" &&
+              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
+          )}
+        >
+          {children}
+        </SelectPrimitive.Viewport>
+        <SelectScrollDownButton />
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  )
+}
+
+function SelectLabel({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Label>) {
+  return (
+    <SelectPrimitive.Label
+      data-slot="select-label"
+      className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
+      {...props}
+    />
+  )
+}
+
+function SelectItem({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Item>) {
+  return (
+    <SelectPrimitive.Item
+      data-slot="select-item"
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        className
+      )}
+      {...props}
+    >
+      <span className="absolute right-2 flex size-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator>
+          <CheckIcon className="size-4" />
+        </SelectPrimitive.ItemIndicator>
+      </span>
+      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    </SelectPrimitive.Item>
+  )
+}
+
+function SelectSeparator({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Separator>) {
+  return (
+    <SelectPrimitive.Separator
+      data-slot="select-separator"
+      className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
+      {...props}
+    />
+  )
+}
+
+function SelectScrollUpButton({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
+  return (
+    <SelectPrimitive.ScrollUpButton
+      data-slot="select-scroll-up-button"
+      className={cn(
+        "flex cursor-default items-center justify-center py-1",
+        className
+      )}
+      {...props}
+    >
+      <ChevronUpIcon className="size-4" />
+    </SelectPrimitive.ScrollUpButton>
+  )
+}
+
+function SelectScrollDownButton({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
+  return (
+    <SelectPrimitive.ScrollDownButton
+      data-slot="select-scroll-down-button"
+      className={cn(
+        "flex cursor-default items-center justify-center py-1",
+        className
+      )}
+      {...props}
+    >
+      <ChevronDownIcon className="size-4" />
+    </SelectPrimitive.ScrollDownButton>
+  )
+}
+
+export {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+}
+</file>
+
+<file path="src/components/ui/table.tsx">
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+function Table({ className, ...props }: React.ComponentProps<"table">) {
+  return (
+    <div
+      data-slot="table-container"
+      className="relative w-full overflow-x-auto"
+    >
+      <table
+        data-slot="table"
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
+    </div>
+  )
+}
+
+function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn("[&_tr]:border-b", className)}
+      {...props}
+    />
+  )
+}
+
+function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
+  return (
+    <tbody
+      data-slot="table-body"
+      className={cn("[&_tr:last-child]:border-0", className)}
+      {...props}
+    />
+  )
+}
+
+function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
+  return (
+    <tfoot
+      data-slot="table-footer"
+      className={cn(
+        "bg-muted/50 border-t font-medium [&>tr]:last:border-b-0",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
+  return (
+    <tr
+      data-slot="table-row"
+      className={cn(
+        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+  return (
+    <th
+      data-slot="table-head"
+      className={cn(
+        "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+  return (
+    <td
+      data-slot="table-cell"
+      className={cn(
+        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TableCaption({
+  className,
+  ...props
+}: React.ComponentProps<"caption">) {
+  return (
+    <caption
+      data-slot="table-caption"
+      className={cn("text-muted-foreground mt-4 text-sm", className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+}
+</file>
+
+<file path="src/components/ui/tabs.tsx">
+import * as React from "react"
+import * as TabsPrimitive from "@radix-ui/react-tabs"
+
+import { cn } from "@/lib/utils"
+
+function Tabs({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  return (
+    <TabsPrimitive.Root
+      data-slot="tabs"
+      className={cn("flex flex-col gap-2", className)}
+      {...props}
+    />
+  )
+}
+
+function TabsList({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.List>) {
+  return (
+    <TabsPrimitive.List
+      data-slot="tabs-list"
+      className={cn(
+        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TabsTrigger({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+  return (
+    <TabsPrimitive.Trigger
+      data-slot="tabs-trigger"
+      className={cn(
+        "data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TabsContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+  return (
+    <TabsPrimitive.Content
+      data-slot="tabs-content"
+      className={cn("flex-1 outline-none", className)}
+      {...props}
+    />
+  )
+}
+
+export { Tabs, TabsList, TabsTrigger, TabsContent }
+</file>
+
+<file path="src/components/ui/textarea.tsx">
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+  return (
+    <textarea
+      data-slot="textarea"
+      className={cn(
+        "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Textarea }
 </file>
 
 <file path="src/components/ArtifactActionButton.module.scss">
@@ -7016,27 +6855,187 @@ export function useCustomerData(): UseCustomerDataReturn {
 
 <file path="src/lib/hooks/useLaws.ts">
 import { useState, useMemo, useCallback } from 'react';
-import { Rahmengesetzgebung, subscribedLaws } from '@/types/laws';
+import { Rahmengesetzgebung, subscribedLaws, Stichwort } from '@/types/laws';
+
+export interface Bereich {
+  name: string;
+  stichworte: Stichwort[];
+}
+
+// Define the Bereiche (areas/categories) based on logical groupings
+export const bereiche: Bereich[] = [
+  {
+    name: 'Produktsicherheit',
+    stichworte: [
+      Stichwort.APSR,
+      Stichwort.APSV,
+      Stichwort.ProdHR,
+      Stichwort.PSA,
+      Stichwort.SpielR,
+      Stichwort.MSR__alt,
+      Stichwort.MSV,
+      Stichwort.DGRL,
+      Stichwort.OutdoorR,
+      Stichwort.ATEX,
+    ]
+  },
+  {
+    name: 'Elektronik & Elektrik',
+    stichworte: [
+      Stichwort.EMV,
+      Stichwort.FuAR,
+      Stichwort.FrequenzE,
+      Stichwort.NSR,
+      Stichwort.BattR,
+      Stichwort.BattV,
+      Stichwort.WEEE,
+      Stichwort.RoHS,
+    ]
+  },
+  {
+    name: 'Umwelt & Nachhaltigkeit',
+    stichworte: [
+      Stichwort.AbfallR,
+      Stichwort.EinwegkunststoffR,
+      Stichwort.VerpackR,
+      Stichwort.VerpackV,
+      Stichwort.Abwasser,
+      Stichwort.CSRD,
+      Stichwort.CSDDD,
+      Stichwort.EUDR,
+      Stichwort.EUTR,
+      Stichwort.CBAM,
+      Stichwort.E_Label,
+      Stichwort.ERP,
+      Stichwort.kodesign,
+      Stichwort.EU_Umweltzeichen,
+      Stichwort.FGasV,
+      Stichwort.EWKRL,
+      Stichwort.OzonV,
+      Stichwort.Reducing_microplastics,
+      Stichwort.NachhaltigkeitsR,
+      Stichwort.Umweltstrafrecht,
+    ]
+  },
+  {
+    name: 'Cybersicherheit & Digitales',
+    stichworte: [
+      Stichwort.CRA,
+      Stichwort.KI_VO,
+      Stichwort.DatenV,
+      Stichwort.NIS2,
+      Stichwort.ENISA,
+      Stichwort.DDG,
+    ]
+  },
+  {
+    name: 'Chemikalien & Stoffe',
+    stichworte: [
+      Stichwort.CLP,
+      Stichwort.REACh,
+      Stichwort.QuecksilberV,
+      Stichwort.POP,
+      Stichwort.KrebsR,
+    ]
+  },
+  {
+    name: 'Bauprodukte',
+    stichworte: [
+      Stichwort.BauProd,
+      Stichwort.BauProd__alt,
+      Stichwort.BarriereFreiheitR,
+    ]
+  },
+  {
+    name: 'Fahrzeuge',
+    stichworte: [
+      Stichwort.TypG,
+      Stichwort.FahrzTypGenV,
+    ]
+  },
+  {
+    name: 'Marktüberwachung & Compliance',
+    stichworte: [
+      Stichwort.M_V,
+      Stichwort.WBRL,
+      Stichwort.Resilienz,
+      Stichwort.ZwangsarbV,
+      Stichwort.UnlautereGeschPrakt,
+      Stichwort.Verbraucherschutz,
+    ]
+  },
+  {
+    name: 'Spezielle Produkte',
+    stichworte: [
+      Stichwort.KosmetikV,
+      Stichwort.LebKontV,
+      Stichwort.TabProdR,
+      Stichwort.TrinkwasserR,
+      Stichwort.TextilKV,
+      Stichwort.MessGerR,
+      Stichwort.NormV,
+    ]
+  },
+  {
+    name: 'Internationale Regelungen',
+    stichworte: [
+      Stichwort.DualUse,
+      Stichwort.RUS_SanktionsV,
+    ]
+  },
+  {
+    name: 'UK Regelungen',
+    stichworte: [
+      Stichwort.VK_BattR,
+      Stichwort.VK_ConstrProd,
+      Stichwort.VK_EMC,
+      Stichwort.VK_ERP_EI,
+      Stichwort.VK_ElectricalESR,
+      Stichwort.VK_GPSR,
+      Stichwort.VK_MessGer,
+      Stichwort.VK_PSTI,
+      Stichwort.VK_RER,
+      Stichwort.VK_RoHS,
+      Stichwort.VK_SMSR,
+      Stichwort.VK_ToySR,
+    ]
+  },
+];
 
 export const useLaws = () => {
-  // The mock data is imported directly. No useEffect is needed for this static data.
   const [laws] = useState<Rahmengesetzgebung[]>(subscribedLaws);
   const [filterText, setFilterText] = useState('');
+  const [selectedBereich, setSelectedBereich] = useState<Bereich | null>(null);
   const [selectedLaw, setSelectedLaw] = useState<Rahmengesetzgebung | null>(null);
 
   const filteredLaws = useMemo(() => {
-    const lowercasedFilter = filterText.toLowerCase();
-    if (!lowercasedFilter) {
-      return laws;
+    let lawsToShow = laws;
+
+    // 1. First, filter by the selected Bereich from the sidebar
+    if (selectedBereich) {
+      lawsToShow = laws.filter(law => 
+        selectedBereich.stichworte.includes(law.stichwort)
+      );
     }
-    // Filter based on the properties available in the Rahmengesetzgebung interface
-    return laws.filter(law =>
-      law.kurztitel.toLowerCase().includes(lowercasedFilter) ||
-      law.gesetz.toLowerCase().includes(lowercasedFilter) ||
-      law.stichwort.toLowerCase().includes(lowercasedFilter) ||
-      law.shortTitle.toLowerCase().includes(lowercasedFilter)
-    );
-  }, [laws, filterText]);
+
+    // 2. Then, filter by the text input on the remaining laws
+    const lowercasedFilter = filterText.toLowerCase();
+    if (lowercasedFilter) {
+      lawsToShow = lawsToShow.filter(law =>
+        law.kurztitel.toLowerCase().includes(lowercasedFilter) ||
+        law.gesetz.toLowerCase().includes(lowercasedFilter) ||
+        law.stichwort.toLowerCase().includes(lowercasedFilter) ||
+        law.shortTitle.toLowerCase().includes(lowercasedFilter)
+      );
+    }
+    
+    return lawsToShow;
+  }, [laws, filterText, selectedBereich]);
+
+  const selectBereich = useCallback((bereich: Bereich | null) => {
+    setSelectedBereich(bereich);
+    setFilterText(''); // Reset text filter when changing Bereich
+  }, []);
 
   const selectLaw = useCallback((law: Rahmengesetzgebung) => {
     setSelectedLaw(law);
@@ -7046,11 +7045,28 @@ export const useLaws = () => {
     setSelectedLaw(null);
   }, []);
 
+  // Count laws per Bereich for display in sidebar
+  const bereichCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    bereiche.forEach(bereich => {
+      const count = laws.filter(law => 
+        bereich.stichworte.includes(law.stichwort)
+      ).length;
+      counts.set(bereich.name, count);
+    });
+    return counts;
+  }, [laws]);
+
   return {
+    laws,
+    bereiche,
+    bereichCounts,
     filteredLaws,
     selectedLaw,
     filterText,
+    selectedBereich,
     setFilterText,
+    selectBereich,
     selectLaw,
     closeDialog,
   };
@@ -7078,6 +7094,156 @@ export const useNormalizedParam = (key: string): string | undefined => {
   if (Array.isArray(value)) return value[0];
   return typeof value === "string" ? value : undefined;
 };
+</file>
+
+<file path="src/lib/services/laws-service.ts">
+import { subscribedLaws, LawAcronym, Stichwort } from '@/types/laws';
+
+/**
+ * Service for managing law acronyms (Gesetzeskürzel)
+ */
+
+/**
+ * Fetches all defined law acronyms.
+ * Initially returns mock data derived from types/laws.ts,
+ * replace with actual API call when ready.
+ */
+export async function getLawAcronyms(): Promise<LawAcronym[]> {
+  // Map the existing Rahmengesetzgebung[] to the new LawAcronym[] format
+  const acronyms: LawAcronym[] = subscribedLaws.map(law => ({
+    id: law.gesetz, // Use 'gesetz' as a unique ID
+    acronym: law.stichwort,
+    fullName: law.kurztitel,
+    isActive: true, // Default to true as this is not in the source model
+  }));
+
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  return Promise.resolve(acronyms);
+}
+</file>
+
+<file path="src/lib/services/legislation-service.ts">
+import { customClient } from '@/lib/api';
+import { LegislationEntry, MOCK_LEGISLATION_ENTRIES } from '@/types/legislation-entry';
+
+/**
+ * Service for managing legislation entries (Gesetzestexte)
+ */
+
+/**
+ * Fetches all existing legislation entries
+ * Initially returns mock data, replace with actual API call
+ */
+export async function getLegislationEntries(): Promise<LegislationEntry[]> {
+  // TODO: Replace with actual API call once backend is ready
+  // return customClient.GET('/api/laws').then(response => response.data);
+  
+  // For now, return mock data
+  return Promise.resolve(MOCK_LEGISLATION_ENTRIES);
+}
+
+/**
+ * Processes a EUR-Lex URL to extract legislation information
+ * @param url - The EUR-Lex URL to process
+ * @returns A pre-filled LegislationEntry object
+ */
+export async function processLegislationUrl(url: string): Promise<LegislationEntry> {
+  const response = await customClient.POST('/api/laws/process-from-url', {
+    body: { url }
+  });
+
+  if (response.error) {
+    throw new Error(response.error.message || 'URL could not be processed');
+  }
+
+  if (!response.data) {
+    throw new Error('No data received from server');
+  }
+
+  return response.data as LegislationEntry;
+}
+
+/**
+ * Creates a new legislation entry in the database
+ * @param entryData - The legislation entry data to save
+ * @returns The newly created entry with its database ID
+ */
+export async function createLegislationEntry(entryData: LegislationEntry): Promise<LegislationEntry> {
+  const response = await customClient.POST('/api/laws', {
+    body: entryData
+  });
+
+  if (response.error) {
+    throw new Error(response.error.message || 'Entry could not be saved');
+  }
+
+  if (!response.data) {
+    throw new Error('No data received from server');
+  }
+
+  return response.data as LegislationEntry;
+}
+
+/**
+ * Updates an existing legislation entry
+ * @param id - The ID of the entry to update
+ * @param entryData - The updated entry data
+ * @returns The updated entry
+ */
+export async function updateLegislationEntry(id: string, entryData: Partial<LegislationEntry>): Promise<LegislationEntry> {
+  const response = await customClient.PATCH(`/api/laws/${id}`, {
+    body: entryData
+  });
+
+  if (response.error) {
+    throw new Error(response.error.message || 'Entry could not be updated');
+  }
+
+  if (!response.data) {
+    throw new Error('No data received from server');
+  }
+
+  return response.data as LegislationEntry;
+}
+
+/**
+ * Deletes a legislation entry
+ * @param id - The ID of the entry to delete
+ */
+export async function deleteLegislationEntry(id: string): Promise<void> {
+  const response = await customClient.DELETE(`/api/laws/${id}`);
+
+  if (response.error) {
+    throw new Error(response.error.message || 'Entry could not be deleted');
+  }
+}
+
+/**
+ * Fetches the full details for a single legislation entry, including its full text.
+ * @param id - The ID of the entry to fetch
+ * @returns The full LegislationEntry object
+ */
+export async function getLegislationEntryDetails(id: string): Promise<LegislationEntry> {
+  // TODO: Replace with an actual API call, e.g., customClient.GET(`/api/laws/${id}`);
+  console.log(`Fetching details for entry ID: ${id}`);
+  
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 750));
+  
+  const entry = MOCK_LEGISLATION_ENTRIES.find(e => e.id === id);
+  if (!entry) {
+    throw new Error('Legislation entry not found');
+  }
+
+  // Ensure mock data has a volltext property
+  if (!entry.volltext) {
+    entry.volltext = `Vollständiger Text für "${entry.kurztitel}" konnte nicht geladen werden. Dies ist ein Platzhalter.`;
+  }
+  
+  return Promise.resolve(entry);
+}
 </file>
 
 <file path="src/lib/api.ts">
@@ -7334,585 +7500,215 @@ export interface Task {
 }
 </file>
 
-<file path="src/types/laws.ts">
-export enum Stichwort {
-    APSR = "APSR",
-    APSV = "APSV",
-    ATEX = "ATEX",
-    AbfallR = "AbfallR",
-    Abwasser = "Abwasser",
-    BarriereFreiheitR = "BarriereFreiheitR",
-    BattR = "BattR",
-    BattV = "BattV",
-    BauProd = "BauProd",
-    BauProd__alt = "BauProd (alt)",
-    CBAM = "CBAM",
-    CLP = "CLP",
-    CRA = "CRA",
-    CSDDD = "CSDDD",
-    CSRD = "CSRD",
-    DDG = "DDG",
-    DGRL = "DGRL",
-    DatenV = "DatenV",
-    DualUse = "DualUse",
-    E_Label = "E-Label",
-    EMV = "EMV",
-    ENISA = "ENISA",
-    ERP = "ERP",
-    EU_Umweltzeichen = "EU-Umweltzeichen",
-    EUDR = "EUDR",
-    EUTR = "EUTR",
-    EWKRL = "EWKRL",
-    EinwegkunststoffR = "EinwegkunststoffR",
-    FGasV = "FGasV",
-    FahrzTypGenV = "FahrzTypGenV",
-    FrequenzE = "FrequenzE",
-    FuAR = "FuAR",
-    KI_VO = "KI-VO",
-    KosmetikV = "KosmetikV",
-    KrebsR = "KrebsR",
-    LebKontV = "LebKontV",
-    MSR__alt = "MSR (alt)",
-    MSV = "MSV",
-    MessGerR = "MessGerR",
-    M_V = "MüV",
-    NIS2 = "NIS2",
-    NSR = "NSR",
-    NachhaltigkeitsR = "NachhaltigkeitsR",
-    NormV = "NormV",
-    OutdoorR = "OutdoorR",
-    OzonV = "OzonV",
-    POP = "POP",
-    PSA = "PSA",
-    ProdHR = "ProdHR",
-    QuecksilberV = "QuecksilberV",
-    REACh = "REACh",
-    RUS_SanktionsV = "RUS-SanktionsV",
-    Reducing_microplastics = "Reducing microplastics",
-    Resilienz = "Resilienz",
-    RoHS = "RoHS",
-    SpielR = "SpielR",
-    TabProdR = "TabProdR",
-    TextilKV = "TextilKV",
-    TrinkwasserR = "TrinkwasserR",
-    TypG = "TypG",
-    Umweltstrafrecht = "Umweltstrafrecht",
-    UnlautereGeschPrakt = "UnlautereGeschPrakt",
-    VK_BattR = "VK-BattR",
-    VK_ConstrProd = "VK-ConstrProd",
-    VK_EMC = "VK-EMC",
-    VK_ERP_EI = "VK-ERP&EI",
-    VK_ElectricalESR = "VK-ElectricalESR",
-    VK_GPSR = "VK-GPSR",
-    VK_MessGer = "VK-MessGer",
-    VK_PSTI = "VK-PSTI",
-    VK_RER = "VK-RER",
-    VK_RoHS = "VK-RoHS",
-    VK_SMSR = "VK-SMSR",
-    VK_ToySR = "VK-ToySR",
-    Verbraucherschutz = "Verbraucherschutz",
-    VerpackR = "VerpackR",
-    VerpackV = "VerpackV",
-    WBRL = "WBRL",
-    WEEE = "WEEE",
-    ZwangsarbV = "ZwangsarbV",
-    kodesign = "Ökodesign"
+<file path="src/types/legislation-entry.ts">
+/**
+ * Frontend model for legislative entries (Gesetzgebungseinträge)
+ * Matches the backend Pydantic model 1:1
+ */
+
+export interface LegislationEntry {
+  id?: string;
+  bereich?: string | null;
+  gesetzeskuerzel?: string | null; // Mapped from ges_kuerzel
+  gesetzgebung: string;
+  textquelle_url?: string | null; // Mapped from textquelle
+  bezug?: string | null;
+  zitiert?: string | null;
+  initiative?: string | null;
+  status?: string | null;
+  markt?: string | null;
+  stichtag: string; // ISO Date String
+  folgestatus?: string | null;
+  infoquelle_url?: string | null; // Mapped from infoquelle
+  produktbereich?: string | null;
+  thema: string;
+  information?: string | null;
+  betroffene?: string | null;
+  ausblick?: string | null;
 }
 
-export interface Rahmengesetzgebung {
-    stichwort: Stichwort;
-    gesetz: string;
-    kurztitel: string;
-    shortTitle: string;
-}
-
-export const subscribedLaws: Rahmengesetzgebung[] = [
-    {
-        stichwort: Stichwort.TypG,
-        gesetz: "(EU) 2018/858",
-        kurztitel: "Verordnung über die Genehmigung und die Marktüberwachung von Kraftfahrzeugen",
-        shortTitle: "Regulation on the approval and market surveillance of motor vehicles"
-    },
-    {
-        stichwort: Stichwort.EMV,
-        gesetz: "2014/30/EG",
-        kurztitel: "Richtlinie über elektromagnetische Verträglichkeit",
-        shortTitle: "Electromagnetic Compatibility Directive"
-    },
-    {
-        stichwort: Stichwort.FuAR,
-        gesetz: "2014/53/EG",
-        kurztitel: "Funkanlagenrichtlinie",
-        shortTitle: "Radio Equipment Directive"
-    },
-    {
-        stichwort: Stichwort.FrequenzE,
-        gesetz: "Nr. 676/2002/EG",
-        kurztitel: "Frequenzentscheidung",
-        shortTitle: "Radio Spectrum Decision"
-    },
-    {
-        stichwort: Stichwort.AbfallR,
-        gesetz: "2008/98/EG",
-        kurztitel: "Abfallrahmenrichtlinie",
-        shortTitle: "Waste Framework Directive"
-    },
-    {
-        stichwort: Stichwort.EinwegkunststoffR,
-        gesetz: "(EU) 2019/904",
-        kurztitel: "Einwegkunststoffverordnung",
-        shortTitle: "Disposable Plastics Regulation"
-    },
-    {
-        stichwort: Stichwort.VerpackR,
-        gesetz: "94/62/EG",
-        kurztitel: "Verpackungsrichtlinie",
-        shortTitle: "Packaging directive"
-    },
-    {
-        stichwort: Stichwort.VerpackV,
-        gesetz: "(EU) 2025/40",
-        kurztitel: "Verordnung über Verpackungen und Verpackungsabfälle",
-        shortTitle: "Regulation on Packaging and Packaging Waste"
-    },
-    {
-        stichwort: Stichwort.WEEE,
-        gesetz: "2012/19/EU",
-        kurztitel: "Richtlinie über Elektro- und Elektronik-Altgeräte",
-        shortTitle: "Directive on waste electrical and electronic equipment"
-    },
-    {
-        stichwort: Stichwort.Abwasser,
-        gesetz: "(EU) 2024/3019",
-        kurztitel: "Richtlinie über die Behandlung von kommunalem Abwasser",
-        shortTitle: "Directive concerning urban wastewater treatment"
-    },
-    {
-        stichwort: Stichwort.CRA,
-        gesetz: "(EU)2024/2847",
-        kurztitel: "Cybersicherheitsanforderungen für Produkte",
-        shortTitle: "Cybersecurity requirements for products"
-    },
-    {
-        stichwort: Stichwort.KI_VO,
-        gesetz: "COM/2021/206 final",
-        kurztitel: "Verordnung über Künstliche Intelligenz",
-        shortTitle: "Artificial Intelligence Act"
-    },
-    {
-        stichwort: Stichwort.DatenV,
-        gesetz: "(EU) 2023/2854",
-        kurztitel: "Datenzugang- und Datennutzungsverordnung",
-        shortTitle: "Regulation on access and use of data"
-    },
-    {
-        stichwort: Stichwort.NIS2,
-        gesetz: "(EU) 2022/2555",
-        kurztitel: "Netzwerk- und Informationssicherheits-Richtlinie",
-        shortTitle: "Cybersecurity directive"
-    },
-    {
-        stichwort: Stichwort.ENISA,
-        gesetz: "(EU) 2019/881",
-        kurztitel: "Agentur der Europäischen Union für Cybersicherheit zur Zertifizierung der Cybersicherheit",
-        shortTitle: "European Union Agency for Cybersecurity for cybersecurity certification"
-    },
-    {
-        stichwort: Stichwort.CSRD,
-        gesetz: "(EU) 2022/2464",
-        kurztitel: "Verordnung zur Nachhaltigkeitsberichterstattung",
-        shortTitle: "Regulation on sustainability reporting"
-    },
-    {
-        stichwort: Stichwort.CSDDD,
-        gesetz: "(EU) 2024/1760",
-        kurztitel: "Richtlinie über Sorgfaltspflicht im Bereich der Nachhaltigkeit",
-        shortTitle: "Directive on Corporate Sustainability Due Diligence"
-    },
-    {
-        stichwort: Stichwort.EUDR,
-        gesetz: "(EU) 2023/1115",
-        kurztitel: "Entwaldungsfreie Lieferketten-Verordnung",
-        shortTitle: "Deforestation free Products Regulation"
-    },
-    {
-        stichwort: Stichwort.EUTR,
-        gesetz: "EU (995/2010)",
-        kurztitel: "Holzhandelsverordnung",
-        shortTitle: "Timber regulation"
-    },
-    {
-        stichwort: Stichwort.ZwangsarbV,
-        gesetz: "(EU) 2024/3015",
-        kurztitel: "Verordnung zum Verbot von in Zwangsarbeit hergestellten Produkten",
-        shortTitle: "Ordinance banning products manufactured using forced labour"
-    },
-    {
-        stichwort: Stichwort.CBAM,
-        gesetz: "(EU) 2023/956",
-        kurztitel: "Verordnung zur Schaffung eines CO2-Grenzausgleichssystems",
-        shortTitle: "Regulation to establishing a carbon border adjustment mechanism"
-    },
-    {
-        stichwort: Stichwort.M_V,
-        gesetz: "(EU) 2019/1020",
-        kurztitel: "Marktüberwachungsverordnung",
-        shortTitle: "Market Surveillance Regulation"
-    },
-    {
-        stichwort: Stichwort.DDG,
-        gesetz: "(EU) 2022/2065",
-        kurztitel: "Verordnung über einen Binnenmarkt für digitale Dienste",
-        shortTitle: "Regulation on a Single Market For Digital Services"
-    },
-    {
-        stichwort: Stichwort.UnlautereGeschPrakt,
-        gesetz: "2005/29/EG",
-        kurztitel: "Richtlinie über unlautere Geschäftspraktiken",
-        shortTitle: "Unfair Commercial Practices Directive"
-    },
-    {
-        stichwort: Stichwort.Resilienz,
-        gesetz: "(EU) 2024/2747",
-        kurztitel: "Maßnahmen für einen Binnenmarkt-Notfall",
-        shortTitle: "Measures related to an internal market emergency"
-    },
-    {
-        stichwort: Stichwort.E_Label,
-        gesetz: "(EU) 2017/1369",
-        kurztitel: "Verordnung zu Energieverbrauchskennzeichnung",
-        shortTitle: "Regulation on energy consumption labelling"
-    },
-    {
-        stichwort: Stichwort.ERP,
-        gesetz: "2009/125/EG",
-        kurztitel: "Ökodesign-Richtlinie",
-        shortTitle: "Ecodesign Directive"
-    },
-    {
-        stichwort: Stichwort.kodesign,
-        gesetz: "(EU) 2024/1781",
-        kurztitel: "Ökodesign-Verordnung",
-        shortTitle: "Ecodesign Regulation"
-    },
-    {
-        stichwort: Stichwort.EU_Umweltzeichen,
-        gesetz: "(EG) Nr. 66/2010",
-        kurztitel: "Verordnung  über das EU-Umweltzeichen ",
-        shortTitle: "Regulation on the EU Ecolabel"
-    },
-    {
-        stichwort: Stichwort.FGasV,
-        gesetz: "(EU) 2024/573",
-        kurztitel: "Verordnung über fluorierte Treibhausgase",
-        shortTitle: "Ordinance on Fluorinated Greenhouse Gases"
-    },
-    {
-        stichwort: Stichwort.EWKRL,
-        gesetz: "(EU) 2019/904",
-        kurztitel: "Richtlinie über die Verringerung der Auswirkungen bestimmter Kunststoffprodukte auf die Umwelt",
-        shortTitle: "Directive on the reduction of the impact of certain plastic products on the environment"
-    },
-    {
-        stichwort: Stichwort.OzonV,
-        gesetz: "(EG) Nr. 1005/2009",
-        kurztitel: "Verordnung über Stoffe, die zum Abbau der Ozonschicht führen",
-        shortTitle: "Regulation on substances that deplete the ozone layer"
-    },
-    {
-        stichwort: Stichwort.Reducing_microplastics,
-        gesetz: "COM(2023)645",
-        kurztitel: "Umweltverschmutzung durch Mikroplastik – Maßnahmen zur Eindämmung der Umweltfolgen",
-        shortTitle: "Environmental pollution by microplastics - Measures to mitigate the environmental impact"
-    },
-    {
-        stichwort: Stichwort.NachhaltigkeitsR,
-        gesetz: "(EU) 2024/1799",
-        kurztitel: "Nachhaltiger Konsum von Gütern – Förderung von Reparatur und Wiederverwendung",
-        shortTitle: "Sustainable consumption of goods - promoting repair and reuse"
-    },
-    {
-        stichwort: Stichwort.APSR,
-        gesetz: "2001/95/EG",
-        kurztitel: "Richtlinie über die allgemeine Produktsicherheit",
-        shortTitle: "General Product Safety Directive"
-    },
-    {
-        stichwort: Stichwort.APSV,
-        gesetz: "(EU) 2023/988",
-        kurztitel: "Verordnung über die allgemeine Produktsicheheit",
-        shortTitle: "Regulation on general product safety"
-    },
-    {
-        stichwort: Stichwort.ATEX,
-        gesetz: "2014/34/EG",
-        kurztitel: "Richtlinie über Schutzsysteme in explosionsgefährdeten Bereichen",
-        shortTitle: "Directive on protective systems in potentially explosive atmospheres"
-    },
-    {
-        stichwort: Stichwort.BattR,
-        gesetz: "2006/66/EG",
-        kurztitel: "Batterierichtlinie",
-        shortTitle: "Battery Directive"
-    },
-    {
-        stichwort: Stichwort.BattV,
-        gesetz: "(EU) 2023/1542",
-        kurztitel: "Batterieverordnung",
-        shortTitle: "Battery Regulation"
-    },
-    {
-        stichwort: Stichwort.BauProd__alt,
-        gesetz: "(EU) Nr. 305/2011",
-        kurztitel: "Bauprodukteverordnung",
-        shortTitle: "Construction Products Regulation"
-    },
-    {
-        stichwort: Stichwort.BauProd,
-        gesetz: "(EU) 2024/3110",
-        kurztitel: "Bauprodukteverordnung",
-        shortTitle: "Construction Products Regulation"
-    },
-    {
-        stichwort: Stichwort.DGRL,
-        gesetz: "2014/68/EU",
-        kurztitel: "Druckgeräterichtlinie",
-        shortTitle: "Pressure equipment directive"
-    },
-    {
-        stichwort: Stichwort.KosmetikV,
-        gesetz: "(EG) Nr. 1223/2009",
-        kurztitel: "Kosmetikverordnung",
-        shortTitle: "Cosmetics Regulation"
-    },
-    {
-        stichwort: Stichwort.MSR__alt,
-        gesetz: "2006/42/EG",
-        kurztitel: "Maschinenrichtlinie ",
-        shortTitle: "Machinery Directive "
-    },
-    {
-        stichwort: Stichwort.MSV,
-        gesetz: "(EU) 2023/1230",
-        kurztitel: "Maschinenverordnung",
-        shortTitle: "Machinery Regulation "
-    },
-    {
-        stichwort: Stichwort.NSR,
-        gesetz: "2014/35/EG",
-        kurztitel: "Niederspannungsrichtlinie",
-        shortTitle: "Low Voltage Directive"
-    },
-    {
-        stichwort: Stichwort.OutdoorR,
-        gesetz: "2000/14/EG",
-        kurztitel: "Richtlinie für im Freien verwendete Geräte",
-        shortTitle: "Directive for appliances used outdoors"
-    },
-    {
-        stichwort: Stichwort.PSA,
-        gesetz: "(EU) 2016/425",
-        kurztitel: "Verordnung über persönliche Schutzausrüstung",
-        shortTitle: "Regulation on personal protective equipment"
-    },
-    {
-        stichwort: Stichwort.SpielR,
-        gesetz: "2009/48/EG",
-        kurztitel: "Spielzeugrichtlinie",
-        shortTitle: "Toys Directive"
-    },
-    {
-        stichwort: Stichwort.DualUse,
-        gesetz: "(EU) 2021/821",
-        kurztitel: "Kontrolle von Gütern mit doppeltem Verwendungszweck",
-        shortTitle: "Control of dual-use goods"
-    },
-    {
-        stichwort: Stichwort.WBRL,
-        gesetz: "(EU) 2019/1937",
-        kurztitel: "Schutz von Personen, die Verstöße gegen das Unionsrecht melden",
-        shortTitle: " protection of persons who report breaches of Union law"
-    },
-    {
-        stichwort: Stichwort.RUS_SanktionsV,
-        gesetz: "(EU) Nr. 833/2014",
-        kurztitel: "Restriktive Maßnahmen gegen Russland ",
-        shortTitle: "Restrictive measures against Russia "
-    },
-    {
-        stichwort: Stichwort.FahrzTypGenV,
-        gesetz: "(EU) 2018/858",
-        kurztitel: "Fahrzeugtypengenehmigungsverordnung",
-        shortTitle: "Vehicle Type Approval Regulation"
-    },
-    {
-        stichwort: Stichwort.MessGerR,
-        gesetz: "2014/32/EU",
-        kurztitel: "Messgeräterichtlinie",
-        shortTitle: "Measuring Instruments Directive"
-    },
-    {
-        stichwort: Stichwort.NormV,
-        gesetz: "(EU) Nr. 1025/2012",
-        kurztitel: "Normungverordnung",
-        shortTitle: "Standardisation Regulation"
-    },
-    {
-        stichwort: Stichwort.TextilKV,
-        gesetz: "(EU) Nr. 1007/2011",
-        kurztitel: "Textilkennzeichnungsverordnung",
-        shortTitle: "Textile Labelling Regulation"
-    },
-    {
-        stichwort: Stichwort.BarriereFreiheitR,
-        gesetz: "(EU) 2019/882",
-        kurztitel: "Barrierefreiheits-Richtlinie",
-        shortTitle: "Accessibility Requirements for Products Directive"
-    },
-    {
-        stichwort: Stichwort.ProdHR,
-        gesetz: "(EU) 2024/2853",
-        kurztitel: "Richtlinie über die Haftung für fehlerhafte Produkte",
-        shortTitle: ""
-    },
-    {
-        stichwort: Stichwort.Verbraucherschutz,
-        gesetz: "(EU) 2019/771",
-        kurztitel: "Richtlinie über bestimmte vertragsrechtliche Aspekte des Warenkaufs",
-        shortTitle: "Directive on certain aspects concerning contracts for the sale of goods"
-    },
-    {
-        stichwort: Stichwort.Umweltstrafrecht,
-        gesetz: "(EU) 2024/1203",
-        kurztitel: "Richtlinie über den strafrechtlichen Schutz der Umwelt",
-        shortTitle: "Directive on the protection of the environment through criminal law"
-    },
-    {
-        stichwort: Stichwort.CLP,
-        gesetz: "(EU) 1272/2008",
-        kurztitel: "Verordnung über Einstufung, Kennzeichnung und Verpackung von Stoffen und Gemischen",
-        shortTitle: "Ordinance on Classification, Labelling and Packaging of Substances and Mixtures"
-    },
-    {
-        stichwort: Stichwort.LebKontV,
-        gesetz: "(EG) Nr. 1935/2004",
-        kurztitel: "Verordnung über Materialien und Gegenstände die dazu bestimmt sind mit Lebensmitteln in Berührung zu kommen",
-        shortTitle: "Ordinance on materials and articles intended to come into contact with foodstuffs"
-    },
-    {
-        stichwort: Stichwort.QuecksilberV,
-        gesetz: "(EU) 2017/852",
-        kurztitel: "Verordnung über Quecksilber",
-        shortTitle: "Mercury Ordinance"
-    },
-    {
-        stichwort: Stichwort.POP,
-        gesetz: "(EU) 2019/1021",
-        kurztitel: "Verordnung über persistente organische Schadstoffe",
-        shortTitle: "Regulation on Persistent Organic Pollutants"
-    },
-    {
-        stichwort: Stichwort.REACh,
-        gesetz: "(EG) Nr. 1907/2006",
-        kurztitel: "Verordnung über Registrierung, Bewertung, Zulassung und Beschränkung von Chemikalien",
-        shortTitle: "Regulation on the Registration, Evaluation, Authorisation and Restriction of Chemicals"
-    },
-    {
-        stichwort: Stichwort.RoHS,
-        gesetz: "2011/65/EU",
-        kurztitel: "Richtlinie zur Beschränkung der Verwendung bestimmter gefährlicher Stoffe in Elektro- und Elektrogeräten",
-        shortTitle: "Directive on the restriction of the use of certain hazardous substances in electrical and electronic equipment"
-    },
-    {
-        stichwort: Stichwort.KrebsR,
-        gesetz: "2004/37/EG",
-        kurztitel: "Richtlinie  über den Schutz der Arbeitnehmer gegen Gefährdung durch Karzinogene oder Mutagene",
-        shortTitle: "Directive on the protection of workers from the risks related to exposure to carcinogens or mutagens"
-    },
-    {
-        stichwort: Stichwort.TabProdR,
-        gesetz: "2014/40/EU",
-        kurztitel: "Tabakerzeugnis-Richtlinie",
-        shortTitle: "Tobacco Products Directive"
-    },
-    {
-        stichwort: Stichwort.TrinkwasserR,
-        gesetz: "(EU) 2020/2184",
-        kurztitel: "Trinkwasserrichtlinie",
-        shortTitle: "Drinking Water Directive"
-    },
-    {
-        stichwort: Stichwort.VK_EMC,
-        gesetz: "Electromagnetic Compatibility Regulations 2016",
-        kurztitel: "Richtlinie über elektromagnetische Verträglichkeit (Vereinigtes Königreich)",
-        shortTitle: "Electromagnetic Compatibility Directive (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_RER,
-        gesetz: "Radio Equipment Regulations 2017",
-        kurztitel: "Funkanlagenrichtlinie (Vereinigtes Königreich)",
-        shortTitle: "Radio Equipment Directive (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_PSTI,
-        gesetz: "Product Security and Telecommunication Infrastructure Act 2022",
-        kurztitel: "Cybersicherheitsanforderungen für Produkte",
-        shortTitle: "Cybersecurity Act (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_ERP_EI,
-        gesetz: "Ecodesign and Energy Information Regulations 2020",
-        kurztitel: "Ökodesign-Richtlinie (Vereinigtes Königreich)",
-        shortTitle: "Ecodesign Directive (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_BattR,
-        gesetz: "Batteries and Accumulators Regulations 1994",
-        kurztitel: "Batterierichtlinie (Vereinigtes Königreich)",
-        shortTitle: "Battery Directive (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_ConstrProd,
-        gesetz: "Construction Products (Amendment etc.) (EU Exit) Regulations 2019",
-        kurztitel: "Bauprodukteverordnung (Vereinigtes Königreich)",
-        shortTitle: "Construction Products Regulation (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_ElectricalESR,
-        gesetz: "Electrical Equipment (Safety) Regulations 2016",
-        kurztitel: "Niederspannungsrichtlinie (Vereinigtes Königreich)",
-        shortTitle: "Low Voltage Directive (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_GPSR,
-        gesetz: "General Product Safety Regulations 2005",
-        kurztitel: "Richtlinie über die allgemeine Produktsicherheit (Vereinigtes Königreich)",
-        shortTitle: "General Product Safety Directive (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_SMSR,
-        gesetz: "Supply of Machinery (Safety) Regulations 2008",
-        kurztitel: "Maschinenrichtlinie (Vereinigtes Königreich)",
-        shortTitle: "Machinery Directive (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_ToySR,
-        gesetz: "Toys(Safety)Regulations 2011",
-        kurztitel: "Spielzeugrichtlinie (Vereinigtes Königreich)",
-        shortTitle: "Toys Directive (United Kingdom)"
-    },
-    {
-        stichwort: Stichwort.VK_MessGer,
-        gesetz: "Weights and Measures (Prescribed Stamp) Regulations 1968",
-        kurztitel: "Verordnung über Gewichte und Maße (vorgeschriebener Stempel) von 1968",
-        shortTitle: "Weights and Measures (Prescribed Stamp) Regulations 1968"
-    },
-    {
-        stichwort: Stichwort.VK_RoHS,
-        gesetz: "The RoHS Regulations",
-        kurztitel: "RoHS",
-        shortTitle: "The RoHS Regulations"
-    }
+// Mock data for initial development
+export const MOCK_LEGISLATION_ENTRIES: LegislationEntry[] = [
+  {
+    id: "208.4",
+    bereich: "Ökodesign",
+    gesetzeskuerzel: "Ökodesign",
+    gesetzgebung: "(EU) 2024/1781",
+    textquelle_url: "2025/90356",
+    bezug: "A",
+    zitiert: "(EU) 2024/1781",
+    initiative: null,
+    status: "in Kraft",
+    markt: "EU",
+    stichtag: "2025-04-08",
+    folgestatus: "Gültigkeit",
+    infoquelle_url: null,
+    produktbereich: "Produkte mit hohem ökologischen Einsparpotenzial",
+    thema: "Berichtigungen zur Ökodesign-Rahmenverordnung (EU) 2024/1781",
+    information: "An 4 Stellen des Gesetzestextes werden Berichtigungen vorgenommen. Lediglich bei der Berichtigung Artikel 41 (4) zum EU-Umweltzeichen sind Marktteilnehmer direkt betroffen.",
+    betroffene: "Hersteller, Importeure, deren Produkte unter eine Durchführungs-VO fallen",
+    ausblick: "Die Berichtigungen gelten bereits, sind aber erst mit Gültigkeit der Rahmenverordnung (EU) 2023/1781 zu berücksichtigen"
+  },
+  {
+    id: "439.0",
+    bereich: "Ökodesign",
+    gesetzeskuerzel: "Ökodesign",
+    gesetzgebung: "(EU) 2024/1781",
+    textquelle_url: null,
+    bezug: "A",
+    zitiert: "(EU) 2024/1834",
+    initiative: "#14361",
+    status: "Entwurf",
+    markt: "EU",
+    stichtag: "2025-01-24",
+    folgestatus: "Frist abgelaufen",
+    infoquelle_url: "EU-Kommission",
+    produktbereich: "Ventilator",
+    thema: "Ökodesign-Anforderungen an Ventilatoren  Änderung der EU-Vorschriften für Ventilatoren, die von Motoren mit einer Leistung zwischen 125 Watt und 500 Kilowatt angetrieben werden",
+    information: "Ziel dieser Initiative ist es, kleinere technische Aspekte in der Verordnung (EU) 2024/1834 der Kommission über Ökodesign-Anforderungen an Ventilatoren, die von Motoren mit einer elektrischen Eingangsleistung zwischen 125 Watt und 500 Kilowatt angetrieben werden, zu klären und zu berichtigen (Änderung auf Anhang I, II, III  der VO  (EU) 2024/1834)",
+    betroffene: "Hersteller, Importeur, Bevollmächtigte",
+    ausblick: "weitere Beobachtung durch Trade-e-bility"
+  },
+  {
+    id: "537.0",
+    bereich: "Ökodesign",
+    gesetzeskuerzel: "Ökodesign",
+    gesetzgebung: "(EU) 2024/1781",
+    textquelle_url: "(EU) 2025/533",
+    bezug: "DV",
+    zitiert: "(EU) 2019/2018,(EU) 2019/2024",
+    initiative: null,
+    status: "veröffentlicht",
+    markt: "EU",
+    stichtag: "2025-03-26",
+    folgestatus: "in Kraft",
+    infoquelle_url: null,
+    produktbereich: "Verkaufskühlmöbel und Pozzetti für Speiseeis",
+    thema: "Aktualisierung harmonisierter Normen",
+    information: "Die Norm EN 16838:2024 wurde zur Umsetzung der Verordnungen (EU) 2019/2018 und (EU) 2019/2024 harmonisiert.",
+    betroffene: "Hersteller, Einführer",
+    ausblick: "Betroffenen sollten bei der Umsetzung der Ökodesignanforderungen sowie der Energieklassifizierung die aufgeführte Norm anwenden."
+  },
+  {
+    id: "552.0",
+    bereich: "Ökodesign",
+    gesetzeskuerzel: "Ökodesign",
+    gesetzgebung: "(EU) 2024/1781",
+    textquelle_url: null,
+    bezug: "DV",
+    zitiert: "EU) 2015/1095",
+    initiative: "12850",
+    status: "Sondierung",
+    markt: "EU",
+    stichtag: "Q3 2025",
+    folgestatus: "Entwurf eines Rechtsakts",
+    infoquelle_url: "Energieeffizienz  Überprüfung der Ökodesign-Anforderungen an gewerbliche Kühlgeräte",
+    produktbereich: "Gewerbliche Kühlgeräte",
+    thema: "Im Rahmen dieser Initiative werden die Ökodesign-Anforderungen überprüft, um festzustellen, ob weitere Energie- und Ressourceneinsparungen erzielt werden können.",
+    information: "1. Erhöhung der Energieeffizienzanforderungen für Produkte, die unter die geltende ÖkodesignEffizienzanforderungen fallen  2. Neuskalierung des Energielabels gewerblicher Kühllagerschränke 3. Ausweitung des Geltungsbereichs der Anforderungen an Ökodesign und Energieverbrauchskennzeichnung: a. Einführung von Ökodesign-Effizienzanforderungen für Schnellkühler/-froster b. Einführung von Anforderungen an die Energieverbrauchskennzeichnung für Schnellkühler/-froster c. Einführung von Ökodesign-Effizienzanforderungen für zu wissenschaftlichen und medizinischen  Zwecken genutzte Kühllagerschränke d. Einführung von Anforderungen an die Energieverbrauchskennzeichnung für zu wissenschaftlichen und  medizinischen Zwecken genutzte Kühllagerschränke  e. Einführung eines Energielabels für getrennte Verflüssigungssätze 4. Einführung von Anforderungen in Bezug auf Ersatzteile, Reparatur und Wartung",
+    betroffene: "Hersteller, Importeure betreffender Produkte",
+    ausblick: "Weitere Beobachtung (durch trade-e-bility).  Bei Veröffentlichung sind die neue Ökodesgin-Anforderung zu berücksichtigen"
+  },
+  {
+    id: "563.0",
+    bereich: "Ökodesign",
+    gesetzeskuerzel: "Ökodesign",
+    gesetzgebung: "(EU) 2024/1781",
+    textquelle_url: "2025/549",
+    bezug: "B",
+    zitiert: "(EU) Nr. 626/2011, (EU) 2019/2015, (EU) 2019/2016, (EU) 2023/2016, (EU) 2029/2018",
+    initiative: null,
+    status: "veröffentlicht",
+    markt: "EU",
+    stichtag: "2025-04-24",
+    folgestatus: "Gültigkeit",
+    infoquelle_url: null,
+    produktbereich: "Luftkonditionierer, Lichtquellen, Kühlgeräten und Kühlgeräten mit Direktverkaufsfunktion",
+    thema: "Übernahme von Ökodesign-Anforderungen für Norwegen und Island",
+    information: "Die Änderungen der Durchführungsverordnung (EU) 2023/2016 bezüglich der aufgeführten Produkte und den dazu relevanten Durchführungsverordnungen sind nun auch in den EWR-Ländern gültig",
+    betroffene: "Hersteller, Importeure, Händler",
+    ausblick: "Die geänderten Ökodesignanforderungen sind nun auch beim Inverkehrbringen in Island und Norwegen zu berücksichtigen"
+  },
+  {
+    id: "564.0",
+    bereich: "Ökodesign",
+    gesetzeskuerzel: "Ökodesign",
+    gesetzgebung: "(EU) 2024/1781",
+    textquelle_url: null,
+    bezug: "A",
+    zitiert: "(EU) 2019/2024",
+    initiative: "#14251",
+    status: "Sondierung",
+    markt: "EU",
+    stichtag: "2025-06-22",
+    folgestatus: "Öffentliche Konsultation",
+    infoquelle_url: "Energieeffizienz  Ökodesign-Anforderungen an Kühlgeräte mit Direktverkaufsfunktion  Überarbeitung",
+    produktbereich: "Kühlgeräte mit Direktverkaufsfunktion",
+    thema: "Energieeffizienz  Ökodesign-Anforderungen an Kühlgeräte mit Direktverkaufsfunktion  Überarbeitung",
+    information: "In der Folgenabschätzung werden mindestens die folgenden Hauptaspekte berücksichtigt: 1. Mess- und Prüfmethoden, 2. Anforderungen an die Energie- und Materialeffizienz, 3. Aspekte der Energieverbrauchskennzeichnung, einschließlich der Skala des Energielabels, 4. der Anwendungsbereich, 5. weitere Umweltauswirkungen",
+    betroffene: "Hersteller, Importeure betreffender Produkte",
+    ausblick: "Weitere Beobachtung (durch trade-e-bility)."
+  },
+  {
+    id: "575.0",
+    bereich: "Ökodesign",
+    gesetzeskuerzel: "Ökodesign",
+    gesetzgebung: "(EU) 2024/1781",
+    textquelle_url: null,
+    bezug: "A",
+    zitiert: "(EU) 2019/2019",
+    initiative: "14249",
+    status: "Sondierung",
+    markt: "EU",
+    stichtag: "2025-06-22",
+    folgestatus: "Öffentliche Konsultation",
+    infoquelle_url: "EU-Kommission",
+    produktbereich: "Kühlgeräte",
+    thema: "Energieeffizienz  Ökodesign-Anforderungen an Kühlgeräte  Überarbeitung",
+    information: "Die Kommission beabsichtigt, die Ökodesign-Anforderungen an Kühlgeräte regelmäßig zu überprüfen.",
+    betroffene: "Hersteller, Importeure betreffender Produkte",
+    ausblick: "Weitere Beobachtung (durch trade-e-bility)."
+  },
+  {
+    id: "579.0",
+    bereich: "Ökodesign",
+    gesetzeskuerzel: "Ökodesign",
+    gesetzgebung: "(EU) 2024/1781",
+    textquelle_url: "COM(2025)504 Art. 7",
+    bezug: "A",
+    zitiert: "(EU) Nr. 765/2008, (EU) 2016/424, (EU) 2016/425, (EU) 2016/426, (EU) 2023/1230, (EU) 2023/1542, (EU) 2024/1781",
+    initiative: null,
+    status: "Entwurf",
+    markt: "EU",
+    stichtag: "2025-05-21",
+    folgestatus: "im Trilog",
+    infoquelle_url: "2025/0134(COD)",
+    produktbereich: "Produkte und Geräte mit ökologischer Wirkung",
+    thema: "Omnibus-Verordnung zur Erleichterung der Konformitätsbewertung nach mehreren Produktgesetzgebungen",
+    information: "Die Dokumentations- und Berichtspflcihten sollen durch Digitalisierung der Dokumentation erleichtert werden. Dafür wird zwingend ein digitaler Ansprechpartner des Herstellers verlangt (EG 9).",
+    betroffene: "Hersteller, Einführer",
+    ausblick: "Betroffene können ihre Dokumentation weitestgehend digitalisieren. Die Details könnne sich im Rahmen des Trilog-Verfahrens aber noch ändern. trade-e-bility informiert drüber zu gegebener Zeit."
+  },
+  {
+    id: "591.0",
+    bereich: "Ökodesign",
+    gesetzeskuerzel: "Ökodesign",
+    gesetzgebung: "(EU) 2024/1781",
+    textquelle_url: "den Arbeitsschutz bei Exposition mit chemischen Stoffen und Gemischen",
+    bezug: "DV",
+    zitiert: "ESPR 2024/1781; Dir 2013/34/EU",
+    initiative: "#14590",
+    status: "Entwurf",
+    markt: "EU",
+    stichtag: "2025-07-10",
+    folgestatus: "Konsultationsende",
+    infoquelle_url: null,
+    produktbereich: "Unverkaufte Verbraucherprodukte (z. B. Textilien, Bekleidung, Elektronik)",
+    thema: "Offenlegung unverkaufter Verbraucherprodukte",
+    information: "Angaben zu Menge, Gewicht, Vernichtungsgründen, Behandlungsarten und Präventions-maßnahmen im standardisierten Format; Verifizierungspflicht",
+    betroffene: "Hersteller; Importeure; Händler; Online-Marktplätze",
+    ausblick: "Vorbeugemaßnahmen; Offenlegung auf Website/CSRD; Meldung Unverkaufsdaten; Prüfungs-bericht (limited assurance); Einhaltung Format- & Verifizierungsregeln"
+  }
 ];
 </file>
 
@@ -8234,19 +8030,6 @@ export default function CustomerPage() {
 }
 </file>
 
-<file path="src/app/[locale]/(main)/laws/page.tsx">
-import { LawsDashboard } from '@/components/laws/LawsDashboard';
-import { LegislationTable } from '@/components/laws/LegislationTable';
-
-export default function LawsPage() {
-  return (
-    <LawsDashboard>
-      <LegislationTable />
-    </LawsDashboard>
-  );
-}
-</file>
-
 <file path="src/app/[locale]/page.tsx">
 "use client";
 
@@ -8262,6 +8045,150 @@ const DashboardPage: React.FC = () => {
 };
 
 export default DashboardPage;
+</file>
+
+<file path="src/components/ui/dialog.tsx">
+import * as React from "react"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { XIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+function Dialog({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+}
+
+function DialogTrigger({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
+  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+}
+
+function DialogPortal({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+}
+
+function DialogClose({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Close>) {
+  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+}
+
+function DialogOverlay({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+  return (
+    <DialogPrimitive.Overlay
+      data-slot="dialog-overlay"
+      className={cn(
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function DialogContent({
+  className,
+  children,
+  showCloseButton = true,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  showCloseButton?: boolean
+}) {
+  return (
+    <DialogPortal data-slot="dialog-portal">
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        data-slot="dialog-content"
+        className={cn(
+          "bg-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        {showCloseButton && (
+          <DialogPrimitive.Close
+            data-slot="dialog-close"
+            className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+          >
+            <XIcon />
+            <span className="sr-only">Close</span>
+          </DialogPrimitive.Close>
+        )}
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  )
+}
+
+function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-header"
+      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      {...props}
+    />
+  )
+}
+
+function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-footer"
+      className={cn(
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function DialogTitle({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Title>) {
+  return (
+    <DialogPrimitive.Title
+      data-slot="dialog-title"
+      className={cn("text-lg leading-none font-semibold", className)}
+      {...props}
+    />
+  )
+}
+
+function DialogDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      data-slot="dialog-description"
+      className={cn("text-muted-foreground text-sm", className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+}
 </file>
 
 <file path="src/components/ArtifactActionButton.tsx">
@@ -10116,6 +10043,595 @@ textarea:focus {
 }
 </file>
 
+<file path="src/types/laws.ts">
+export enum Stichwort {
+    APSR = "APSR",
+    APSV = "APSV",
+    ATEX = "ATEX",
+    AbfallR = "AbfallR",
+    Abwasser = "Abwasser",
+    BarriereFreiheitR = "BarriereFreiheitR",
+    BattR = "BattR",
+    BattV = "BattV",
+    BauProd = "BauProd",
+    BauProd__alt = "BauProd (alt)",
+    CBAM = "CBAM",
+    CLP = "CLP",
+    CRA = "CRA",
+    CSDDD = "CSDDD",
+    CSRD = "CSRD",
+    DDG = "DDG",
+    DGRL = "DGRL",
+    DatenV = "DatenV",
+    DualUse = "DualUse",
+    E_Label = "E-Label",
+    EMV = "EMV",
+    ENISA = "ENISA",
+    ERP = "ERP",
+    EU_Umweltzeichen = "EU-Umweltzeichen",
+    EUDR = "EUDR",
+    EUTR = "EUTR",
+    EWKRL = "EWKRL",
+    EinwegkunststoffR = "EinwegkunststoffR",
+    FGasV = "FGasV",
+    FahrzTypGenV = "FahrzTypGenV",
+    FrequenzE = "FrequenzE",
+    FuAR = "FuAR",
+    KI_VO = "KI-VO",
+    KosmetikV = "KosmetikV",
+    KrebsR = "KrebsR",
+    LebKontV = "LebKontV",
+    MSR__alt = "MSR (alt)",
+    MSV = "MSV",
+    MessGerR = "MessGerR",
+    M_V = "MüV",
+    NIS2 = "NIS2",
+    NSR = "NSR",
+    NachhaltigkeitsR = "NachhaltigkeitsR",
+    NormV = "NormV",
+    OutdoorR = "OutdoorR",
+    OzonV = "OzonV",
+    POP = "POP",
+    PSA = "PSA",
+    ProdHR = "ProdHR",
+    QuecksilberV = "QuecksilberV",
+    REACh = "REACh",
+    RUS_SanktionsV = "RUS-SanktionsV",
+    Reducing_microplastics = "Reducing microplastics",
+    Resilienz = "Resilienz",
+    RoHS = "RoHS",
+    SpielR = "SpielR",
+    TabProdR = "TabProdR",
+    TextilKV = "TextilKV",
+    TrinkwasserR = "TrinkwasserR",
+    TypG = "TypG",
+    Umweltstrafrecht = "Umweltstrafrecht",
+    UnlautereGeschPrakt = "UnlautereGeschPrakt",
+    VK_BattR = "VK-BattR",
+    VK_ConstrProd = "VK-ConstrProd",
+    VK_EMC = "VK-EMC",
+    VK_ERP_EI = "VK-ERP&EI",
+    VK_ElectricalESR = "VK-ElectricalESR",
+    VK_GPSR = "VK-GPSR",
+    VK_MessGer = "VK-MessGer",
+    VK_PSTI = "VK-PSTI",
+    VK_RER = "VK-RER",
+    VK_RoHS = "VK-RoHS",
+    VK_SMSR = "VK-SMSR",
+    VK_ToySR = "VK-ToySR",
+    Verbraucherschutz = "Verbraucherschutz",
+    VerpackR = "VerpackR",
+    VerpackV = "VerpackV",
+    WBRL = "WBRL",
+    WEEE = "WEEE",
+    ZwangsarbV = "ZwangsarbV",
+    kodesign = "Ökodesign"
+}
+
+export interface Rahmengesetzgebung {
+    stichwort: Stichwort;
+    gesetz: string;
+    kurztitel: string;
+    shortTitle: string;
+}
+
+export interface LawAcronym {
+    id: string; // The unique 'gesetz' string
+    acronym: string; // The 'stichwort'
+    fullName: string; // The 'kurztitel'
+    isActive: boolean; // Default to true as the model doesn't support this yet
+}
+
+export const subscribedLaws: Rahmengesetzgebung[] = [
+    {
+        stichwort: Stichwort.TypG,
+        gesetz: "(EU) 2018/858",
+        kurztitel: "Verordnung über die Genehmigung und die Marktüberwachung von Kraftfahrzeugen",
+        shortTitle: "Regulation on the approval and market surveillance of motor vehicles"
+    },
+    {
+        stichwort: Stichwort.EMV,
+        gesetz: "2014/30/EG",
+        kurztitel: "Richtlinie über elektromagnetische Verträglichkeit",
+        shortTitle: "Electromagnetic Compatibility Directive"
+    },
+    {
+        stichwort: Stichwort.FuAR,
+        gesetz: "2014/53/EG",
+        kurztitel: "Funkanlagenrichtlinie",
+        shortTitle: "Radio Equipment Directive"
+    },
+    {
+        stichwort: Stichwort.FrequenzE,
+        gesetz: "Nr. 676/2002/EG",
+        kurztitel: "Frequenzentscheidung",
+        shortTitle: "Radio Spectrum Decision"
+    },
+    {
+        stichwort: Stichwort.AbfallR,
+        gesetz: "2008/98/EG",
+        kurztitel: "Abfallrahmenrichtlinie",
+        shortTitle: "Waste Framework Directive"
+    },
+    {
+        stichwort: Stichwort.EinwegkunststoffR,
+        gesetz: "(EU) 2019/904",
+        kurztitel: "Einwegkunststoffverordnung",
+        shortTitle: "Disposable Plastics Regulation"
+    },
+    {
+        stichwort: Stichwort.VerpackR,
+        gesetz: "94/62/EG",
+        kurztitel: "Verpackungsrichtlinie",
+        shortTitle: "Packaging directive"
+    },
+    {
+        stichwort: Stichwort.VerpackV,
+        gesetz: "(EU) 2025/40",
+        kurztitel: "Verordnung über Verpackungen und Verpackungsabfälle",
+        shortTitle: "Regulation on Packaging and Packaging Waste"
+    },
+    {
+        stichwort: Stichwort.WEEE,
+        gesetz: "2012/19/EU",
+        kurztitel: "Richtlinie über Elektro- und Elektronik-Altgeräte",
+        shortTitle: "Directive on waste electrical and electronic equipment"
+    },
+    {
+        stichwort: Stichwort.Abwasser,
+        gesetz: "(EU) 2024/3019",
+        kurztitel: "Richtlinie über die Behandlung von kommunalem Abwasser",
+        shortTitle: "Directive concerning urban wastewater treatment"
+    },
+    {
+        stichwort: Stichwort.CRA,
+        gesetz: "(EU)2024/2847",
+        kurztitel: "Cybersicherheitsanforderungen für Produkte",
+        shortTitle: "Cybersecurity requirements for products"
+    },
+    {
+        stichwort: Stichwort.KI_VO,
+        gesetz: "COM/2021/206 final",
+        kurztitel: "Verordnung über Künstliche Intelligenz",
+        shortTitle: "Artificial Intelligence Act"
+    },
+    {
+        stichwort: Stichwort.DatenV,
+        gesetz: "(EU) 2023/2854",
+        kurztitel: "Datenzugang- und Datennutzungsverordnung",
+        shortTitle: "Regulation on access and use of data"
+    },
+    {
+        stichwort: Stichwort.NIS2,
+        gesetz: "(EU) 2022/2555",
+        kurztitel: "Netzwerk- und Informationssicherheits-Richtlinie",
+        shortTitle: "Cybersecurity directive"
+    },
+    {
+        stichwort: Stichwort.ENISA,
+        gesetz: "(EU) 2019/881",
+        kurztitel: "Agentur der Europäischen Union für Cybersicherheit zur Zertifizierung der Cybersicherheit",
+        shortTitle: "European Union Agency for Cybersecurity for cybersecurity certification"
+    },
+    {
+        stichwort: Stichwort.CSRD,
+        gesetz: "(EU) 2022/2464",
+        kurztitel: "Verordnung zur Nachhaltigkeitsberichterstattung",
+        shortTitle: "Regulation on sustainability reporting"
+    },
+    {
+        stichwort: Stichwort.CSDDD,
+        gesetz: "(EU) 2024/1760",
+        kurztitel: "Richtlinie über Sorgfaltspflicht im Bereich der Nachhaltigkeit",
+        shortTitle: "Directive on Corporate Sustainability Due Diligence"
+    },
+    {
+        stichwort: Stichwort.EUDR,
+        gesetz: "(EU) 2023/1115",
+        kurztitel: "Entwaldungsfreie Lieferketten-Verordnung",
+        shortTitle: "Deforestation free Products Regulation"
+    },
+    {
+        stichwort: Stichwort.EUTR,
+        gesetz: "EU (995/2010)",
+        kurztitel: "Holzhandelsverordnung",
+        shortTitle: "Timber regulation"
+    },
+    {
+        stichwort: Stichwort.ZwangsarbV,
+        gesetz: "(EU) 2024/3015",
+        kurztitel: "Verordnung zum Verbot von in Zwangsarbeit hergestellten Produkten",
+        shortTitle: "Ordinance banning products manufactured using forced labour"
+    },
+    {
+        stichwort: Stichwort.CBAM,
+        gesetz: "(EU) 2023/956",
+        kurztitel: "Verordnung zur Schaffung eines CO2-Grenzausgleichssystems",
+        shortTitle: "Regulation to establishing a carbon border adjustment mechanism"
+    },
+    {
+        stichwort: Stichwort.M_V,
+        gesetz: "(EU) 2019/1020",
+        kurztitel: "Marktüberwachungsverordnung",
+        shortTitle: "Market Surveillance Regulation"
+    },
+    {
+        stichwort: Stichwort.DDG,
+        gesetz: "(EU) 2022/2065",
+        kurztitel: "Verordnung über einen Binnenmarkt für digitale Dienste",
+        shortTitle: "Regulation on a Single Market For Digital Services"
+    },
+    {
+        stichwort: Stichwort.UnlautereGeschPrakt,
+        gesetz: "2005/29/EG",
+        kurztitel: "Richtlinie über unlautere Geschäftspraktiken",
+        shortTitle: "Unfair Commercial Practices Directive"
+    },
+    {
+        stichwort: Stichwort.Resilienz,
+        gesetz: "(EU) 2024/2747",
+        kurztitel: "Maßnahmen für einen Binnenmarkt-Notfall",
+        shortTitle: "Measures related to an internal market emergency"
+    },
+    {
+        stichwort: Stichwort.E_Label,
+        gesetz: "(EU) 2017/1369",
+        kurztitel: "Verordnung zu Energieverbrauchskennzeichnung",
+        shortTitle: "Regulation on energy consumption labelling"
+    },
+    {
+        stichwort: Stichwort.ERP,
+        gesetz: "2009/125/EG",
+        kurztitel: "Ökodesign-Richtlinie",
+        shortTitle: "Ecodesign Directive"
+    },
+    {
+        stichwort: Stichwort.kodesign,
+        gesetz: "(EU) 2024/1781",
+        kurztitel: "Ökodesign-Verordnung",
+        shortTitle: "Ecodesign Regulation"
+    },
+    {
+        stichwort: Stichwort.EU_Umweltzeichen,
+        gesetz: "(EG) Nr. 66/2010",
+        kurztitel: "Verordnung  über das EU-Umweltzeichen ",
+        shortTitle: "Regulation on the EU Ecolabel"
+    },
+    {
+        stichwort: Stichwort.FGasV,
+        gesetz: "(EU) 2024/573",
+        kurztitel: "Verordnung über fluorierte Treibhausgase",
+        shortTitle: "Ordinance on Fluorinated Greenhouse Gases"
+    },
+    {
+        stichwort: Stichwort.EWKRL,
+        gesetz: "(EU) 2019/904",
+        kurztitel: "Richtlinie über die Verringerung der Auswirkungen bestimmter Kunststoffprodukte auf die Umwelt",
+        shortTitle: "Directive on the reduction of the impact of certain plastic products on the environment"
+    },
+    {
+        stichwort: Stichwort.OzonV,
+        gesetz: "(EG) Nr. 1005/2009",
+        kurztitel: "Verordnung über Stoffe, die zum Abbau der Ozonschicht führen",
+        shortTitle: "Regulation on substances that deplete the ozone layer"
+    },
+    {
+        stichwort: Stichwort.Reducing_microplastics,
+        gesetz: "COM(2023)645",
+        kurztitel: "Umweltverschmutzung durch Mikroplastik – Maßnahmen zur Eindämmung der Umweltfolgen",
+        shortTitle: "Environmental pollution by microplastics - Measures to mitigate the environmental impact"
+    },
+    {
+        stichwort: Stichwort.NachhaltigkeitsR,
+        gesetz: "(EU) 2024/1799",
+        kurztitel: "Nachhaltiger Konsum von Gütern – Förderung von Reparatur und Wiederverwendung",
+        shortTitle: "Sustainable consumption of goods - promoting repair and reuse"
+    },
+    {
+        stichwort: Stichwort.APSR,
+        gesetz: "2001/95/EG",
+        kurztitel: "Richtlinie über die allgemeine Produktsicherheit",
+        shortTitle: "General Product Safety Directive"
+    },
+    {
+        stichwort: Stichwort.APSV,
+        gesetz: "(EU) 2023/988",
+        kurztitel: "Verordnung über die allgemeine Produktsicheheit",
+        shortTitle: "Regulation on general product safety"
+    },
+    {
+        stichwort: Stichwort.ATEX,
+        gesetz: "2014/34/EG",
+        kurztitel: "Richtlinie über Schutzsysteme in explosionsgefährdeten Bereichen",
+        shortTitle: "Directive on protective systems in potentially explosive atmospheres"
+    },
+    {
+        stichwort: Stichwort.BattR,
+        gesetz: "2006/66/EG",
+        kurztitel: "Batterierichtlinie",
+        shortTitle: "Battery Directive"
+    },
+    {
+        stichwort: Stichwort.BattV,
+        gesetz: "(EU) 2023/1542",
+        kurztitel: "Batterieverordnung",
+        shortTitle: "Battery Regulation"
+    },
+    {
+        stichwort: Stichwort.BauProd__alt,
+        gesetz: "(EU) Nr. 305/2011",
+        kurztitel: "Bauprodukteverordnung",
+        shortTitle: "Construction Products Regulation"
+    },
+    {
+        stichwort: Stichwort.BauProd,
+        gesetz: "(EU) 2024/3110",
+        kurztitel: "Bauprodukteverordnung",
+        shortTitle: "Construction Products Regulation"
+    },
+    {
+        stichwort: Stichwort.DGRL,
+        gesetz: "2014/68/EU",
+        kurztitel: "Druckgeräterichtlinie",
+        shortTitle: "Pressure equipment directive"
+    },
+    {
+        stichwort: Stichwort.KosmetikV,
+        gesetz: "(EG) Nr. 1223/2009",
+        kurztitel: "Kosmetikverordnung",
+        shortTitle: "Cosmetics Regulation"
+    },
+    {
+        stichwort: Stichwort.MSR__alt,
+        gesetz: "2006/42/EG",
+        kurztitel: "Maschinenrichtlinie ",
+        shortTitle: "Machinery Directive "
+    },
+    {
+        stichwort: Stichwort.MSV,
+        gesetz: "(EU) 2023/1230",
+        kurztitel: "Maschinenverordnung",
+        shortTitle: "Machinery Regulation "
+    },
+    {
+        stichwort: Stichwort.NSR,
+        gesetz: "2014/35/EG",
+        kurztitel: "Niederspannungsrichtlinie",
+        shortTitle: "Low Voltage Directive"
+    },
+    {
+        stichwort: Stichwort.OutdoorR,
+        gesetz: "2000/14/EG",
+        kurztitel: "Richtlinie für im Freien verwendete Geräte",
+        shortTitle: "Directive for appliances used outdoors"
+    },
+    {
+        stichwort: Stichwort.PSA,
+        gesetz: "(EU) 2016/425",
+        kurztitel: "Verordnung über persönliche Schutzausrüstung",
+        shortTitle: "Regulation on personal protective equipment"
+    },
+    {
+        stichwort: Stichwort.SpielR,
+        gesetz: "2009/48/EG",
+        kurztitel: "Spielzeugrichtlinie",
+        shortTitle: "Toys Directive"
+    },
+    {
+        stichwort: Stichwort.DualUse,
+        gesetz: "(EU) 2021/821",
+        kurztitel: "Kontrolle von Gütern mit doppeltem Verwendungszweck",
+        shortTitle: "Control of dual-use goods"
+    },
+    {
+        stichwort: Stichwort.WBRL,
+        gesetz: "(EU) 2019/1937",
+        kurztitel: "Schutz von Personen, die Verstöße gegen das Unionsrecht melden",
+        shortTitle: " protection of persons who report breaches of Union law"
+    },
+    {
+        stichwort: Stichwort.RUS_SanktionsV,
+        gesetz: "(EU) Nr. 833/2014",
+        kurztitel: "Restriktive Maßnahmen gegen Russland ",
+        shortTitle: "Restrictive measures against Russia "
+    },
+    {
+        stichwort: Stichwort.FahrzTypGenV,
+        gesetz: "(EU) 2018/858",
+        kurztitel: "Fahrzeugtypengenehmigungsverordnung",
+        shortTitle: "Vehicle Type Approval Regulation"
+    },
+    {
+        stichwort: Stichwort.MessGerR,
+        gesetz: "2014/32/EU",
+        kurztitel: "Messgeräterichtlinie",
+        shortTitle: "Measuring Instruments Directive"
+    },
+    {
+        stichwort: Stichwort.NormV,
+        gesetz: "(EU) Nr. 1025/2012",
+        kurztitel: "Normungverordnung",
+        shortTitle: "Standardisation Regulation"
+    },
+    {
+        stichwort: Stichwort.TextilKV,
+        gesetz: "(EU) Nr. 1007/2011",
+        kurztitel: "Textilkennzeichnungsverordnung",
+        shortTitle: "Textile Labelling Regulation"
+    },
+    {
+        stichwort: Stichwort.BarriereFreiheitR,
+        gesetz: "(EU) 2019/882",
+        kurztitel: "Barrierefreiheits-Richtlinie",
+        shortTitle: "Accessibility Requirements for Products Directive"
+    },
+    {
+        stichwort: Stichwort.ProdHR,
+        gesetz: "(EU) 2024/2853",
+        kurztitel: "Richtlinie über die Haftung für fehlerhafte Produkte",
+        shortTitle: ""
+    },
+    {
+        stichwort: Stichwort.Verbraucherschutz,
+        gesetz: "(EU) 2019/771",
+        kurztitel: "Richtlinie über bestimmte vertragsrechtliche Aspekte des Warenkaufs",
+        shortTitle: "Directive on certain aspects concerning contracts for the sale of goods"
+    },
+    {
+        stichwort: Stichwort.Umweltstrafrecht,
+        gesetz: "(EU) 2024/1203",
+        kurztitel: "Richtlinie über den strafrechtlichen Schutz der Umwelt",
+        shortTitle: "Directive on the protection of the environment through criminal law"
+    },
+    {
+        stichwort: Stichwort.CLP,
+        gesetz: "(EU) 1272/2008",
+        kurztitel: "Verordnung über Einstufung, Kennzeichnung und Verpackung von Stoffen und Gemischen",
+        shortTitle: "Ordinance on Classification, Labelling and Packaging of Substances and Mixtures"
+    },
+    {
+        stichwort: Stichwort.LebKontV,
+        gesetz: "(EG) Nr. 1935/2004",
+        kurztitel: "Verordnung über Materialien und Gegenstände die dazu bestimmt sind mit Lebensmitteln in Berührung zu kommen",
+        shortTitle: "Ordinance on materials and articles intended to come into contact with foodstuffs"
+    },
+    {
+        stichwort: Stichwort.QuecksilberV,
+        gesetz: "(EU) 2017/852",
+        kurztitel: "Verordnung über Quecksilber",
+        shortTitle: "Mercury Ordinance"
+    },
+    {
+        stichwort: Stichwort.POP,
+        gesetz: "(EU) 2019/1021",
+        kurztitel: "Verordnung über persistente organische Schadstoffe",
+        shortTitle: "Regulation on Persistent Organic Pollutants"
+    },
+    {
+        stichwort: Stichwort.REACh,
+        gesetz: "(EG) Nr. 1907/2006",
+        kurztitel: "Verordnung über Registrierung, Bewertung, Zulassung und Beschränkung von Chemikalien",
+        shortTitle: "Regulation on the Registration, Evaluation, Authorisation and Restriction of Chemicals"
+    },
+    {
+        stichwort: Stichwort.RoHS,
+        gesetz: "2011/65/EU",
+        kurztitel: "Richtlinie zur Beschränkung der Verwendung bestimmter gefährlicher Stoffe in Elektro- und Elektrogeräten",
+        shortTitle: "Directive on the restriction of the use of certain hazardous substances in electrical and electronic equipment"
+    },
+    {
+        stichwort: Stichwort.KrebsR,
+        gesetz: "2004/37/EG",
+        kurztitel: "Richtlinie  über den Schutz der Arbeitnehmer gegen Gefährdung durch Karzinogene oder Mutagene",
+        shortTitle: "Directive on the protection of workers from the risks related to exposure to carcinogens or mutagens"
+    },
+    {
+        stichwort: Stichwort.TabProdR,
+        gesetz: "2014/40/EU",
+        kurztitel: "Tabakerzeugnis-Richtlinie",
+        shortTitle: "Tobacco Products Directive"
+    },
+    {
+        stichwort: Stichwort.TrinkwasserR,
+        gesetz: "(EU) 2020/2184",
+        kurztitel: "Trinkwasserrichtlinie",
+        shortTitle: "Drinking Water Directive"
+    },
+    {
+        stichwort: Stichwort.VK_EMC,
+        gesetz: "Electromagnetic Compatibility Regulations 2016",
+        kurztitel: "Richtlinie über elektromagnetische Verträglichkeit (Vereinigtes Königreich)",
+        shortTitle: "Electromagnetic Compatibility Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_RER,
+        gesetz: "Radio Equipment Regulations 2017",
+        kurztitel: "Funkanlagenrichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Radio Equipment Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_PSTI,
+        gesetz: "Product Security and Telecommunication Infrastructure Act 2022",
+        kurztitel: "Cybersicherheitsanforderungen für Produkte",
+        shortTitle: "Cybersecurity Act (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_ERP_EI,
+        gesetz: "Ecodesign and Energy Information Regulations 2020",
+        kurztitel: "Ökodesign-Richtlinie (Vereinigtes Königreich)",
+        shortTitle: "Ecodesign Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_BattR,
+        gesetz: "Batteries and Accumulators Regulations 1994",
+        kurztitel: "Batterierichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Battery Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_ConstrProd,
+        gesetz: "Construction Products (Amendment etc.) (EU Exit) Regulations 2019",
+        kurztitel: "Bauprodukteverordnung (Vereinigtes Königreich)",
+        shortTitle: "Construction Products Regulation (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_ElectricalESR,
+        gesetz: "Electrical Equipment (Safety) Regulations 2016",
+        kurztitel: "Niederspannungsrichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Low Voltage Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_GPSR,
+        gesetz: "General Product Safety Regulations 2005",
+        kurztitel: "Richtlinie über die allgemeine Produktsicherheit (Vereinigtes Königreich)",
+        shortTitle: "General Product Safety Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_SMSR,
+        gesetz: "Supply of Machinery (Safety) Regulations 2008",
+        kurztitel: "Maschinenrichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Machinery Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_ToySR,
+        gesetz: "Toys(Safety)Regulations 2011",
+        kurztitel: "Spielzeugrichtlinie (Vereinigtes Königreich)",
+        shortTitle: "Toys Directive (United Kingdom)"
+    },
+    {
+        stichwort: Stichwort.VK_MessGer,
+        gesetz: "Weights and Measures (Prescribed Stamp) Regulations 1968",
+        kurztitel: "Verordnung über Gewichte und Maße (vorgeschriebener Stempel) von 1968",
+        shortTitle: "Weights and Measures (Prescribed Stamp) Regulations 1968"
+    },
+    {
+        stichwort: Stichwort.VK_RoHS,
+        gesetz: "The RoHS Regulations",
+        kurztitel: "RoHS",
+        shortTitle: "The RoHS Regulations"
+    }
+];
+</file>
+
 <file path="src/config.ts">
 import type { ForwardRefExoticComponent, SVGProps, RefAttributes } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
@@ -10225,80 +10741,63 @@ memory/*
 **/source_code.xml
 </file>
 
-<file path="package.json">
-{
-  "name": "d7-hiring-frontend-react",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "generate-types": "openapi-ts"
-  },
-  "dependencies": {
-    "@heroicons/react": "2.2.0",
-    "@hey-api/client-fetch": "0.10.0",
-    "@jsonforms/core": "3.5.1",
-    "@jsonforms/react": "3.5.1",
-    "@jsonforms/vanilla-renderers": "3.5.1",
-    "@radix-ui/react-dialog": "^1.1.15",
-    "@radix-ui/react-label": "^2.1.7",
-    "@radix-ui/react-popover": "^1.1.15",
-    "@radix-ui/react-scroll-area": "^1.2.10",
-    "@radix-ui/react-select": "^2.2.6",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-tabs": "^1.1.13",
-    "@tiptap/extension-code-block": "2.12.0",
-    "@tiptap/extension-code-block-lowlight": "^2.24.0",
-    "@tiptap/extension-image": "2.22.0",
-    "@tiptap/extension-link": "2.22.0",
-    "@tiptap/extension-table": "2.12.0",
-    "@tiptap/extension-table-cell": "2.12.0",
-    "@tiptap/extension-table-header": "2.12.0",
-    "@tiptap/extension-table-row": "2.12.0",
-    "@tiptap/react": "2.12.0",
-    "@tiptap/starter-kit": "2.12.0",
-    "chart.js": "4.4.9",
-    "class-variance-authority": "^0.7.1",
-    "cmdk": "^1.1.1",
-    "date-fns": "^4.1.0",
-    "firebase": "11.7.1",
-    "framer-motion": "12.13.0",
-    "highlight.js": "^11.11.1",
-    "katex": "0.16.22",
-    "lowlight": "^3.3.0",
-    "lucide-react": "^0.540.0",
-    "markdown-it": "14.1.0",
-    "mitt": "3.0.1",
-    "next": "15.3.2",
-    "next-intl": "4.1.0",
-    "react": "19.0.0",
-    "react-chartjs-2": "5.3.0",
-    "react-dom": "19.0.0",
-    "react-responsive": "^10.0.1",
-    "sass": "1.89.0",
-    "tailwind-merge": "^3.3.1",
-    "turndown": "7.2.0",
-    "uuid": "11.1.0",
-    "zustand": "5.0.4"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "3",
-    "@hey-api/openapi-ts": "0.67.3",
-    "@tailwindcss/postcss": "4.1.7",
-    "@types/lowlight": "^2.0.1",
-    "@types/node": "20",
-    "@types/react": "19",
-    "@types/react-dom": "19",
-    "@types/turndown": "5.0.5",
-    "clsx": "^2.1.1",
-    "eslint": "9",
-    "eslint-config-next": "15.3.2",
-    "tailwindcss": "4.1.7",
-    "typescript": "5"
-  }
+<file path="src/app/[locale]/(main)/laws/page.tsx">
+"use client";
+
+import { useLaws } from '@/lib/hooks/useLaws';
+import LawsTable from '@/components/LawsTable';
+import LawDetailDialog from '@/components/LawDetailDialog';
+import LawsSplitView from '@/components/LawsSplitView';
+import BereicheSidebar from '@/components/BereicheSidebar';
+
+export default function LawsPage() {
+  const {
+    laws,
+    bereiche,
+    bereichCounts,
+    filteredLaws,
+    selectedLaw,
+    filterText,
+    selectedBereich,
+    setFilterText,
+    selectBereich,
+    selectLaw,
+    closeDialog,
+  } = useLaws();
+
+  const sidebar = (
+    <BereicheSidebar
+      bereiche={bereiche}
+      bereichCounts={bereichCounts}
+      selected={selectedBereich}
+      onSelect={selectBereich}
+    />
+  );
+
+  return (
+    <div style={{ height: 'calc(100vh - 5rem)', display: 'flex', flexDirection: 'column' }}>
+      <LawsSplitView sidebar={sidebar}>
+        <h1>Gesetzestexte</h1>
+        <p style={{ marginBottom: '2rem', color: '#666' }}>
+          {selectedBereich ? `Anzeigen von Gesetzen für: ${selectedBereich.name}` : "Alle Gesetze anzeigen"}
+        </p>
+        
+        <LawsTable
+          laws={filteredLaws}
+          filterText={filterText}
+          onFilterChange={setFilterText}
+          onSelectLaw={selectLaw}
+        />
+      </LawsSplitView>
+
+      {selectedLaw && (
+        <LawDetailDialog
+          law={selectedLaw}
+          onClose={closeDialog}
+        />
+      )}
+    </div>
+  );
 }
 </file>
 
@@ -11414,6 +11913,83 @@ pre {
 
   .radio-option {
     width: 100%;
+  }
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "d7-hiring-frontend-react",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "generate-types": "openapi-ts"
+  },
+  "dependencies": {
+    "@heroicons/react": "2.2.0",
+    "@hey-api/client-fetch": "0.10.0",
+    "@jsonforms/core": "3.5.1",
+    "@jsonforms/react": "3.5.1",
+    "@jsonforms/vanilla-renderers": "3.5.1",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-scroll-area": "^1.2.10",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@tiptap/extension-code-block": "2.12.0",
+    "@tiptap/extension-code-block-lowlight": "^2.24.0",
+    "@tiptap/extension-image": "2.22.0",
+    "@tiptap/extension-link": "2.22.0",
+    "@tiptap/extension-table": "2.12.0",
+    "@tiptap/extension-table-cell": "2.12.0",
+    "@tiptap/extension-table-header": "2.12.0",
+    "@tiptap/extension-table-row": "2.12.0",
+    "@tiptap/react": "2.12.0",
+    "@tiptap/starter-kit": "2.12.0",
+    "chart.js": "4.4.9",
+    "class-variance-authority": "^0.7.1",
+    "cmdk": "^1.1.1",
+    "date-fns": "^4.1.0",
+    "firebase": "11.7.1",
+    "framer-motion": "12.13.0",
+    "highlight.js": "^11.11.1",
+    "katex": "0.16.22",
+    "lowlight": "^3.3.0",
+    "lucide-react": "^0.540.0",
+    "markdown-it": "14.1.0",
+    "mitt": "3.0.1",
+    "next": "15.3.2",
+    "next-intl": "4.1.0",
+    "react": "19.0.0",
+    "react-chartjs-2": "5.3.0",
+    "react-dom": "19.0.0",
+    "react-responsive": "^10.0.1",
+    "sass": "1.89.0",
+    "tailwind-merge": "^3.3.1",
+    "turndown": "7.2.0",
+    "uuid": "11.1.0",
+    "zustand": "5.0.4"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "3",
+    "@hey-api/openapi-ts": "0.67.3",
+    "@tailwindcss/postcss": "4.1.7",
+    "@types/lowlight": "^2.0.1",
+    "@types/node": "20",
+    "@types/react": "19",
+    "@types/react-dom": "19",
+    "@types/turndown": "5.0.5",
+    "clsx": "^2.1.1",
+    "eslint": "9",
+    "eslint-config-next": "15.3.2",
+    "tailwindcss": "4.1.7",
+    "typescript": "5"
   }
 }
 </file>

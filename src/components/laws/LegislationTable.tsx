@@ -16,11 +16,12 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, ExternalLink, FileText } from 'lucide-react';
-import { LegislationEntry, LegislationStatus } from '@/types/legislation-entry';
-import { getLegislationEntries } from '@/lib/services/legislation-service';
+import { Plus, Search, ExternalLink, FileText, Loader2 } from 'lucide-react';
+import { LegislationEntry } from '@/types/legislation-entry';
+import { getLegislationEntries, getLegislationEntryDetails } from '@/lib/services/legislation-service';
 import { AddUrlModal } from '@/components/laws/AddUrlModal';
 import { ReviewEntryModal } from '@/components/laws/ReviewEntryModal';
+import { LegislationDetailDialog } from '@/components/laws/LegislationDetailDialog';
 
 export function LegislationTable() {
   const [entries, setEntries] = useState<LegislationEntry[]>([]);
@@ -29,6 +30,8 @@ export function LegislationTable() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [pendingEntry, setPendingEntry] = useState<LegislationEntry | null>(null);
+  const [selectedEntryDetails, setSelectedEntryDetails] = useState<LegislationEntry | null>(null);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
 
   useEffect(() => {
     loadEntries();
@@ -51,20 +54,22 @@ export function LegislationTable() {
     return (
       entry.thema.toLowerCase().includes(searchLower) ||
       entry.gesetzgebung.toLowerCase().includes(searchLower) ||
-      entry.kurztitel.toLowerCase().includes(searchLower) ||
-      (entry.kurztitel_englisch?.toLowerCase().includes(searchLower) ?? false) ||
-      entry.status.toLowerCase().includes(searchLower)
+      (entry.gesetzeskuerzel?.toLowerCase().includes(searchLower) ?? false) ||
+      (entry.produktbereich?.toLowerCase().includes(searchLower) ?? false) ||
+      (entry.status?.toLowerCase().includes(searchLower) ?? false) ||
+      (entry.markt?.toLowerCase().includes(searchLower) ?? false)
     );
   });
 
-  const getStatusBadgeVariant = (status: LegislationStatus) => {
+  const getStatusBadgeVariant = (status: string | null | undefined) => {
+    if (!status) return 'outline';
     switch (status) {
-      case LegislationStatus.IN_KRAFT:
+      case 'In Kraft':
         return 'default';
-      case LegislationStatus.ENTWURF:
+      case 'Entwurf':
         return 'secondary';
-      case LegislationStatus.AUFGEHOBEN:
-      case LegislationStatus.AUSSER_KRAFT:
+      case 'Aufgehoben':
+      case 'Außer Kraft':
         return 'destructive';
       default:
         return 'outline';
@@ -85,6 +90,20 @@ export function LegislationTable() {
     setEntries([...entries, entry]);
     setShowReviewModal(false);
     setPendingEntry(null);
+  };
+
+  const handleRowClick = async (entry: LegislationEntry) => {
+    if (!entry.id) return;
+    setIsDetailsLoading(true);
+    try {
+      const details = await getLegislationEntryDetails(entry.id);
+      setSelectedEntryDetails(details);
+    } catch (error) {
+      console.error("Failed to load legislation details:", error);
+      // Optional: Show an error toast/alert to the user
+    } finally {
+      setIsDetailsLoading(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -138,73 +157,42 @@ export function LegislationTable() {
             <TableHeader>
               <TableRow>
                 <TableHead>Thema</TableHead>
+                <TableHead>Gesetzeskürzel</TableHead>
                 <TableHead>Gesetzgebung</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Stichtag</TableHead>
-                <TableHead className="text-right">Aktionen</TableHead>
+                <TableHead>Markt</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredEntries.map((entry) => (
-                <TableRow key={entry.id}>
+                <TableRow 
+                  key={entry.id}
+                  onClick={() => handleRowClick(entry)}
+                  className="cursor-pointer hover:bg-muted/50">
                   <TableCell>
-                    <div>
-                      <div className="font-medium">{entry.thema}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {entry.kurztitel}
-                      </div>
+                    <div className="font-medium">{entry.thema}</div>
+                    <div className="text-sm text-muted-foreground truncate max-w-xs">
+                      {entry.produktbereich}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div>
-                      <div className="font-mono text-sm">{entry.gesetzgebung}</div>
-                      {entry.gesetzeskuerzel && (
-                        <div className="text-xs text-muted-foreground">
-                          {entry.gesetzeskuerzel}
-                        </div>
-                      )}
-                    </div>
+                    {entry.gesetzeskuerzel && (
+                      <Badge variant="secondary">{entry.gesetzeskuerzel}</Badge>
+                    )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getStatusBadgeVariant(entry.status)}>
-                      {entry.status}
-                    </Badge>
+                    <div className="font-mono text-sm">{entry.gesetzgebung}</div>
+                  </TableCell>
+                  <TableCell>
+                    {entry.status && (
+                      <Badge variant={getStatusBadgeVariant(entry.status)}>
+                        {entry.status}
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell>{formatDate(entry.stichtag)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      {entry.fundstelle_url && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                        >
-                          <a
-                            href={entry.fundstelle_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </Button>
-                      )}
-                      {entry.volltext_url && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                        >
-                          <a
-                            href={entry.volltext_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <FileText className="w-4 h-4" />
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+                  <TableCell>{entry.markt}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -228,6 +216,19 @@ export function LegislationTable() {
           }}
           onSave={handleEntrySaved}
         />
+      )}
+
+      {selectedEntryDetails && (
+        <LegislationDetailDialog
+          entry={selectedEntryDetails}
+          onClose={() => setSelectedEntryDetails(null)}
+        />
+      )}
+
+      {isDetailsLoading && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <Loader2 className="h-12 w-12 text-white animate-spin" />
+        </div>
       )}
     </>
   );
