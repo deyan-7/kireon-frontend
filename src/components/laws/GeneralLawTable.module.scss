@@ -1,0 +1,99 @@
+.lawsTable {
+  width: 100%;
+
+  .filterContainer {
+    margin-bottom: 1.5rem;
+
+    .filterInput {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      background-color: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      &::placeholder {
+        color: #9ca3af;
+      }
+    }
+  }
+
+  .tableContainer {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background-color: white;
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+
+        tr {
+          th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid #f3f4f6;
+
+          &.clickableRow {
+            cursor: pointer;
+            transition: background-color 0.15s;
+
+            &:hover {
+              background-color: #f9fafb;
+            }
+          }
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          td {
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: #111827;
+
+            .stichwort {
+              display: inline-block;
+              padding: 0.25rem 0.625rem;
+              background-color: #ede9fe;
+              color: #6b21a8;
+              border-radius: 0.375rem;
+              font-size: 0.75rem;
+              font-weight: 600;
+            }
+          }
+
+          td.noResults {
+            text-align: center;
+            color: #6b7280;
+            padding: 2rem;
+            font-style: italic;
+          }
+        }
+      }
+    }
+  }
+}

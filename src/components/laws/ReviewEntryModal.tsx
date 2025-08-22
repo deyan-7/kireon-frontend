@@ -1,23 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { createLegislationEntry } from '@/lib/services/legislation-service';
 import { LegislationEntry } from '@/types/legislation-entry';
+import { LegislationDialogLayout } from './LegislationDialogLayout';
+import { Badge } from '@/components/ui/badge';
 
 interface ReviewEntryModalProps {
   entry: LegislationEntry;
@@ -64,18 +57,39 @@ export function ReviewEntryModal({ entry, onClose, onSave }: ReviewEntryModalPro
     }
   };
 
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Gesetzestext überprüfen und bearbeiten</DialogTitle>
-            <DialogDescription>
-              Überprüfen Sie die extrahierten Daten und nehmen Sie bei Bedarf Anpassungen vor.
-            </DialogDescription>
-          </DialogHeader>
+  const dialogFooter = (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onClose}
+        disabled={loading}
+      >
+        Abbrechen
+      </Button>
+      <Button type="submit" disabled={loading} onClick={handleSubmit}>
+        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {loading ? 'Speichere...' : 'Speichern'}
+      </Button>
+    </>
+  );
 
-          <ScrollArea className="h-[60vh] px-1">
+  const description = (
+    <>
+      <span>Überprüfen Sie die extrahierten Daten und nehmen Sie bei Bedarf Anpassungen vor.</span>
+      {formData.gesetzeskuerzel && <Badge variant="outline">{formData.gesetzeskuerzel}</Badge>}
+      {formData.status && <Badge>{formData.status}</Badge>}
+    </>
+  );
+
+  return (
+    <LegislationDialogLayout
+      title="Gesetzestext überprüfen und bearbeiten"
+      description={description}
+      onClose={onClose}
+      dialogFooter={dialogFooter}
+    >
+      <form onSubmit={handleSubmit} className="py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
               {/* Column 1 - Core Information */}
               <div className="flex flex-col gap-4">
@@ -276,24 +290,7 @@ export function ReviewEntryModal({ entry, onClose, onSave }: ReviewEntryModalPro
                 </div>
               )}
             </div>
-          </ScrollArea>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Abbrechen
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? 'Speichere...' : 'Speichern'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      </form>
+    </LegislationDialogLayout>
   );
 }

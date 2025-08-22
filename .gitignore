@@ -45,3 +45,7 @@ repomix-output.xml
 memory/*
 **/source_code.xml
 
+# RepoMix
+repomix-output.xml
+memory/*
+**/source_code.xml

@@ -1,12 +1,9 @@
 'use client';
 
-import {
-  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { LegislationEntry } from '@/types/legislation-entry';
 import { ExternalLink } from 'lucide-react';
+import { LegislationDialogLayout } from './LegislationDialogLayout';
 
 interface LegislationDetailDialogProps {
   entry: LegislationEntry;
@@ -14,39 +11,40 @@ interface LegislationDetailDialogProps {
 }
 
 export function LegislationDetailDialog({ entry, onClose }: LegislationDetailDialogProps) {
+  const description = (
+    <>
+      <span>{entry.gesetzgebung}</span>
+      {entry.gesetzeskuerzel && <Badge variant="outline">{entry.gesetzeskuerzel}</Badge>}
+      {entry.status && <Badge>{entry.status}</Badge>}
+    </>
+  );
+
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="text-2xl pr-8">{entry.thema}</DialogTitle>
-          <DialogDescription className="flex items-center gap-4">
-            <span>{entry.gesetzgebung}</span>
-            {entry.gesetzeskuerzel && <Badge variant="outline">{entry.gesetzeskuerzel}</Badge>}
-            {entry.status && <Badge>{entry.status}</Badge>}
-          </DialogDescription>
-        </DialogHeader>
+    <LegislationDialogLayout
+      title={entry.thema}
+      description={description}
+      onClose={onClose}
+    >
+      <div className="py-4">
+        <div className="grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+          <DetailItem label="Produktbereich" value={entry.produktbereich} />
+          <DetailItem label="Stichtag" value={entry.stichtag} />
+          <DetailItem label="Markt" value={entry.markt} />
+          <DetailItem label="Folgestatus" value={entry.folgestatus} />
+          <DetailItem label="Bezug" value={entry.bezug} />
+          <DetailItem label="Initiative" value={entry.initiative} />
+          <DetailItem label="Betroffene Akteure" value={entry.betroffene} />
+          <DetailItem label="Zitierte Gesetze" value={entry.zitiert} />
+          <DetailLink label="Textquelle" url={entry.textquelle_url} />
+          <DetailLink label="Infoquelle" url={entry.infoquelle_url} />
+        </div>
 
-        <ScrollArea className="flex-1 -mx-6 px-6">
-          <div className="grid md:grid-cols-2 gap-x-6 gap-y-4 py-4 text-sm">
-            <DetailItem label="Produktbereich" value={entry.produktbereich} />
-            <DetailItem label="Stichtag" value={entry.stichtag} />
-            <DetailItem label="Markt" value={entry.markt} />
-            <DetailItem label="Folgestatus" value={entry.folgestatus} />
-            <DetailItem label="Bezug" value={entry.bezug} />
-            <DetailItem label="Initiative" value={entry.initiative} />
-            <DetailItem label="Betroffene Akteure" value={entry.betroffene} />
-            <DetailItem label="Zitierte Gesetze" value={entry.zitiert} />
-            <DetailLink label="Textquelle" url={entry.textquelle_url} />
-            <DetailLink label="Infoquelle" url={entry.infoquelle_url} />
-          </div>
-
-          <div className="space-y-4 mt-4">
-            <InfoSection title="Wesentliche Informationen" content={entry.information} />
-            <InfoSection title="Ausblick & Handlungsempfehlungen" content={entry.ausblick} />
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+        <div className="space-y-4 mt-4">
+          <InfoSection title="Wesentliche Informationen" content={entry.information} />
+          <InfoSection title="Ausblick & Handlungsempfehlungen" content={entry.ausblick} />
+        </div>
+      </div>
+    </LegislationDialogLayout>
   );
 }
 

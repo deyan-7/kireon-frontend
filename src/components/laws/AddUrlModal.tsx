@@ -45,35 +45,10 @@ export function AddUrlModal({ onClose, onSuccess }: AddUrlModalProps) {
     setError(null);
 
     try {
-      // For development, create a mock response
-      // TODO: Replace with actual API call when backend is ready
-      const mockEntry: LegislationEntry = {
-        bereich: 'Datenschutz',
-        gesetzeskuerzel: 'DSGVO',
-        gesetzgebung: '(EU) 2016/679',
-        textquelle_url: url,
-        bezug: 'Ersetzt Richtlinie 95/46/EG',
-        zitiert: '95/46/EG',
-        initiative: 'COM/2012/11',
-        status: 'In Kraft',
-        markt: 'EU',
-        stichtag: '2018-05-25',
-        folgestatus: 'Vollständig anwendbar',
-        infoquelle_url: url,
-        produktbereich: 'Personenbezogene Daten',
-        thema: 'Datenschutz-Grundverordnung',
-        information: 'Diese Verordnung schützt die Grundrechte und Grundfreiheiten natürlicher Personen und insbesondere deren Recht auf Schutz personenbezogener Daten.',
-        betroffene: 'Alle Unternehmen, die personenbezogene Daten von EU-Bürgern verarbeiten',
-        ausblick: 'Unternehmen müssen Datenschutz-Folgenabschätzungen durchführen und einen Datenschutzbeauftragten benennen.',
-      };
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call the real backend service
+      const entry = await processLegislationUrl(url);
       
-      // In production, use the actual service
-      // const entry = await processLegislationUrl(url);
-      
-      onSuccess(mockEntry);
+      onSuccess(entry);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
     } finally {
