@@ -80,7 +80,7 @@ export function AddUrlModal({ onClose, onSuccess }: AddUrlModalProps) {
                 autoFocus
               />
               <p className="text-sm text-muted-foreground">
-                Beispiel: https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32018R0858
+                Beispiel: <br/> https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32018R0858
               </p>
             </div>
 
