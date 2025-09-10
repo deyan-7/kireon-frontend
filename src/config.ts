@@ -24,29 +24,29 @@ interface RoleConfig {
 
 const config: AppConfig = {
   agent: {
-    icon: "ava_logo.svg",
-    iconColor: "text-[#009DE0]",
-    roleName: "Test your AI Engineering Skills",
+    icon: "logo.png",
+    iconColor: "text-[#730C16]",
+    roleName: "Kireon GPT Assistant",
   },
   user: {
     icon: UserCircleIcon,
-    iconColor: "text-blue-500",
+    iconColor: "text-[#730C16]",
     roleName: "You",
   },
   system: {
     icon: "agent-logo.svg",
-    iconColor: "text-[#009DE0]",
+    iconColor: "text-[#730C16]",
     roleName: "Agent",
   },
   firebaseConfig: {
-    apiKey: "AIzaSyAAPoVpZXQK1eeuxOm_ESmT3Dwl1xixfLQ",
-    authDomain: "d7-hiring-agent.firebaseapp.com",
-    projectId: "d7-hiring-agent",
-    storageBucket: "d7-hiring-agent.firebasestorage.app",
-    messagingSenderId: "474483908861",
-    appId: "1:474483908861:web:d9715d7a4c6de670571e94",
-    measurementId: "G-9NS197WL3M",
-  },
+    apiKey: "AIzaSyCzsOn795kYELai6AY2HEPP848wW2bw6yU",
+    authDomain: "kireon-gpt.firebaseapp.com",
+    projectId: "kireon-gpt",
+    storageBucket: "kireon-gpt.firebasestorage.app",
+    messagingSenderId: "510702145393",
+    appId: "1:510702145393:web:ebf3812c13ec965d0270d0",
+    measurementId: "G-CMW9Q7H77G"
+  }
 };
 
 export function setIsProduction(isProd: boolean) {

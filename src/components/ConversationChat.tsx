@@ -95,7 +95,7 @@ const ConversationChat = () => {
               model: "gpt-4o-mini",
               stream_tokens: true,
               message: "",
-              agent_id: "hiring-assessment-agent",
+              agent_id: "kireon-agent",
               agent_config: {
                 require_email:
                   searchParams.get("requireEmail")?.toLowerCase() === "true",
@@ -140,7 +140,7 @@ const ConversationChat = () => {
                 isLoadingArtifact={false}
               >
                 <div
-                  className="markdown-chat text-white text-lg"
+                  className="markdown-chat text-black text-lg"
                   dangerouslySetInnerHTML={{
                     __html: formatMarkdownHtml(message.content ?? ""),
                   }}

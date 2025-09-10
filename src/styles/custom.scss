@@ -2,32 +2,42 @@
    Theme Variables
 -------------------------------- */
 :root {
-  --darkblue: #051543;
-  --orange: #fe5000;
-  --purple: #9b82ff;
-  --turquoise: #58d8ff;
-  --blue: #6090f4;
-  --grey: #747f9e;
+  /* Brand Colors */
+  --rosewood: #730C16;
+  --rosewood-dark: #5A0B0E;
+  --melon: #F6BDB6;
+  --red-crayola: #E84C5A;
+  
+  /* Legacy color mappings for compatibility */
+  --darkblue: #FFFFFF;  /* Was #051543 */
+  --orange: #730C16;    /* Was #FE5000 - now rosewood */
+  --purple: #E84C5A;    /* Was #9b82ff - now red */
+  --turquoise: #E84C5A; /* Was #58d8ff - now red */
+  --blue: #F6BDB6;      /* Was #6090f4 - now melon */
+  --grey: #666666;      /* Keeping neutral grey */
 
-  --deepNavy: #030e2e;
-  --deepNavyTransparent: #030e2ecc;
-  --royalIndigo: #0c1a42;
+  --deepNavy: #FFFFFF;           /* Was #030e2e */
+  --deepNavyTransparent: #FFFFFFee; /* Was #030e2ecc */
+  --royalIndigo: #F6BDB6;        /* Was #0c1a42 - now melon */
 
+  /* Gradients */
   --gradientHeadline: linear-gradient(
     45deg,
-    #ff6f2d,
-    #ff6f2d,
-    var(--purple),
-    var(--turquoise),
-    var(--turquoise)
+    var(--rosewood),
+    var(--red-crayola),
+    var(--melon)
   );
-  --gradientTurquoise: linear-gradient(0deg, var(--blue), var(--turquoise));
-  --gradientOrange: linear-gradient(0deg, var(--orange), #ff9843);
-  --gradientDarkblue: linear-gradient(0deg, #030e2e, #04133c);
+  --gradientTurquoise: linear-gradient(0deg, var(--melon), var(--red-crayola));
+  --gradientOrange: linear-gradient(0deg, var(--red-crayola), var(--rosewood));
+  --gradientDarkblue: linear-gradient(0deg, #FFFFFF, #FAFAFA);
 
-  --color: white !important;
-  --artifact-bg: var(--darkblue);
+  /* Component specific */
+  --color: #000000 !important;
+  --artifact-bg: #F5F5F5;
   --form-element-spacing-vertical: 0.5rem;
+  
+  /* Scrollbar */
+  --scrollbar-color: rgba(115, 12, 22, 0.3);
 }
 
 /* -------------------------------
@@ -72,8 +82,8 @@ p {
 }
 
 body {
-  background-color: var(--deepNavy);
-  color: white;
+  background-color: #FFFFFF;
+  color: #000000;
 }
 
 /* -------------------------------
@@ -97,7 +107,7 @@ body {
 a,
 [role="link"]:is([aria-current], :hover, :active, :focus),
 a:is([aria-current], :hover, :active, :focus) {
-  --color: var(--orange);
+  --color: var(--rosewood);
 }
 
 /* -------------------------------
@@ -105,7 +115,8 @@ a:is([aria-current], :hover, :active, :focus) {
 -------------------------------- */
 .chat-message {
   &.user {
-    background-color: var(--royalIndigo);
+    background-color: var(--melon);
+    color: var(--rosewood-dark);
     padding: 0 1rem 0.25rem;
     margin: 1rem 1rem 2rem;
     max-width: 70%;
@@ -146,9 +157,9 @@ a:is([aria-current], :hover, :active, :focus) {
 
   pre {
     & code {
-      color: var(--turquoise);
+      color: var(--rosewood-dark);
       border-radius: 9px !important;
-      background: var(--gradientDarkblue) !important;
+      background: linear-gradient(0deg, #FAFAFA, #FFFFFF) !important;
       width: calc(100% - 3px) !important;
       height: calc(100% - 3px);
       margin: 1.5px;
@@ -179,9 +190,7 @@ a:is([aria-current], :hover, :active, :focus) {
    Heading Styles
 -------------------------------- */
 h1 {
-  background: var(--gradientHeadline);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #1a1a1a;
   display: inline-block;
   --font-size: 1.625rem;
   --font-weight: 400;
@@ -189,9 +198,7 @@ h1 {
 
 .ProseMirror {
   h1 {
-    background: var(--gradientHeadline) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
+    color: #1a1a1a !important;
     display: inline-block;
   }
 }
@@ -199,14 +206,14 @@ h1 {
 h2 {
   --font-size: 1.4rem;
   --font-weight: 400;
-  color: white;
+  color: #000000;
   margin-bottom: 1rem;
 }
 
 h3 {
   --font-size: 1.2rem;
   --font-weight: 400;
-  color: white;
+  color: #000000;
   margin-bottom: 1rem;
 }
 
@@ -228,14 +235,14 @@ pre code {
 }
 
 select {
-  border: 1px solid var(--turquoise) !important;
+  border: 1px solid var(--red-crayola) !important;
   border-radius: 9px;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   padding: 0.75rem 1rem;
-  color: var(--turquoise);
-  background: var(--gradientDarkblue) !important;
+  color: var(--rosewood-dark);
+  background: linear-gradient(0deg, #FFFFFF, #FAFAFA) !important;
   width: 100%;
   height: 100%;
   position: relative;
@@ -250,7 +257,7 @@ textarea {
   }
 
   &::placeholder {
-    color: var(--grey);
+    color: #666666;
   }
 
   &:disabled {
@@ -265,7 +272,7 @@ textarea {
 .tiptap pre:has(code),
 .input_wrapper {
   opacity: 1 !important;
-  background: var(--gradientTurquoise) !important;
+  background: linear-gradient(0deg, var(--melon), var(--red-crayola)) !important;
   border-radius: 10px;
   margin: 0;
   padding: 0;
@@ -284,7 +291,7 @@ textarea {
     font-family: "Font Awesome 6 Free";
     font-weight: 600;
     font-size: 0.8rem;
-    color: var(--turquoise);
+    color: var(--rosewood);
     position: absolute;
     right: 1rem;
     top: 0.8rem;
@@ -297,7 +304,8 @@ textarea {
 .action-btn {
   border-radius: 10px;
   border: 0;
-  background: var(--gradientOrange) !important;
+  background: linear-gradient(0deg, var(--red-crayola), var(--rosewood)) !important;
+  color: white !important;
   z-index: 1;
   position: relative;
   height: 54.5px;
@@ -311,7 +319,7 @@ textarea {
     display: block !important;
     width: calc(100% - 3px);
     height: calc(100% - 3px);
-    background-color: var(--orange) !important;
+    background-color: var(--rosewood) !important;
     border-radius: 9px;
     opacity: 1 !important;
     margin: 0;
@@ -527,7 +535,7 @@ pre {
   border-radius: 10px;
   background: var(--gradientDarkblue);
   border: 2px solid transparent;
-  color: var(--grey);
+  color: #333333;
   font-weight: 500;
   font-size: 0.9rem;
   cursor: pointer;
@@ -554,21 +562,21 @@ pre {
 }
 
 .radio-option:hover .radio-label {
-  color: var(--turquoise);
+  color: var(--red-crayola);
 
   &::after {
-    border-color: var(--turquoise);
+    border-color: var(--red-crayola);
   }
 }
 
 .radio-input:checked + .radio-label {
-  color: white;
+  color: #000000;
   font-weight: 600;
-  border: 2px solid var(--turquoise) !important;
+  border: 2px solid var(--red-crayola) !important;
 
   &::after {
-    border-color: var(--turquoise);
-    background: var(--turquoise);
+    border-color: var(--red-crayola);
+    background: var(--red-crayola);
     background-image: radial-gradient(
       circle,
       var(--deepNavy) 35%,

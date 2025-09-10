@@ -51,31 +51,36 @@ const ArtifactForm = forwardRef<ArtifactFormRef, Props>(
       }
 
       const properties: Record<string, any> = {};
-      const ui: Record<string, any> = {};
+      const uiElements: any[] = [];
       const formData: Record<string, any> = {};
 
       for (const field of payloadArray) {
-        const { key, type, title, enum: enumVals, uischema, data } = field;
+        // Unpack all potential properties from the backend payload
+        const { key, type, title, enum: enumVals, uischema, data, format } = field;
 
         if (!key) continue;
 
+        // Build the schema property for this field
         properties[key] = {
           type,
           title,
-          ...(enumVals ? { enum: enumVals } : {}),
+          // FIX: Include the 'format' property if it exists (for date-pickers)
+          ...(format && { format }),
+          ...(enumVals && { enum: enumVals }),
         };
 
+        // Build the UI schema element for this field
         if (uischema) {
-          ui[key] = {
+          uiElements.push({
             type: "Control",
             scope: `#/properties/${key}`,
-            options: {
-              format:
-                field.uischema?.["ui:widget"] === "radio" ? "radio" : undefined,
-            },
-          };
+            // FIX: Pass through all options from the backend directly
+            // This allows for things like multi-line text areas, radios, etc.
+            ...(uischema.options && { options: uischema.options }),
+          });
         }
 
+        // Set the initial form data for this field
         formData[key] = data ?? "";
       }
 
@@ -86,10 +91,7 @@ const ArtifactForm = forwardRef<ArtifactFormRef, Props>(
         },
         uischema: {
           type: "Group",
-          elements: Object.entries(ui).map(([key, schema]) => ({
-            scope: `#/properties/${key}`,
-            ...schema,
-          })),
+          elements: uiElements,
         },
         initialData: formData,
       };

@@ -12,5 +12,16 @@
   "show_password": "Passwort anzeigen",
   "hide_password": "Passwort verbergen",
   "password_placeholder": "Passwort",
-  "sign_in_button": "Sign in"
+  "sign_in_button": "Sign in",
+  "sidebar": {
+    "consultant": "Beratung",
+    "laws": "Gesetzestexte",
+    "customer": "Kunden"
+  },
+  "dashboard": {
+    "consultant_title": "Beratung",
+    "laws_title": "Gesetzestexte",
+    "customer_title": "Kunden",
+    "welcome_message": "Wählen Sie einen Bereich aus, um zu beginnen."
+  }
 }

@@ -51,7 +51,7 @@ const SendMessageInput = forwardRef<SendMessageInputRef, Props>(
           model: "gpt-4o-mini",
           stream_tokens: true,
           message: message,
-          agent_id: "hiring-assessment-agent",
+          agent_id: "kireon-agent",
         },
         token
       );

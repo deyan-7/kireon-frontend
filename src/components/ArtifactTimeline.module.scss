@@ -25,7 +25,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #1e3a5f !important;
+    background-color: #F5F5F5 !important;
     z-index: 10;
     padding: 0.4rem;
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -37,17 +37,17 @@
     }
     
     &.timelineDone {
-      border: 2px solid #71d8fc;
-      background-color: #1a2951 !important;
+      border: 2px solid var(--red-crayola);
+      background-color: #FAFAFA !important;
       transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
     &.timelineActive {
       width: 55px !important;
       height: 55px !important;
-      border: 2px solid #71d8fc;
+      border: 2px solid var(--red-crayola);
       padding: 0.65rem !important;
-      background-color: #051543 !important;
+      background-color: var(--melon) !important;
       transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
       
       &::before {
@@ -55,7 +55,7 @@
         position: absolute;
         inset: 0;
         border-radius: 50%;
-        background: linear-gradient(45deg, rgba(113, 216, 252, 0.3), rgba(88, 216, 255, 0.2), rgba(113, 216, 252, 0.3)) !important;
+        background: linear-gradient(45deg, rgba(232, 76, 90, 0.3), rgba(246, 189, 182, 0.2), rgba(232, 76, 90, 0.3)) !important;
         background-size: 200% 200%;
         z-index: 0;
         animation: backgroundShift 6s ease-in-out infinite;
@@ -67,7 +67,7 @@
         position: absolute;
         inset: -3px;
         border-radius: 50%;
-        background: conic-gradient(from 0deg, transparent 0deg, #71d8fc 90deg, transparent 180deg, #58d8ff 270deg, transparent 360deg);
+        background: conic-gradient(from 0deg, transparent 0deg, var(--red-crayola) 90deg, transparent 180deg, var(--melon) 270deg, transparent 360deg);
         z-index: -1;
         animation: rotateRing 8s linear infinite;
         opacity: 0.3;
@@ -121,7 +121,7 @@
 
 #artifactTimelineProgress {
   height: 2px;
-  background: linear-gradient(90deg, #71d8fc, #58d8ff);
+  background: linear-gradient(90deg, var(--red-crayola), var(--melon));
   top: calc(50% - 1px);
   transition: width 0.5s ease-in-out;
 }

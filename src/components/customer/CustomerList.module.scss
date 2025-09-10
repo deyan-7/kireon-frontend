@@ -1,0 +1,73 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+  border-right: 1px solid #e0e0e0;
+}
+
+.searchBox {
+  padding: 1rem;
+  background-color: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background-color: white;
+  transition: all 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  }
+
+  &::placeholder {
+    color: #999;
+  }
+}
+
+.customerList {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #fafafa;
+}
+
+.customerItem {
+  padding: 1rem 1.25rem;
+  margin: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: white;
+  border: 1px solid transparent;
+
+  &:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+  }
+
+  &.selected {
+    background-color: #e8f2ff;
+    border-color: #4a90e2;
+    box-shadow: 0 2px 4px rgba(74, 144, 226, 0.15);
+  }
+}
+
+.customerName {
+  font-weight: 600;
+  color: #2c2c2c;
+  margin-bottom: 0.375rem;
+  font-size: 0.95rem;
+}
+
+.customerMeta {
+  font-size: 0.8125rem;
+  color: #777;
+  line-height: 1.4;
+}

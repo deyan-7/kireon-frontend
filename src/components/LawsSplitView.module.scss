@@ -1,0 +1,21 @@
+.splitViewContainer {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  gap: 0;
+}
+
+.sidebarPanel {
+  width: 280px;
+  background-color: var(--background-secondary, #f8f9fa);
+  border-right: 1px solid var(--border-color, #e1e4e8);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.contentPanel {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: var(--background, #ffffff);
+}

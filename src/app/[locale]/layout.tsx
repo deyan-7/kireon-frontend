@@ -11,8 +11,8 @@ import { AgentStreamProvider } from "@/context/AgentStreamProvider";
 import { TaskProvider } from "@/context/TaskContext";
 
 export const metadata: Metadata = {
-  title: "Deyan7 - AVA",
-  description: "AVA AI Engineering Challenge",
+  title: "Kireon GPT",
+  description: "Kireon GPT",
 };
 
 export default async function RootLayout({

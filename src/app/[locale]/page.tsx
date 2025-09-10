@@ -1,14 +1,14 @@
 "use client";
 
 import Protected from "@/components/Protected";
-import StartGuest from "@/components/StartGuest";
+import Dashboard from "@/components/Dashboard";
 
-const StartGuestPage: React.FC = () => {
+const DashboardPage: React.FC = () => {
   return (
     <Protected>
-      <StartGuest />
+      <Dashboard />
     </Protected>
   );
 };
 
-export default StartGuestPage;
+export default DashboardPage;
