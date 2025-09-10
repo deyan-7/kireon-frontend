@@ -94,6 +94,7 @@ export function AddUrlModal({ onClose, onSuccess }: AddUrlModalProps) {
 
           <DialogFooter>
             <Button
+              className="hover:bg-rose-100"
               type="button"
               variant="outline"
               onClick={onClose}
@@ -101,7 +102,7 @@ export function AddUrlModal({ onClose, onSuccess }: AddUrlModalProps) {
             >
               Abbrechen
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button variant="outline"className="hover:bg-rose-100" type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {loading ? 'Verarbeite...' : 'Verarbeiten'}
             </Button>

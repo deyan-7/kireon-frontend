@@ -80,7 +80,7 @@ export default function LawsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h1>Gesetzestexte</h1>
           <Link href="/laws/rahmengesetze">
-            <Button variant="outline">
+            <Button className="hover:bg-rose-100" variant="outline">
               <BookOpenIcon style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
               Rahmengesetze anzeigen
             </Button>
