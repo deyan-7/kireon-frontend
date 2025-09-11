@@ -51,11 +51,11 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
     setPflicht(prev => {
       if (!prev) return prev;
       
-      if (field === 'jurisdiktion') {
+      if (field === 'laenderkuerzel') {
         return {
           ...prev,
-          jurisdiktion: {
-            ...prev.jurisdiktion,
+          laenderkuerzel: {
+            ...prev.laenderkuerzel,
             ...value
           }
         };
@@ -215,15 +215,14 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
                 <Label className={styles.fieldLabel}>Markt (kommagetrennt)</Label>
                 <Input
                   value={[
-                    pflicht.jurisdiktion?.markt,
-                    ...(pflicht.jurisdiktion?.laender || [])
+                    pflicht.laenderkuerzel || []
                   ].filter(Boolean).join(', ') || ''}
                   onChange={(e) => {
                     const values = e.target.value.split(',').map(item => item.trim()).filter(item => item);
                     const markt = values[0] || '';
                     const laender = values.slice(1);
-                    handleInputChange('jurisdiktion', { 
-                      ...pflicht.jurisdiktion, 
+                    handleInputChange('laenderkuerzel', { 
+                      ...pflicht.laenderkuerzel, 
                       markt: markt,
                       laender: laender 
                     });
@@ -324,8 +323,8 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>Informationen</h3>
             <Textarea
-              value={pflicht.information_erweitert || ''}
-              onChange={(e) => handleInputChange('information_erweitert', e.target.value)}
+              value={pflicht.information || ''}
+              onChange={(e) => handleInputChange('information', e.target.value)}
               className={styles.textarea}
               rows={6}
             />

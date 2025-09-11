@@ -203,12 +203,9 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Markt</label>
                 <div className={styles.fieldValue}>
-                  {pflicht.jurisdiktion ? (
+                  {pflicht.laenderkuerzel ? (
                     <div>
-                      {pflicht.jurisdiktion.markt}
-                      {pflicht.jurisdiktion.laender && pflicht.jurisdiktion.laender.length > 0 && (
-                        <span> ({pflicht.jurisdiktion.laender.join(', ')})</span>
-                      )}
+                      {pflicht.laenderkuerzel.join(', ')}
                     </div>
                   ) : (
                     'Nicht verfügbar'
@@ -279,10 +276,10 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
           </div>
 
           {/* Detailed Information */}
-          {pflicht.information_erweitert && (
+          {pflicht.information && (
             <div className={styles.section}>
               <h3 className={styles.sectionTitle}>Informationen</h3>
-              <div className={styles.fieldValue}>{pflicht.information_erweitert}</div>
+              <div className={styles.fieldValue}>{pflicht.information}</div>
             </div>
           )}
 

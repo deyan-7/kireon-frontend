@@ -31,13 +31,12 @@ export function CustomerReportView() {
 
       // Prepare parameters for the PDF endpoint
       const gesetzeskuerzel = customer.subscribedLaws.join(',');
-      const jurisdiktion = customer.subscribedCountries.join(',');
-
+      const laenderkuerzel = customer.subscribedCountries.join(',');
+      
       const params = new URLSearchParams({
         kundenname: customer.name,
         gesetzeskuerzel: gesetzeskuerzel,
-        jurisdiktion: jurisdiktion,
-        // Leave other parameters empty as requested
+        laenderkuerzel: laenderkuerzel,
         stichtag_from: '',
         stichtag_to: '',
         betroffene: '',

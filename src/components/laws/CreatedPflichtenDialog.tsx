@@ -120,12 +120,9 @@ const CreatedPflichtenDialog: React.FC<CreatedPflichtenDialogProps> = ({
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Markt</label>
                 <div className={styles.fieldValue}>
-                  {currentPflicht.jurisdiktion ? (
+                  {currentPflicht.laenderkuerzel ? (
                     <div>
-                      {currentPflicht.jurisdiktion.markt}
-                      {currentPflicht.jurisdiktion.laender && currentPflicht.jurisdiktion.laender.length > 0 && (
-                        <span> ({currentPflicht.jurisdiktion.laender.join(', ')})</span>
-                      )}
+                      {currentPflicht.laenderkuerzel.join(', ')}
                     </div>
                   ) : (
                     'Nicht verfügbar'
@@ -196,10 +193,10 @@ const CreatedPflichtenDialog: React.FC<CreatedPflichtenDialogProps> = ({
           </div>
 
           {/* Detailed Information */}
-          {currentPflicht.information_erweitert && (
+          {currentPflicht.information && (
             <div className={styles.section}>
               <h3 className={styles.sectionTitle}>Informationen</h3>
-              <div className={styles.fieldValue}>{currentPflicht.information_erweitert}</div>
+              <div className={styles.fieldValue}>{currentPflicht.information}</div>
             </div>
           )}
 
