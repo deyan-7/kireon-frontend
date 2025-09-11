@@ -32,8 +32,8 @@ export const generateMockCustomers = (): Customer[] => {
       name: "Kunde 2",
       address: "Musterweg 12, 80331 München",
       metadata: "Standard-Mitglied",
-      subscribedLaws: [Stichwort.RoHS, Stichwort.REACh, Stichwort.BattR],
-      subscribedCountries: [Country.DE, Country.AT, Country.CH],
+      subscribedLaws: [Stichwort.BattV, Stichwort.kodesign],
+      subscribedCountries: [Country.EU],
       otherTags: ["Marktplatzbetreiber"],
     },
     {
@@ -41,9 +41,9 @@ export const generateMockCustomers = (): Customer[] => {
       name: "Kunde 3",
       address: "Beispielallee 7, 20095 Hamburg",
       metadata: "Test-Account",
-      subscribedLaws: [Stichwort.VerpackR, Stichwort.WEEE, Stichwort.CSRD],
-      subscribedCountries: [Country.FR, Country.IT, Country.ES, Country.PL],
+      subscribedLaws: [Stichwort.POP, Stichwort.EUTR],
+      subscribedCountries: [Country.EU],
       otherTags: ["Hersteller"],
-    },
+    }
   ];
 };
