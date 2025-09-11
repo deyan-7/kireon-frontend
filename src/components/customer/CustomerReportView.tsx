@@ -28,11 +28,11 @@ export function CustomerReportView() {
       // Get auth token
       const { auth } = await import('@/lib/auth');
       const token = await auth.currentUser?.getIdToken();
-      
+
       // Prepare parameters for the PDF endpoint
       const gesetzeskuerzel = customer.subscribedLaws.join(',');
       const jurisdiktion = customer.subscribedCountries.join(',');
-      
+
       const params = new URLSearchParams({
         kundenname: customer.name,
         gesetzeskuerzel: gesetzeskuerzel,
@@ -44,7 +44,7 @@ export function CustomerReportView() {
         produkte: ''
       });
 
-      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
       const response = await fetch(`${baseUrl}/pflicht/search-pdf?${params.toString()}`, {
         method: 'GET',
         headers: {
@@ -52,7 +52,7 @@ export function CustomerReportView() {
           ...(token && { 'Authorization': `Bearer ${token}` }),
         },
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to generate PDF');
       }
@@ -62,12 +62,12 @@ export function CustomerReportView() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      
+
       // Generate filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const cleanName = customer.name.replace(/[^a-zA-Z0-9\s-_]/g, '').replace(/\s+/g, '_');
       link.download = `Legal_Monitoring_${cleanName}_${timestamp}.pdf`;
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -84,7 +84,7 @@ export function CustomerReportView() {
         <h1>Kundenberichte</h1>
         <p>PDF-Berichte für alle Kunden herunterladen</p>
       </div>
-      
+
       <div className={styles.tableContainer}>
         <table className={styles.table}>
           <thead>

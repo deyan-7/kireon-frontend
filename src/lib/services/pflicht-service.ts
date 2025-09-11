@@ -13,7 +13,7 @@ import { auth } from '@/lib/auth';
  */
 export async function getPflichtPreviews(params: PflichtPreviewSearchParams = {}): Promise<PflichtPreviewResponse> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
 
   // Build query parameters
   const searchParams = new URLSearchParams();
@@ -107,7 +107,7 @@ export async function getPflichtPreviews(params: PflichtPreviewSearchParams = {}
  */
 export async function getPflichtDetails(pflichtId: number): Promise<Pflicht> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
 
   const requestUrl = `${baseUrl}/pflicht/${pflichtId}`;
 
@@ -135,7 +135,7 @@ export async function getPflichtDetails(pflichtId: number): Promise<Pflicht> {
  */
 export async function updatePflicht(pflichtId: number, pflicht: Pflicht): Promise<Pflicht> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
 
   const requestUrl = `${baseUrl}/pflicht/${pflichtId}`;
 
@@ -164,7 +164,7 @@ export async function updatePflicht(pflichtId: number, pflicht: Pflicht): Promis
  */
 export async function createPflichtFromUrl(url: string): Promise<Pflicht[]> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
 
   // URL as query parameter, not in body
   const requestUrl = `${baseUrl}/pflicht/create?url=${encodeURIComponent(url)}`;
@@ -178,9 +178,9 @@ export async function createPflichtFromUrl(url: string): Promise<Pflicht[]> {
     },
     // Add cache control to help with CORS preflight
     cache: 'no-cache',
-    });
+  });
 
-    if (!response.ok) {
+  if (!response.ok) {
     const errorText = await response.text();
 
     // Handle specific error cases
@@ -191,7 +191,7 @@ export async function createPflichtFromUrl(url: string): Promise<Pflicht[]> {
     } else if (response.status === 422) {
       throw new Error(`URL ist erforderlich: ${errorText}`);
     }
-    
+
     throw new Error(`API Error: ${response.status} ${errorText}`);
   }
 
@@ -204,9 +204,9 @@ export async function createPflichtFromUrl(url: string): Promise<Pflicht[]> {
  * @param pflichtId - The ID of the Pflicht to delete
  * @returns Promise<{message: string}>
  */
-export async function deletePflicht(pflichtId: number): Promise<{message: string}> {
+export async function deletePflicht(pflichtId: number): Promise<{ message: string }> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
 
   const requestUrl = `${baseUrl}/pflicht/${pflichtId}`;
 
@@ -220,14 +220,14 @@ export async function deletePflicht(pflichtId: number): Promise<{message: string
 
   if (!response.ok) {
     const errorText = await response.text();
-    
+
     // Handle specific error cases
     if (response.status === 404) {
       throw new Error('Pflicht nicht gefunden');
     } else if (response.status === 400) {
       throw new Error(`Ungültige Anfrage: ${errorText}`);
     }
-    
+
     throw new Error(`API Error: ${response.status} ${errorText}`);
   }
 

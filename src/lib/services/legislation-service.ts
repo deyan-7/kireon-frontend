@@ -23,7 +23,7 @@ export async function getLegislationEntries(): Promise<LegislationEntry[]> {
  */
 async function callStructuredDataEndpoint(url: string): Promise<any> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
   const encodedUrl = encodeURIComponent(url);
   const requestUrl = `${baseUrl}/structured_data?url=${encodedUrl}`;
 
@@ -50,7 +50,7 @@ async function callStructuredDataEndpoint(url: string): Promise<any> {
  */
 export async function processLegislationUrl(url: string): Promise<LegislationEntry> {
   const rawData = await callStructuredDataEndpoint(url);
-  
+
   // Map the backend response to the frontend LegislationEntry model
   const mappedData: LegislationEntry = {
     ...rawData,
@@ -58,7 +58,7 @@ export async function processLegislationUrl(url: string): Promise<LegislationEnt
     textquelle_url: rawData.textquelle || rawData.textquelle_url,
     infoquelle_url: rawData.infoquelle || rawData.infoquelle_url,
   };
-  
+
   return mappedData;
 }
 
@@ -69,7 +69,7 @@ export async function processLegislationUrl(url: string): Promise<LegislationEnt
  */
 export async function createLegislationEntry(entryData: LegislationEntry): Promise<LegislationEntry> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
 
   const requestUrl = `${baseUrl}/api/laws`;
 
@@ -99,7 +99,7 @@ export async function createLegislationEntry(entryData: LegislationEntry): Promi
  */
 export async function updateLegislationEntry(id: string, entryData: Partial<LegislationEntry>): Promise<LegislationEntry> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
 
   const requestUrl = `${baseUrl}/api/laws/${id}`;
 
@@ -127,7 +127,7 @@ export async function updateLegislationEntry(id: string, entryData: Partial<Legi
  */
 export async function deleteLegislationEntry(id: string): Promise<void> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
 
   const requestUrl = `${baseUrl}/api/laws/${id}`;
 
@@ -152,7 +152,7 @@ export async function deleteLegislationEntry(id: string): Promise<void> {
  */
 export async function getLegislationEntryDetails(id: string): Promise<LegislationEntry> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
 
   const requestUrl = `${baseUrl}/api/laws/${id}`;
 
