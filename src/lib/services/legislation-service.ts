@@ -70,12 +70,13 @@ export async function processLegislationUrl(url: string): Promise<LegislationEnt
  * @returns The newly created entry with its database ID
  */
 export async function createLegislationEntry(entryData: LegislationEntry): Promise<LegislationEntry> {
-  const response = await customClient.POST('/api/laws', {
+  const response = await customClient.post({
+    url: '/api/laws',
     body: entryData
   });
 
   if (response.error) {
-    throw new Error(response.error.message || 'Entry could not be saved');
+    throw new Error('Entry could not be saved');
   }
 
   if (!response.data) {
@@ -92,12 +93,13 @@ export async function createLegislationEntry(entryData: LegislationEntry): Promi
  * @returns The updated entry
  */
 export async function updateLegislationEntry(id: string, entryData: Partial<LegislationEntry>): Promise<LegislationEntry> {
-  const response = await customClient.PATCH(`/api/laws/${id}`, {
+  const response = await customClient.patch({
+    url: `/api/laws/${id}`,
     body: entryData
   });
 
   if (response.error) {
-    throw new Error(response.error.message || 'Entry could not be updated');
+    throw new Error('Entry could not be updated');
   }
 
   if (!response.data) {
@@ -112,10 +114,12 @@ export async function updateLegislationEntry(id: string, entryData: Partial<Legi
  * @param id - The ID of the entry to delete
  */
 export async function deleteLegislationEntry(id: string): Promise<void> {
-  const response = await customClient.DELETE(`/api/laws/${id}`);
+  const response = await customClient.delete({
+    url: `/api/laws/${id}`
+  });
 
   if (response.error) {
-    throw new Error(response.error.message || 'Entry could not be deleted');
+    throw new Error('Entry could not be deleted');
   }
 }
 
@@ -136,9 +140,9 @@ export async function getLegislationEntryDetails(id: string): Promise<Legislatio
     throw new Error('Legislation entry not found');
   }
 
-  // Ensure mock data has a volltext property
-  if (!entry.volltext) {
-    entry.volltext = `Vollständiger Text für "${entry.kurztitel}" konnte nicht geladen werden. Dies ist ein Platzhalter.`;
+  // Add placeholder text content for mock data
+  if (!(entry as any).volltext) {
+    (entry as any).volltext = `Vollständiger Text für "${entry.thema}" konnte nicht geladen werden. Dies ist ein Platzhalter.`;
   }
   
   return Promise.resolve(entry);

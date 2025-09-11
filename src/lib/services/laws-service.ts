@@ -1,4 +1,4 @@
-import { subscribedLaws, LawAcronym, Stichwort } from '@/types/laws';
+import { subscribedLaws, LawAcronym } from '@/types/laws';
 
 /**
  * Service for managing law acronyms (Gesetzeskürzel)

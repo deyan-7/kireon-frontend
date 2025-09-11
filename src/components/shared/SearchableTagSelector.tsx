@@ -48,8 +48,10 @@ export function SearchableTagSelector({
     onChange(selected.filter((item) => item !== valueToRemove));
   };
 
-  const getDisplayName = (value: string) =>
-    optionNames ? optionNames[value] || value : value;
+  const getDisplayName = React.useCallback((value: string) =>
+    optionNames ? optionNames[value] || value : value,
+    [optionNames]
+  );
 
   const filteredOptions = React.useMemo(() => {
     if (!searchValue) return options;
@@ -58,7 +60,7 @@ export function SearchableTagSelector({
       const displayName = getDisplayName(option).toLowerCase();
       return displayName.includes(search) || option.toLowerCase().includes(search);
     });
-  }, [options, searchValue, optionNames]);
+  }, [options, searchValue, getDisplayName]);
 
   return (
     <div className="flex flex-col gap-2">

@@ -24,7 +24,9 @@ export function ReviewEntryModal({ entry, onClose, onSave }: ReviewEntryModalPro
       
       onSave(savedEntry);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+      const errorMessage = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
+      setError(errorMessage);
+      console.error('Error saving entry:', error);
     } finally {
       setLoading(false);
     }

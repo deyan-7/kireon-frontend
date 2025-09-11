@@ -2,8 +2,6 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { Customer, generateMockCustomers } from "@/domain/customer";
-import { Stichwort } from "@/types/laws";
-import { Country } from "@/types/counties";
 
 export interface UseCustomerDataReturn {
   customers: Customer[];

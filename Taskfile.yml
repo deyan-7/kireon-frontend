@@ -1,0 +1,39 @@
+version: '3'
+
+tasks:
+  docker:build:
+    desc: Build Docker image for the project
+    cmds:
+      - docker compose build
+
+  docker:up:
+    desc: Start Docker containers
+    cmds:
+      - docker compose up -d
+
+  docker:down:
+    desc: Stop Docker containers
+    cmds:
+      - docker compose down
+
+  docker:logs:
+    desc: Show Docker container logs
+    cmds:
+      - docker compose logs -f
+
+  docker:run:
+    desc: Build and run Docker containers
+    cmds:
+      - task: docker:build
+      - task: docker:up
+
+  docker:restart:
+    desc: Restart Docker containers
+    cmds:
+      - task: docker:down
+      - task: docker:up
+
+  docker:clean:
+    desc: Clean up Docker containers, networks, and volumes
+    cmds:
+      - docker compose down -v --remove-orphans

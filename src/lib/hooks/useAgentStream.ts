@@ -265,6 +265,7 @@ export function useAgentStream(endpoint: string) {
                     status: "streaming",
                     meta,
                   };
+                  console.log('Streaming draft artifact:', draft);
 
                   setArtifacts((prev) => {
                     const draftExists = prev.some((a) => a.id === draftId);
