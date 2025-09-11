@@ -21,7 +21,7 @@ export function LawsDashboard({ children }: LawsDashboardProps) {
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Gesetzes-Dashboard</h1>
         <p className="text-muted-foreground">
-          Verwalten Sie Gesetzestexte und Gesetzeskürzel
+          Verwalten Sie Dokumente und Gesetzeskürzel
         </p>
       </div>
 

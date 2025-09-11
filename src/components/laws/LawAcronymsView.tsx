@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -20,6 +19,7 @@ import { getLawAcronyms } from '@/lib/services/laws-service';
 import { LawAcronym } from '@/types/laws';
 
 export function LawAcronymsView() {
+
   const t = useTranslations();
   console.log('Translations loaded:', t);
   const [acronyms, setAcronyms] = useState<LawAcronym[]>([]);
