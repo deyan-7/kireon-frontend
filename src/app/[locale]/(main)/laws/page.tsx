@@ -56,7 +56,7 @@ export default function LawsPage() {
 
   const handleEntrySaved = () => {
     // TODO: Add the new entry to the list
-    console.log('Entry saved:', entry);
+    console.log('Entry saved:', pendingEntry);
     setShowReviewModal(false);
     setPendingEntry(null);
     setEditingEntry(null);
