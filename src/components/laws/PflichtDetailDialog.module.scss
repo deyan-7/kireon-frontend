@@ -1,0 +1,308 @@
+.dialogContent {
+  max-width: 900px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.dialogHeader {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.dialogTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  padding-right: 3rem; // Space for close button
+  line-height: 1.4;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.headerLink {
+  color: #3b82f6;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.loadingSpinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.errorIcon {
+  width: 3rem;
+  height: 3rem;
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.errorMessage {
+  color: #ef4444;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.statusSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.mainStatusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bereichBadge {
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 500;
+}
+
+.kuerzelBadge {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #f59e0b;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+}
+
+.statusChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+
+.iconValue {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background-color: #fafafa;
+}
+
+.outlookSection {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background-color: #fafafa;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.fieldValue {
+  font-size: 0.875rem;
+  color: #1f2937;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.jurisdiktionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  
+  div {
+    font-size: 0.875rem;
+    
+    strong {
+      color: #374151;
+      font-weight: 600;
+    }
+  }
+}
+
+.produkteList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.produktBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.notesList {
+  margin: 0;
+  padding-left: 1rem;
+  
+  li {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.externalLink {
+  color: #3b82f6;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1rem;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .dialogContent {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+
+  .dialogHeader {
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .dialogTitle {
+    font-size: 1.125rem;
+  }
+
+  .dialogBody {
+    gap: 1.5rem;
+  }
+
+  .section {
+    padding: 1rem;
+  }
+
+  .fieldGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .fieldLabel {
+    font-size: 0.8125rem;
+  }
+
+  .fieldValue {
+    font-size: 0.8125rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .actionButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .statusSection {
+    justify-content: center;
+  }
+}
