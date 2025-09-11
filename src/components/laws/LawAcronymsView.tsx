@@ -19,6 +19,9 @@ import { getLawAcronyms } from '@/lib/services/laws-service';
 import { LawAcronym } from '@/types/laws';
 
 export function LawAcronymsView() {
+
+  const t = useTranslations();
+  console.log('Translations loaded:', t);
   const [acronyms, setAcronyms] = useState<LawAcronym[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

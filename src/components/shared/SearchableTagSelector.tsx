@@ -49,7 +49,9 @@ export function SearchableTagSelector({
   };
 
   const getDisplayName = React.useCallback((value: string) =>
-    optionNames ? optionNames[value] || value : value, [optionNames]);
+    optionNames ? optionNames[value] || value : value,
+    [optionNames]
+  );
 
   const filteredOptions = React.useMemo(() => {
     if (!searchValue) return options;

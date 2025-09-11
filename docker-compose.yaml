@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_BACKEND_URL: "http://localhost:8080"
-    image: hiring-frontend:latest
+        NEXT_PUBLIC_BACKEND_URL: "http://localhost:8000"
+    image: kireon-frontend:latest
     ports:
       - "3000:8080"
     restart: unless-stopped

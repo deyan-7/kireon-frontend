@@ -167,6 +167,7 @@ export async function getLegislationEntryDetails(id: string): Promise<Legislatio
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`API Error: ${response.status} ${errorText}`);
+
   }
 
   return response.json();
