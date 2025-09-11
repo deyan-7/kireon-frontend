@@ -44,7 +44,7 @@ export function CustomerReportView() {
         produkte: ''
       });
 
-      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
+      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io";
       const response = await fetch(`${baseUrl}/pflicht/search-pdf?${params.toString()}`, {
         method: 'GET',
         headers: {

@@ -24,7 +24,7 @@ interface AgentStreamProviderProps {
 export const AgentStreamProvider = ({ children }: AgentStreamProviderProps) => {
   const stream = useAgentStream(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream` ||
-    "https://kireon-backend-510702145393.europe-west4.run.app/stream"
+    "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io/stream"
   );
 
   return (

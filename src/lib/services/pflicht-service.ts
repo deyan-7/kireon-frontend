@@ -13,7 +13,7 @@ import { auth } from '@/lib/auth';
  */
 export async function getPflichtPreviews(params: PflichtPreviewSearchParams = {}): Promise<PflichtPreviewResponse> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io";
 
   // Build query parameters
   const searchParams = new URLSearchParams();
@@ -107,7 +107,7 @@ export async function getPflichtPreviews(params: PflichtPreviewSearchParams = {}
  */
 export async function getPflichtDetails(pflichtId: number): Promise<Pflicht> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io";
 
   const requestUrl = `${baseUrl}/pflicht/${pflichtId}`;
 
@@ -135,7 +135,7 @@ export async function getPflichtDetails(pflichtId: number): Promise<Pflicht> {
  */
 export async function updatePflicht(pflichtId: number, pflicht: Pflicht): Promise<Pflicht> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io";
 
   const requestUrl = `${baseUrl}/pflicht/${pflichtId}`;
 
@@ -164,7 +164,7 @@ export async function updatePflicht(pflichtId: number, pflicht: Pflicht): Promis
  */
 export async function createPflichtFromUrl(url: string): Promise<Pflicht[]> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io";
 
   // URL as query parameter, not in body
   const requestUrl = `${baseUrl}/pflicht/create?url=${encodeURIComponent(url)}`;
@@ -206,7 +206,7 @@ export async function createPflichtFromUrl(url: string): Promise<Pflicht[]> {
  */
 export async function deletePflicht(pflichtId: number): Promise<{ message: string }> {
   const token = await auth.currentUser?.getIdToken();
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://kireon-backend-510702145393.europe-west4.run.app";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io";
 
   const requestUrl = `${baseUrl}/pflicht/${pflichtId}`;
 
