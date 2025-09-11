@@ -250,22 +250,21 @@ export function useAgentStream(endpoint: string) {
                   ]);
                 } else {
                   // ————— new: tool-artifact streaming draft —————
-                  const meta = payload.custom_data?.metadata ?? {};
-                  const artifactType = meta.artifact_type as string | undefined;
+                  // const meta = payload.custom_data?.metadata ?? {};
+                  // const artifactType = meta.artifact_type as string | undefined;
 
                   artifactRef.current[node] =
                     (artifactRef.current[node] || "") + payload.content;
 
-                  const draft: Artifact = {
-                    id: "streaming_" + node,
-                    node,
-                    type: artifactType,
-                    title: undefined,
-                    content: artifactRef.current[node],
-                    status: "streaming",
-                    meta,
-                  };
-                  console.log('Streaming draft artifact:', draft);
+                  // const draft: Artifact = {
+                  //   id: "streaming_" + node,
+                  //   node,
+                  //   type: artifactType,
+                  //   title: undefined,
+                  //   content: artifactRef.current[node],
+                  //   status: "streaming",
+                  //   meta,
+                  // };
 
                   setArtifacts((prev) => {
                     const draftExists = prev.some((a) => a.id === draftId);
