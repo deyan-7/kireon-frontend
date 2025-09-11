@@ -11,13 +11,12 @@
   "password_placeholder": "Password",
   "sign_in_button": "Sign in",
   "sidebar": {
-    "consultant": "Consultant",
-    "laws": "Laws",
-    "customer": "Customer"
+    "laws": "Documents",
+    "customer": "Customer",
+    "reports": "Customer Reports"
   },
   "dashboard": {
-    "consultant_title": "Consulting",
-    "laws_title": "Legal Texts",
+    "laws_title": "Documents",
     "customer_title": "Customers",
     "welcome_message": "Select an area to get started."
   }

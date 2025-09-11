@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Pflicht } from '@/types/pflicht';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Calendar, Users, Package, FileText, Clock, AlertCircle, Trash2, X } from 'lucide-react';
+import { ExternalLink, Calendar, Users, Package, Clock, AlertCircle, Trash2, X } from 'lucide-react';
 import { getPflichtDetails, deletePflicht } from '@/lib/services/pflicht-service';
 import styles from './PflichtDetailDialog.module.scss';
 
@@ -25,15 +25,9 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    if (pflichtId) {
-      loadPflichtDetails();
-    }
-  }, [pflichtId]);
-
-  const loadPflichtDetails = async () => {
+  const loadPflichtDetails = useCallback(async () => {
     if (!pflichtId) return;
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -44,7 +38,13 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [pflichtId]);
+
+  useEffect(() => {
+    if (pflichtId) {
+      loadPflichtDetails();
+    }
+  }, [pflichtId, loadPflichtDetails]);
 
   const handleDelete = async () => {
     if (!pflichtId || !onDelete) return;

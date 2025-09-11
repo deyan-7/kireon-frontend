@@ -38,7 +38,7 @@ export enum Country {
 }
 
 export const CountryName: Record<Country, string> = {
-    [Country.EU]: "EU-harmonisiert",
+    [Country.EU]: "EU",
     [Country.BE]: "Belgien",
     [Country.BG]: "Bulgarien",
     [Country.DK]: "Dänemark",

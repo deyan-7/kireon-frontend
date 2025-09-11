@@ -12,19 +12,17 @@ interface ReviewEntryModalProps {
 
 export function ReviewEntryModal({ entry, onClose, onSave }: ReviewEntryModalProps) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSave = async (updatedEntry: LegislationEntry) => {
     setLoading(true);
-    setError(null);
     try {
       // Simulate API delay for mock
       const savedEntry = { ...updatedEntry, id: Date.now().toString() };
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       onSave(savedEntry);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+      console.error('Failed to save entry:', err);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Pflicht } from '@/types/pflicht';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ExternalLink, Calendar, Users, Package, FileText, Clock, AlertCircle, RotateCcw } from 'lucide-react';
+import { Calendar, Users, Package, Clock, AlertCircle, RotateCcw } from 'lucide-react';
 import { getPflichtDetails, updatePflicht } from '@/lib/services/pflicht-service';
 import styles from './PflichtEditDialog.module.scss';
 
@@ -26,7 +26,7 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPflichtDetails = async () => {
+  const loadPflichtDetails = useCallback(async () => {
     if (!pflichtId) return;
     setLoading(true);
     setError(null);
@@ -39,11 +39,11 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [pflichtId]);
 
   useEffect(() => {
     loadPflichtDetails();
-  }, [pflichtId]);
+  }, [pflichtId, loadPflichtDetails]);
 
   const handleInputChange = (field: keyof Pflicht, value: any) => {
     if (!pflicht) return;
@@ -107,13 +107,6 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
     }
   };
 
-  const formatDateTime = (dateString: string) => {
-    try {
-      return new Date(dateString).toISOString().slice(0, 16);
-    } catch {
-      return '';
-    }
-  };
 
   if (!pflichtId) return null;
 

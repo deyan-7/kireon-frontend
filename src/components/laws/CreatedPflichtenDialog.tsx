@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, X, ExternalLink, Calendar, Users, Package, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Users, Package, Clock } from 'lucide-react';
 import { Pflicht } from '@/types/pflicht';
 import styles from './CreatedPflichtenDialog.module.scss';
 
@@ -34,23 +34,6 @@ const CreatedPflichtenDialog: React.FC<CreatedPflichtenDialogProps> = ({
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Nicht verfügbar';
-    try {
-      return new Date(dateString).toLocaleDateString('de-DE');
-    } catch {
-      return 'Nicht verfügbar';
-    }
-  };
-
-  const formatDateTime = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleString('de-DE');
-    } catch {
-      return 'Nicht verfügbar';
-    }
-  };
-
   if (!isOpen || !currentPflicht) return null;
 
   return (
@@ -58,60 +41,38 @@ const CreatedPflichtenDialog: React.FC<CreatedPflichtenDialogProps> = ({
       <DialogContent className={styles.dialogContent}>
         <DialogHeader className={styles.dialogHeader}>
           <DialogTitle className={styles.dialogTitle}>
-            {currentPflicht.titel || currentPflicht.thema || 'Pflicht-Details'}
+            Erstellte Dokumente ({currentIndex + 1} von {totalCount})
           </DialogTitle>
-          {currentPflicht.dokument_information_url && (
-            <a
-              href={currentPflicht.dokument_information_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.headerLink}
-            >
-              <ExternalLink className="h-4 w-4 inline mr-1" />
-              {currentPflicht.dokument_information_url}
-            </a>
-          )}
         </DialogHeader>
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className={styles.closeButton}
-        >
-          <X className="h-4 w-4" />
-        </Button>
 
-        {/* Pagination Header */}
-        <div className={styles.paginationHeader}>
-          <div className={styles.paginationInfo}>
-            <span className={styles.currentPage}>{currentIndex + 1}</span>
-            <span className={styles.separator}>von</span>
-            <span className={styles.totalPages}>{totalCount}</span>
-            <span className={styles.pflichtText}>Pflichten</span>
-          </div>
-          <div className={styles.paginationControls}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToPrevious}
-              disabled={currentIndex === 0}
-              className={styles.paginationButton}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToNext}
-              disabled={currentIndex === totalCount - 1}
-              className={styles.paginationButton}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+        {/* Pagination Controls */}
+        <div className={styles.paginationControls}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPrevious}
+            disabled={currentIndex === 0}
+            className={styles.paginationButton}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Vorherige
+          </Button>
+          <span className={styles.paginationInfo}>
+            {currentIndex + 1} von {totalCount}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNext}
+            disabled={currentIndex === totalCount - 1}
+            className={styles.paginationButton}
+          >
+            Nächste
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
 
+        {/* Content - reuse PflichtDetailDialog structure */}
         <div className={styles.dialogBody}>
           {/* Status Badges */}
           <div className={styles.statusSection}>
@@ -144,8 +105,10 @@ const CreatedPflichtenDialog: React.FC<CreatedPflichtenDialogProps> = ({
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Stichtag</label>
                 <div className={styles.fieldValue}>
-                  <Calendar className="h-4 w-4 inline mr-1" />
-                  {formatDate(currentPflicht.stichtag)}
+                  <div className={styles.iconValue}>
+                    <Calendar className="h-4 w-4" />
+                    {currentPflicht.stichtag ? new Date(currentPflicht.stichtag).toLocaleDateString('de-DE') : 'Nicht verfügbar'}
+                  </div>
                 </div>
               </div>
               
@@ -193,7 +156,7 @@ const CreatedPflichtenDialog: React.FC<CreatedPflichtenDialogProps> = ({
                 <div className={styles.fieldValue}>
                   <div className={styles.iconValue}>
                     <Clock className="h-4 w-4" />
-                    {formatDateTime(currentPflicht.extraction_timestamp)}
+                    {new Date(currentPflicht.extraction_timestamp).toLocaleString('de-DE')}
                   </div>
                 </div>
               </div>
@@ -211,23 +174,21 @@ const CreatedPflichtenDialog: React.FC<CreatedPflichtenDialogProps> = ({
               
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Produktbereich</label>
-                <div className={styles.fieldValue}>
-                  <Package className="h-4 w-4 inline mr-1" />
-                  {currentPflicht.produktbereich || 'Nicht verfügbar'}
-                </div>
+                <div className={styles.fieldValue}>{currentPflicht.produktbereich || 'Nicht verfügbar'}</div>
               </div>
               
               {currentPflicht.produkte && currentPflicht.produkte.length > 0 && (
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Produkte</label>
                   <div className={styles.fieldValue}>
-                    <ul className={styles.produkteList}>
+                    <div className={styles.produkteList}>
                       {currentPflicht.produkte.map((produkt, index) => (
                         <Badge key={index} variant="outline" className={styles.produktBadge}>
+                          <Package className="h-3 w-3 mr-1" />
                           {produkt}
                         </Badge>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 </div>
               )}
@@ -250,30 +211,32 @@ const CreatedPflichtenDialog: React.FC<CreatedPflichtenDialogProps> = ({
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Betroffene Akteure</label>
                   <div className={styles.fieldValue}>
-                    <Users className="h-4 w-4 inline mr-1" />
-                    {currentPflicht.betroffene}
+                    <div className={styles.iconValue}>
+                      <Users className="h-4 w-4" />
+                      {currentPflicht.betroffene}
+                    </div>
                   </div>
                 </div>
               )}
               {currentPflicht.ausblick && (
-                <div className={styles.fieldGroup}>
+                <div className={styles.fieldGroup} style={{ marginTop: '1.5rem' }}>
                   <label className={styles.fieldLabel}>Ausblick</label>
                   <div className={styles.fieldValue}>{currentPflicht.ausblick}</div>
                 </div>
               )}
             </div>
           )}
+        </div>
 
-          {/* Actions */}
-          <div className={styles.actions}>
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className={styles.actionButton}
-            >
-              Schließen
-            </Button>
-          </div>
+        {/* Actions */}
+        <div className={styles.actions}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className={styles.actionButton}
+          >
+            Schließen
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,5 +1,4 @@
-import { customClient } from '@/lib/api';
-import { PflichtPreview, PflichtPreviewSearchParams, PflichtPreviewResponse } from '@/types/pflicht-preview';
+import { PflichtPreview, PflichtPreviewSearchParams, PflichtPreviewResponse, SearchResultResponse } from '@/types/pflicht-preview';
 import { Pflicht } from '@/types/pflicht';
 import { auth } from '@/lib/auth';
 
@@ -10,15 +9,15 @@ import { auth } from '@/lib/auth';
 /**
  * Fetches PflichtPreview entries with search and pagination
  * @param params - Search and pagination parameters
- * @returns Promise<PflichtPreview[]>
+ * @returns Promise<PflichtPreviewResponse>
  */
-export async function getPflichtPreviews(params: PflichtPreviewSearchParams = {}): Promise<PflichtPreview[]> {
+export async function getPflichtPreviews(params: PflichtPreviewSearchParams = {}): Promise<PflichtPreviewResponse> {
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
-  
+
   // Build query parameters
   const searchParams = new URLSearchParams();
-  
+
   if (params.skip !== undefined) searchParams.append('skip', params.skip.toString());
   if (params.limit !== undefined) searchParams.append('limit', params.limit.toString());
   if (params.bereich) searchParams.append('bereich', params.bereich);
@@ -43,30 +42,63 @@ export async function getPflichtPreviews(params: PflichtPreviewSearchParams = {}
     throw new Error(`API Error: ${response.status} ${errorText}`);
   }
 
-  return response.json();
+  const result = await response.json();
+
+  // Handle new backend response format
+  if (result.results && typeof result.total_count === 'number') {
+    // New backend format: { results: PflichtPreview[], total_count: number }
+    const backendResponse: SearchResultResponse = result;
+    const limit = params.limit || 10;
+    const skip = params.skip || 0;
+    const page = Math.floor(skip / limit) + 1;
+    const totalPages = Math.ceil(backendResponse.total_count / limit);
+
+    return {
+      data: backendResponse.results,
+      total: backendResponse.total_count,
+      page,
+      limit,
+      totalPages
+    };
+  } else if (Array.isArray(result)) {
+    // Legacy: If API returns just an array, wrap it in pagination response
+    const limit = params.limit || 10;
+    const skip = params.skip || 0;
+    const page = Math.floor(skip / limit) + 1;
+    const totalPages = Math.ceil(result.length / limit);
+
+    return {
+      data: result,
+      total: result.length,
+      page,
+      limit,
+      totalPages
+    };
+  } else if (result.data && Array.isArray(result.data)) {
+    // Legacy: If API returns paginated response
+    return {
+      data: result.data,
+      total: result.total || result.data.length,
+      page: result.page || Math.floor((params.skip || 0) / (params.limit || 10)) + 1,
+      limit: result.limit || params.limit || 10,
+      totalPages: result.totalPages || Math.ceil((result.total || result.data.length) / (result.limit || params.limit || 10))
+    };
+  } else {
+    // Fallback
+    const limit = params.limit || 10;
+    const skip = params.skip || 0;
+    const page = Math.floor(skip / limit) + 1;
+
+    return {
+      data: [],
+      total: 0,
+      page,
+      limit,
+      totalPages: 1
+    };
+  }
 }
 
-/**
- * Fetches PflichtPreview entries with pagination metadata
- * @param params - Search and pagination parameters
- * @returns Promise<PflichtPreviewResponse>
- */
-export async function getPflichtPreviewsWithPagination(params: PflichtPreviewSearchParams = {}): Promise<PflichtPreviewResponse> {
-  const data = await getPflichtPreviews(params);
-  const limit = params.limit || 10;
-  const skip = params.skip || 0;
-  const total = data.length; // Note: This is a simplified implementation
-  const page = Math.floor(skip / limit) + 1;
-  const totalPages = Math.ceil(total / limit);
-
-  return {
-    data,
-    total,
-    page,
-    limit,
-    totalPages
-  };
-}
 
 /**
  * Fetches full Pflicht details by ID
@@ -131,29 +163,26 @@ export async function updatePflicht(pflichtId: number, pflicht: Pflicht): Promis
  * @returns Promise<Pflicht[]>
  */
 export async function createPflichtFromUrl(url: string): Promise<Pflicht[]> {
-  console.log('createPflichtFromUrl called with URL:', url);
-  
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
   // URL as query parameter, not in body
   const requestUrl = `${baseUrl}/pflicht/create?url=${encodeURIComponent(url)}`;
-  console.log('Making request to:', requestUrl);
 
   const response = await fetch(requestUrl, {
     method: 'POST',
     headers: {
-      'accept': 'application/json',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
     },
-  });
+    // Add cache control to help with CORS preflight
+    cache: 'no-cache',
+    });
 
-  console.log('Response status:', response.status);
-
-  if (!response.ok) {
+    if (!response.ok) {
     const errorText = await response.text();
-    console.log('Error response:', errorText);
-    
+
     // Handle specific error cases
     if (response.status === 409) {
       throw new Error(`Pflichten für diese Dokumenten-ID existieren bereits`);
@@ -167,7 +196,6 @@ export async function createPflichtFromUrl(url: string): Promise<Pflicht[]> {
   }
 
   const result = await response.json();
-  console.log('Success response:', result);
   return result;
 }
 

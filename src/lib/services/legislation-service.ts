@@ -1,4 +1,3 @@
-import { customClient } from '@/lib/api';
 import { LegislationEntry, MOCK_LEGISLATION_ENTRIES } from '@/types/legislation-entry';
 import { auth } from '@/lib/auth';
 
@@ -12,8 +11,7 @@ import { auth } from '@/lib/auth';
  */
 export async function getLegislationEntries(): Promise<LegislationEntry[]> {
   // TODO: Replace with actual API call once backend is ready
-  // return customClient.GET('/api/laws').then(response => response.data);
-  
+
   // For now, return mock data
   return Promise.resolve(MOCK_LEGISLATION_ENTRIES);
 }
@@ -70,19 +68,27 @@ export async function processLegislationUrl(url: string): Promise<LegislationEnt
  * @returns The newly created entry with its database ID
  */
 export async function createLegislationEntry(entryData: LegislationEntry): Promise<LegislationEntry> {
-  const response = await customClient.POST('/api/laws', {
-    body: entryData
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+
+  const requestUrl = `${baseUrl}/api/laws`;
+
+  const response = await fetch(requestUrl, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    },
+    body: JSON.stringify(entryData),
   });
 
-  if (response.error) {
-    throw new Error(response.error.message || 'Entry could not be saved');
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API Error: ${response.status} ${errorText}`);
   }
 
-  if (!response.data) {
-    throw new Error('No data received from server');
-  }
-
-  return response.data as LegislationEntry;
+  return response.json();
 }
 
 /**
@@ -92,19 +98,27 @@ export async function createLegislationEntry(entryData: LegislationEntry): Promi
  * @returns The updated entry
  */
 export async function updateLegislationEntry(id: string, entryData: Partial<LegislationEntry>): Promise<LegislationEntry> {
-  const response = await customClient.PATCH(`/api/laws/${id}`, {
-    body: entryData
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+
+  const requestUrl = `${baseUrl}/api/laws/${id}`;
+
+  const response = await fetch(requestUrl, {
+    method: 'PATCH',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    },
+    body: JSON.stringify(entryData),
   });
 
-  if (response.error) {
-    throw new Error(response.error.message || 'Entry could not be updated');
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API Error: ${response.status} ${errorText}`);
   }
 
-  if (!response.data) {
-    throw new Error('No data received from server');
-  }
-
-  return response.data as LegislationEntry;
+  return response.json();
 }
 
 /**
@@ -112,10 +126,22 @@ export async function updateLegislationEntry(id: string, entryData: Partial<Legi
  * @param id - The ID of the entry to delete
  */
 export async function deleteLegislationEntry(id: string): Promise<void> {
-  const response = await customClient.DELETE(`/api/laws/${id}`);
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
-  if (response.error) {
-    throw new Error(response.error.message || 'Entry could not be deleted');
+  const requestUrl = `${baseUrl}/api/laws/${id}`;
+
+  const response = await fetch(requestUrl, {
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API Error: ${response.status} ${errorText}`);
   }
 }
 
@@ -125,21 +151,23 @@ export async function deleteLegislationEntry(id: string): Promise<void> {
  * @returns The full LegislationEntry object
  */
 export async function getLegislationEntryDetails(id: string): Promise<LegislationEntry> {
-  // TODO: Replace with an actual API call, e.g., customClient.GET(`/api/laws/${id}`);
-  console.log(`Fetching details for entry ID: ${id}`);
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 750));
-  
-  const entry = MOCK_LEGISLATION_ENTRIES.find(e => e.id === id);
-  if (!entry) {
-    throw new Error('Legislation entry not found');
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+
+  const requestUrl = `${baseUrl}/api/laws/${id}`;
+
+  const response = await fetch(requestUrl, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API Error: ${response.status} ${errorText}`);
   }
 
-  // Ensure mock data has a volltext property
-  if (!entry.volltext) {
-    entry.volltext = `Vollständiger Text für "${entry.kurztitel}" konnte nicht geladen werden. Dies ist ein Platzhalter.`;
-  }
-  
-  return Promise.resolve(entry);
+  return response.json();
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,12 +14,11 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, Search, Edit } from 'lucide-react';
 import { getLawAcronyms } from '@/lib/services/laws-service';
 import { LawAcronym } from '@/types/laws';
 
 export function LawAcronymsView() {
-  const t = useTranslations();
   const [acronyms, setAcronyms] = useState<LawAcronym[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

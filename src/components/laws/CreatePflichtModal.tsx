@@ -24,6 +24,7 @@ const CreatePflichtModal: React.FC<CreatePflichtModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [conflict, setConflict] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,56 +36,86 @@ const CreatePflichtModal: React.FC<CreatePflichtModalProps> = ({
 
     // Prevent double submission
     if (loading) {
-      console.log('Already loading, preventing double submission');
       return;
     }
-
-    console.log('Creating pflicht from URL:', url.trim());
     setLoading(true);
     setError(null);
     setSuccess(false);
+    setConflict(false);
 
-    try {
-      const createdPflichten = await createPflichtFromUrl(url.trim());
-      console.log('Successfully created pflichten:', createdPflichten);
-      setSuccess(true);
-      setUrl('');
-      
-      // Call success callback after a short delay to show success message
-      setTimeout(() => {
-        onSuccess(createdPflichten);
-        onClose();
-        setSuccess(false);
-      }, 1500);
-      
-    } catch (err) {
-      console.error('Failed to create pflicht:', err);
-      let errorMessage = 'Fehler beim Erstellen der Pflicht.';
-      
-      if (err instanceof Error) {
-        if (err.message.includes('existieren bereits')) {
-          errorMessage = 'Für diese Dokumenten-ID existieren bereits Pflichten.';
-        } else if (err.message.includes('Ungültige URL')) {
-          errorMessage = 'Die eingegebene URL ist ungültig. Bitte überprüfen Sie die URL.';
-        } else if (err.message.includes('URL ist erforderlich')) {
-          errorMessage = 'Bitte geben Sie eine URL ein.';
-        } else {
-          errorMessage = err.message;
+    // Use Promise.resolve().then() to make the async operation non-blocking
+    Promise.resolve().then(async () => {
+      try {
+        const createdPflichten = await createPflichtFromUrl(url.trim());
+        setSuccess(true);
+        setUrl('');
+        
+        // Call success callback after a short delay to show success message
+        setTimeout(() => {
+          onSuccess(createdPflichten);
+          onClose();
+          setSuccess(false);
+        }, 1500);
+        
+      } catch (err) {
+        console.error('Failed to create pflicht:', err);
+        let errorMessage = 'Fehler beim Erstellen des Dokuments.';
+        
+        if (err instanceof Error) {
+          if (err.message.includes('existieren bereits')) {
+            errorMessage = 'Für diese Dokumenten-ID existieren bereits Dokumente.';
+          } else if (err.message.includes('Ungültige URL')) {
+            errorMessage = 'Die eingegebene URL ist ungültig. Bitte überprüfen Sie die URL.';
+          } else if (err.message.includes('URL ist erforderlich')) {
+            errorMessage = 'Bitte geben Sie eine URL ein.';
+          } else {
+            errorMessage = err.message;
+          }
         }
+        
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
       }
-      
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    });
+  };
+
+  const handleForceCreate = async () => {
+    if (!url.trim()) return;
+    
+    setLoading(true);
+    setError(null);
+    setConflict(false);
+    
+    // Use Promise.resolve().then() to make the async operation non-blocking
+    Promise.resolve().then(async () => {
+      try {
+        // Try to create again - this might still fail with 409, but we show the user's intent
+        const createdPflichten = await createPflichtFromUrl(url.trim());
+        setSuccess(true);
+        setUrl('');
+        
+        setTimeout(() => {
+          onSuccess(createdPflichten);
+          onClose();
+          setSuccess(false);
+        }, 1500);
+        
+      } catch (err) {
+        console.error('Failed to force create pflicht:', err);
+        setError('Die Dokumente existieren bereits und können nicht erstellt werden.');
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   const handleClose = () => {
     if (!loading) {
-      console.log('Closing CreatePflichtModal');
       setUrl('');
       setError(null);
       setSuccess(false);
+      setConflict(false);
       setLoading(false);
       onClose();
     }
@@ -93,7 +124,6 @@ const CreatePflichtModal: React.FC<CreatePflichtModalProps> = ({
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      console.log('CreatePflichtModal opened, resetting state');
       setUrl('');
       setError(null);
       setSuccess(false);
@@ -106,7 +136,7 @@ const CreatePflichtModal: React.FC<CreatePflichtModalProps> = ({
       <DialogContent className={styles.dialogContent}>
         <DialogHeader>
           <DialogTitle className={styles.dialogTitle}>
-            Neue Pflicht erstellen
+            Neues Dokument erstellen
           </DialogTitle>
         </DialogHeader>
 
@@ -126,14 +156,30 @@ const CreatePflichtModal: React.FC<CreatePflichtModalProps> = ({
               required
             />
             <p className={styles.helpText}>
-              Geben Sie die URL des Gesetzestextes ein, aus dem eine neue Pflicht erstellt werden soll.
+              Geben Sie die URL des Gesetzestextes ein, aus dem ein neues Dokument erstellt werden soll.
             </p>
           </div>
 
           {error && (
             <Alert className={styles.alert}>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </div>
+              {conflict && (
+                <div className={styles.conflictActions}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleForceCreate}
+                    disabled={loading}
+                    className={styles.forceButton}
+                  >
+                    Trotzdem fortfahren
+                  </Button>
+                </div>
+              )}
             </Alert>
           )}
 
@@ -141,7 +187,7 @@ const CreatePflichtModal: React.FC<CreatePflichtModalProps> = ({
             <Alert className={styles.successAlert}>
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
-                Pflicht erfolgreich erstellt! Die Übersicht wird aktualisiert...
+                Dokument erfolgreich erstellt! Die Übersicht wird aktualisiert...
               </AlertDescription>
             </Alert>
           )}
@@ -158,16 +204,17 @@ const CreatePflichtModal: React.FC<CreatePflichtModalProps> = ({
             </Button>
             <Button
               type="submit"
+              variant="outline"
               disabled={loading || !url.trim()}
               className={styles.actionButton}
             >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Erstelle Pflicht...
+                  Erstelle Dokument...
                 </>
               ) : (
-                'Pflicht erstellen'
+                'Dokument erstellen'
               )}
             </Button>
           </div>

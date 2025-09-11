@@ -15,6 +15,7 @@ interface PflichtPreviewTableProps {
   totalCount: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
+  refreshing?: boolean;
 }
 
 const PflichtPreviewTable: React.FC<PflichtPreviewTableProps> = ({
@@ -28,6 +29,7 @@ const PflichtPreviewTable: React.FC<PflichtPreviewTableProps> = ({
   totalCount,
   itemsPerPage,
   onPageChange,
+  refreshing = false,
 }) => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalCount);
@@ -50,7 +52,7 @@ const PflichtPreviewTable: React.FC<PflichtPreviewTableProps> = ({
     const pageNumbers = [];
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
@@ -140,7 +142,7 @@ const PflichtPreviewTable: React.FC<PflichtPreviewTableProps> = ({
         <input
           type="text"
           className={styles.filterInput}
-          placeholder="Pflichten durchsuchen..."
+          placeholder="Dokumente durchsuchen..."
           value={filterText}
           onChange={(e) => onFilterChange(e.target.value)}
         />
@@ -149,11 +151,17 @@ const PflichtPreviewTable: React.FC<PflichtPreviewTableProps> = ({
           className="bg-rose-700 hover:bg-rose-800"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Neue Pflicht
+          Neues Dokument
         </Button>
       </div>
       
       <div className={styles.tableContainer}>
+        {refreshing && (
+          <div className={styles.refreshingOverlay}>
+            <div className={styles.refreshingSpinner}></div>
+            <span>Aktualisiere...</span>
+          </div>
+        )}
         <table className={styles.table}>
           <thead>
             <tr>
@@ -188,10 +196,10 @@ const PflichtPreviewTable: React.FC<PflichtPreviewTableProps> = ({
                 <td>{preview.gesetzgebung}</td>
               </tr>
             ))}
-            {previews.length === 0 && (
+            {previews.length === 0 && !refreshing && (
               <tr>
                 <td colSpan={4} className={styles.noResults}>
-                  Keine Pflichten gefunden
+                  Keine Dokumente gefunden
                 </td>
               </tr>
             )}

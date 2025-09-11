@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
-import { v4 as uuidv4 } from "uuid";
 import clsx from "clsx";
 import styles from "./Sidebar.module.scss";
 import {
-  ChatBubbleLeftRightIcon,
   DocumentTextIcon,
   UsersIcon,
+  DocumentArrowDownIcon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
@@ -21,12 +20,6 @@ const Sidebar = () => {
 
   const navItems = [
     {
-      href: `/conversation/${uuidv4()}`,
-      label: t("consultant"),
-      icon: ChatBubbleLeftRightIcon,
-      isActive: (path: string) => path.startsWith("/conversation"),
-    },
-    {
       href: "/laws",
       label: t("laws"),
       icon: DocumentTextIcon,
@@ -37,6 +30,12 @@ const Sidebar = () => {
       label: t("customer"),
       icon: UsersIcon,
       isActive: (path: string) => path === "/customer",
+    },
+    {
+      href: "/laws/reports",
+      label: t("reports"),
+      icon: DocumentArrowDownIcon,
+      isActive: (path: string) => path === "/laws/reports",
     },
   ];
 

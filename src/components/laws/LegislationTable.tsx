@@ -27,7 +27,7 @@ const LegislationTable: React.FC<LegislationTableProps> = ({
         <input
           type="text"
           className={styles.filterInput}
-          placeholder="Gesetzestexte durchsuchen..."
+          placeholder="Dokumente durchsuchen..."
           value={filterText}
           onChange={(e) => onFilterChange(e.target.value)}
         />
@@ -69,7 +69,7 @@ const LegislationTable: React.FC<LegislationTableProps> = ({
             {entries.length === 0 && (
               <tr>
                 <td colSpan={3} className={styles.noResults}>
-                  Keine Gesetzestexte gefunden
+                  Keine Dokumente gefunden
                 </td>
               </tr>
             )}

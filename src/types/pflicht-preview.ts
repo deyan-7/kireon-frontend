@@ -50,5 +50,12 @@ export interface PflichtPreviewResponse {
   total: number;
   page: number;
   limit: number;
+
   totalPages: number;
+}
+
+// Backend response structure
+export interface SearchResultResponse {
+  results: PflichtPreview[];
+  total_count: number;
 }
