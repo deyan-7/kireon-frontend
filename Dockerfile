@@ -40,13 +40,21 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=8080
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=true
 
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
+# Copy the standalone output
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
-COPY --from=builder /app ./
+# Set permissions
+USER nextjs
 
-EXPOSE 8080
+EXPOSE 3000
 
-CMD ["yarn", "start", "-p", "8080"]
+CMD ["node", "server.js"]
