@@ -29,7 +29,7 @@ auth.onIdTokenChanged(async (user) => {
 
 const baseUrl =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "https://hiring-agent-backend-staging-474483908861.europe-west3.run.app";
+  "https://kireon-backend-510702145393.europe-west4.run.app";
 
 export const customClient = createClient(
   createConfig<ClientOptions>({
