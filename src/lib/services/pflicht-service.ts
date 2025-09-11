@@ -1,4 +1,4 @@
-import { PflichtPreview, PflichtPreviewSearchParams, PflichtPreviewResponse, SearchResultResponse } from '@/types/pflicht-preview';
+import { PflichtPreviewSearchParams, PflichtPreviewResponse, SearchResultResponse } from '@/types/pflicht-preview';
 import { Pflicht } from '@/types/pflicht';
 import { auth } from '@/lib/auth';
 
