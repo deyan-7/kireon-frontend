@@ -20,7 +20,7 @@ const Dashboard = () => {
             height={80}
             priority
           />
-          <h1 className={styles.title}>Kireon GPT</h1>
+          <h1 className={styles.title}>Kireon</h1>
         </div>
         <p>{tDashboard("welcome_message")}</p>
       </div>
