@@ -56,3 +56,9 @@ export interface Beleg {
   quelle: string;
   relevanz: number;
 }
+
+export interface DokumentFeedback {
+  dokument_id: string;
+  feedback_type: "positive" | "negative";
+  message?: string | null;
+}

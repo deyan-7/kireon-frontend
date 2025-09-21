@@ -3,9 +3,10 @@ import { DokumentPreview } from '@/types/pflicht-preview';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDownIcon, ChevronRightIcon, PlusIcon, MagnifyingGlassIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, ChevronRightIcon, PlusIcon, MagnifyingGlassIcon, TrashIcon, HandThumbUpIcon, HandThumbDownIcon } from '@heroicons/react/24/outline';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { deletePflicht } from '@/lib/services/pflicht-service';
+import { submitDokumentFeedback } from '@/lib/services/dokument-feedback-service';
 import styles from './DokumentPreviewTable.module.scss';
 
 interface DokumentPreviewTableProps {
@@ -41,6 +42,9 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
 }) => {
   const [expandedDokumente, setExpandedDokumente] = useState<Set<string>>(new Set());
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
+  const [showNegativeFeedback, setShowNegativeFeedback] = useState<Set<string>>(new Set());
+  const [negativeFeedbackMessage, setNegativeFeedbackMessage] = useState<Record<string, string>>({});
+  const [feedbackLoading, setFeedbackLoading] = useState<Set<string>>(new Set());
 
   const toggleDokument = (dokumentId: string) => {
     setExpandedDokumente(prev => {
@@ -84,10 +88,97 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
     }
   };
 
+  const handlePositiveFeedback = async (dokumentId: string) => {
+    setFeedbackLoading(prev => new Set(prev).add(dokumentId));
+    try {
+      await submitDokumentFeedback({
+        dokument_id: dokumentId,
+        feedback_type: "positive"
+      });
+      alert("Vielen Dank für Ihr positives Feedback!");
+    } catch (error) {
+      console.error('Fehler beim Senden des positiven Feedbacks:', error);
+      alert(`Fehler beim Senden des Feedbacks: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
+    } finally {
+      setFeedbackLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(dokumentId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleNegativeFeedback = async (dokumentId: string) => {
+    const message = negativeFeedbackMessage[dokumentId]?.trim();
+    if (!message) {
+      alert("Bitte geben Sie eine Nachricht ein.");
+      return;
+    }
+
+    setFeedbackLoading(prev => new Set(prev).add(dokumentId));
+    try {
+      await submitDokumentFeedback({
+        dokument_id: dokumentId,
+        feedback_type: "negative",
+        message: message
+      });
+      alert("Vielen Dank für Ihr Feedback!");
+      setShowNegativeFeedback(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(dokumentId);
+        return newSet;
+      });
+      setNegativeFeedbackMessage(prev => ({
+        ...prev,
+        [dokumentId]: ""
+      }));
+    } catch (error) {
+      console.error('Fehler beim Senden des negativen Feedbacks:', error);
+      alert(`Fehler beim Senden des Feedbacks: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
+    } finally {
+      setFeedbackLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(dokumentId);
+        return newSet;
+      });
+    }
+  };
+
+  const toggleNegativeFeedback = (dokumentId: string) => {
+    setShowNegativeFeedback(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(dokumentId)) {
+        newSet.delete(dokumentId);
+        setNegativeFeedbackMessage(prev => ({
+          ...prev,
+          [dokumentId]: ""
+        }));
+      } else {
+        newSet.add(dokumentId);
+      }
+      return newSet;
+    });
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
     try {
       return new Date(dateString).toLocaleDateString('de-DE');
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleString('de-DE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     } catch {
       return dateString;
     }
@@ -396,6 +487,93 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                           </td>
                         </tr>
                       )}
+                      
+                      {/* Feedback Row */}
+                      <tr className={styles.feedbackRow}>
+                        <td></td>
+                        <td colSpan={6} className={styles.feedbackCell}>
+                          <div className={styles.feedbackContainer}>
+                            <div className={styles.feedbackContent}>
+                              <div className={styles.feedbackButtons}>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePositiveFeedback(dokument.id);
+                                  }}
+                                  disabled={feedbackLoading.has(dokument.id)}
+                                  className={styles.feedbackButton}
+                                  title="Positives Feedback geben"
+                                >
+                                  <HandThumbUpIcon className={styles.feedbackIcon} />
+                                </button>
+                                
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleNegativeFeedback(dokument.id);
+                                  }}
+                                  disabled={feedbackLoading.has(dokument.id)}
+                                  className={styles.feedbackButton}
+                                  title="Negatives Feedback geben"
+                                >
+                                  <HandThumbDownIcon className={styles.feedbackIcon} />
+                                </button>
+                              </div>
+                              
+                              <div className={styles.metadataContainer}>
+                                <div className={styles.metadataItem}>
+                                  <span className={styles.metadataLabel}>Dokumentenstatus:</span>
+                                  <span className={styles.metadataValue}>{dokument.dokument_status || '-'}</span>
+                                </div>
+                                <div className={styles.metadataItem}>
+                                  <span className={styles.metadataLabel}>Verfahrensstatus:</span>
+                                  <span className={styles.metadataValue}>{dokument.verfahren_status || '-'}</span>
+                                </div>
+                                <div className={styles.metadataItem}>
+                                  <span className={styles.metadataLabel}>Erstellt:</span>
+                                  <span className={styles.metadataValue}>{formatDateTime(dokument.extraction_timestamp)}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {showNegativeFeedback.has(dokument.id) && (
+                              <div className={styles.negativeFeedbackForm}>
+                                <textarea
+                                  value={negativeFeedbackMessage[dokument.id] || ''}
+                                  onChange={(e) => setNegativeFeedbackMessage(prev => ({
+                                    ...prev,
+                                    [dokument.id]: e.target.value
+                                  }))}
+                                  placeholder="Bitte beschreiben Sie, was verbessert werden könnte..."
+                                  className={styles.feedbackTextarea}
+                                  rows={3}
+                                />
+                                <div className={styles.feedbackFormActions}>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleNegativeFeedback(dokument.id);
+                                    }}
+                                    disabled={feedbackLoading.has(dokument.id) || !negativeFeedbackMessage[dokument.id]?.trim()}
+                                    className={styles.submitFeedbackButton}
+                                  >
+                                    {feedbackLoading.has(dokument.id) ? 'Sende...' : 'Feedback senden'}
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleNegativeFeedback(dokument.id);
+                                    }}
+                                    className={styles.cancelFeedbackButton}
+                                  >
+                                    Abbrechen
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
                     </>
                   )}
                 </React.Fragment>
