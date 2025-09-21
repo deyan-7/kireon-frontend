@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -15,14 +15,13 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit } from 'lucide-react';
+import { Search, Plus, Edit } from 'lucide-react';
 import { getLawAcronyms } from '@/lib/services/laws-service';
 import { LawAcronym } from '@/types/laws';
 
 export function LawAcronymsView() {
 
   const t = useTranslations();
-  console.log('Translations loaded:', t);
   const [acronyms, setAcronyms] = useState<LawAcronym[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,12 +49,10 @@ export function LawAcronymsView() {
 
   const handleEdit = (id: string) => {
     // TODO: Implement edit functionality with modal
-    console.log('Edit law:', id);
   };
 
   const handleAdd = () => {
     // TODO: Implement add functionality with modal
-    console.log('Add new law acronym');
   };
 
   if (loading) {

@@ -1,29 +1,20 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { usePflichtPreviews } from '@/lib/hooks/usePflichtPreviews';
+import { useDokumentPreviews } from '@/lib/hooks/useDokumentPreviews';
 import LawsSplitView from '@/components/LawsSplitView';
 import BereicheSidebar from '@/components/laws/BereicheSidebar';
-import PflichtPreviewTable from '@/components/laws/PflichtPreviewTable';
+import DokumentPreviewTable from '@/components/laws/DokumentPreviewTable';
 import PflichtDetailDialog from '@/components/laws/PflichtDetailDialog';
 import PflichtEditDialog from '@/components/laws/PflichtEditDialog';
-import CreatePflichtModal from '@/components/laws/CreatePflichtModal';
-import CreatedPflichtenDialog from '@/components/laws/CreatedPflichtenDialog';
-import { UnifiedLegislationDialog } from '@/components/laws/UnifiedLegislationDialog';
-import { AddUrlModal } from '@/components/laws/AddUrlModal';
-import { ReviewEntryModal } from '@/components/laws/ReviewEntryModal';
-import { Button } from '@/components/ui/button';
-import { BookOpenIcon } from '@heroicons/react/24/outline';
-import { LegislationEntry } from '@/types/legislation-entry';
-import { PflichtPreview } from '@/types/pflicht-preview';
+import CreateDokumentModal from '@/components/laws/CreateDokumentModal';
+import { deleteDokument } from '@/lib/services/pflicht-service';
 
 export default function LawsPage() {
   const {
     loading,
     refreshing,
-    previews,
-    filteredPreviews,
+    dokumente,
     bereichList,
     bereichCounts,
     filterText,
@@ -36,49 +27,24 @@ export default function LawsPage() {
     selectBereich,
     goToPage,
     search,
-  } = usePflichtPreviews();
+  } = useDokumentPreviews();
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [pendingEntry, setPendingEntry] = useState<LegislationEntry | null>(null);
-  const [editingEntry, setEditingEntry] = useState<LegislationEntry | null>(null);
   const [selectedPflichtId, setSelectedPflichtId] = useState<number | null>(null);
   const [editingPflichtId, setEditingPflichtId] = useState<number | null>(null);
-  const [showCreatePflichtModal, setShowCreatePflichtModal] = useState(false);
-  const [showCreatedPflichtenDialog, setShowCreatedPflichtenDialog] = useState(false);
-  const [createdPflichten, setCreatedPflichten] = useState<any[]>([]);
-
-  const handleUrlProcessed = (entry: LegislationEntry) => {
-    setPendingEntry(entry);
-    setShowAddModal(false);
-    setShowReviewModal(true);
-  };
-
-  const handleEntrySaved = () => {
-    // TODO: Add the new entry to the list
-    console.log('Entry saved:', pendingEntry);
-    setShowReviewModal(false);
-    setPendingEntry(null);
-    setEditingEntry(null);
-    // Reload entries or add to state
-    window.location.reload();
-  };
+  const [showCreateDokumentModal, setShowCreateDokumentModal] = useState(false);
 
 
-  const handlePreviewClick = (preview: PflichtPreview) => {
-    setSelectedPflichtId(preview.id);
+
+  const handlePflichtClick = (pflichtId: number) => {
+    setSelectedPflichtId(pflichtId);
   };
 
   const handleClosePflichtDialog = () => {
     setSelectedPflichtId(null);
   };
 
-  const handleEditSave = () => {
-    handleEntrySaved();
-  };
 
   const handleEditPflichtClick = () => {
-    console.log('Edit clicked, selectedPflichtId:', selectedPflichtId);
     if (selectedPflichtId) {
       setEditingPflichtId(selectedPflichtId);
       setSelectedPflichtId(null);
@@ -89,27 +55,26 @@ export default function LawsPage() {
     setEditingPflichtId(null);
   };
 
-  const handlePflichtSaved = (updatedPflicht: any) => {
-    // Refresh the data or handle the updated document
-    console.log('Document updated:', updatedPflicht);
+  const handleDeleteDokument = async (dokumentId: string) => {
+    try {
+      await deleteDokument(dokumentId);
+      search(filterText);
+    } catch (error) {
+      console.error('Failed to delete dokument:', error);
+      alert('Fehler beim Löschen des Dokuments. Bitte versuchen Sie es erneut.');
+    }
+  };
+
+  const handlePflichtSaved = () => {
     setEditingPflichtId(null);
-    // Refresh the data by reloading the current page data
     search(filterText);
   };
 
   const handlePflichtDeleted = () => {
-    console.log('Document deleted');
-    // Refresh the data to remove the deleted document
     search(filterText);
   };
 
-  const handleCreatePflichtSuccess = (createdPflichten: any[]) => {
-    console.log('Documents created:', createdPflichten);
-    // Show the created documents in a dialog
-    setCreatedPflichten(createdPflichten);
-    setShowCreatedPflichtenDialog(true);
-    // Refresh the data to show the new documents in the table
-    // This will trigger a refresh with refreshing=true, showing overlay instead of blocking
+  const handleCreateDokumentSuccess = () => {
     search(filterText);
   };
 
@@ -128,9 +93,7 @@ export default function LawsPage() {
     />
   );
 
-  // Only show loading screen on initial load when no data is available
-  // Don't block the view if we already have data, even if loading is true
-  if (loading && previews.length === 0 && !refreshing) {
+  if (loading && dokumente.length === 0 && !refreshing) {
     return <div>Lade Dokumente...</div>;
   }
 
@@ -139,12 +102,6 @@ export default function LawsPage() {
       <LawsSplitView sidebar={sidebar}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h1>Dokumente</h1>
-          <Link href="/laws/rahmengesetze">
-            <Button className="hover:bg-rose-100" variant="outline">
-              <BookOpenIcon style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-              Rahmengesetze anzeigen
-            </Button>
-          </Link>
         </div>
         <p style={{ marginBottom: '2rem', color: '#666' }}>
           {selectedBereich
@@ -152,12 +109,14 @@ export default function LawsPage() {
             : "Alle Dokumente anzeigen"}
         </p>
 
-        <PflichtPreviewTable
-          previews={filteredPreviews}
+        <DokumentPreviewTable
+          dokumente={dokumente}
           filterText={filterText}
           onFilterChange={handleFilterChange}
-          onSelectPreview={handlePreviewClick}
-          onAddNew={() => setShowCreatePflichtModal(true)}
+          onSelectPflicht={handlePflichtClick}
+          onAddNew={() => setShowCreateDokumentModal(true)}
+          onDeleteDokument={handleDeleteDokument}
+          onDeletePflicht={handlePflichtDeleted}
           currentPage={currentPage}
           totalPages={totalPages}
           totalCount={totalCount}
@@ -167,12 +126,11 @@ export default function LawsPage() {
         />
       </LawsSplitView>
 
-      {selectedPflichtId && !editingEntry && (
+      {selectedPflichtId && (
         <PflichtDetailDialog
           pflichtId={selectedPflichtId}
           onClose={handleClosePflichtDialog}
           onEdit={handleEditPflichtClick}
-          onDelete={handlePflichtDeleted}
         />
       )}
 
@@ -184,48 +142,15 @@ export default function LawsPage() {
         />
       )}
 
-      {editingEntry && (
-        <UnifiedLegislationDialog
-          entry={editingEntry}
-          mode="edit"
-          onClose={() => setEditingEntry(null)}
-          onSave={handleEditSave}
+
+      {showCreateDokumentModal && (
+        <CreateDokumentModal
+          isOpen={showCreateDokumentModal}
+          onClose={() => setShowCreateDokumentModal(false)}
+          onSuccess={handleCreateDokumentSuccess}
         />
       )}
 
-      {showAddModal && (
-        <AddUrlModal
-          onClose={() => setShowAddModal(false)}
-          onSuccess={handleUrlProcessed}
-        />
-      )}
-
-      {showReviewModal && pendingEntry && (
-        <ReviewEntryModal
-          entry={pendingEntry}
-          onClose={() => {
-            setShowReviewModal(false);
-            setPendingEntry(null);
-          }}
-          onSave={handleEntrySaved}
-        />
-      )}
-
-      {showCreatePflichtModal && (
-        <CreatePflichtModal
-          isOpen={showCreatePflichtModal}
-          onClose={() => setShowCreatePflichtModal(false)}
-          onSuccess={handleCreatePflichtSuccess}
-        />
-      )}
-
-      {showCreatedPflichtenDialog && (
-        <CreatedPflichtenDialog
-          isOpen={showCreatedPflichtenDialog}
-          onClose={() => setShowCreatedPflichtenDialog(false)}
-          pflichten={createdPflichten}
-        />
-      )}
     </div>
   );
 }
