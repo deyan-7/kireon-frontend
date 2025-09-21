@@ -542,6 +542,20 @@
   }
 }
 
+.feedbackButtonActive {
+  &:first-child {
+    background-color: #22c55e !important;
+    border-color: #16a34a !important;
+    color: white !important;
+  }
+  
+  &:last-child {
+    background-color: #dc2626 !important;
+    border-color: #b91c1c !important;
+    color: white !important;
+  }
+}
+
 .feedbackIcon {
   width: 1rem;
   height: 1rem;

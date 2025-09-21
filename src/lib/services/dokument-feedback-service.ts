@@ -1,12 +1,12 @@
 import { auth } from "@/lib/auth";
 import { DokumentFeedback } from "@/types/pflicht";
 
-export const submitDokumentFeedback = async (feedback: DokumentFeedback): Promise<void> => {
+export const submitDokumentFeedback = async (dokumentId: string, feedback: DokumentFeedback): Promise<void> => {
   try {
     const token = await auth.currentUser?.getIdToken();
     const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-    const response = await fetch(`${baseUrl}/dokument/feedback`, {
+    const response = await fetch(`${baseUrl}/dokument/${dokumentId}/feedback`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

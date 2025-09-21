@@ -58,7 +58,6 @@ export interface Beleg {
 }
 
 export interface DokumentFeedback {
-  dokument_id: string;
   feedback_type: "positive" | "negative";
   message?: string | null;
 }

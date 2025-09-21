@@ -45,6 +45,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
   const [showNegativeFeedback, setShowNegativeFeedback] = useState<Set<string>>(new Set());
   const [negativeFeedbackMessage, setNegativeFeedbackMessage] = useState<Record<string, string>>({});
   const [feedbackLoading, setFeedbackLoading] = useState<Set<string>>(new Set());
+  const [feedbackStates, setFeedbackStates] = useState<Record<string, 'positive' | 'negative' | null>>({});
 
   const toggleDokument = (dokumentId: string) => {
     setExpandedDokumente(prev => {
@@ -91,10 +92,20 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
   const handlePositiveFeedback = async (dokumentId: string) => {
     setFeedbackLoading(prev => new Set(prev).add(dokumentId));
     try {
-      await submitDokumentFeedback({
-        dokument_id: dokumentId,
+      await submitDokumentFeedback(dokumentId, {
         feedback_type: "positive"
       });
+      
+      setFeedbackStates(prev => ({
+        ...prev,
+        [dokumentId]: 'positive'
+      }));
+      setShowNegativeFeedback(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(dokumentId);
+        return newSet;
+      });
+      
       alert("Vielen Dank für Ihr positives Feedback!");
     } catch (error) {
       console.error('Fehler beim Senden des positiven Feedbacks:', error);
@@ -117,12 +128,15 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
 
     setFeedbackLoading(prev => new Set(prev).add(dokumentId));
     try {
-      await submitDokumentFeedback({
-        dokument_id: dokumentId,
+      await submitDokumentFeedback(dokumentId, {
         feedback_type: "negative",
         message: message
       });
-      alert("Vielen Dank für Ihr Feedback!");
+      
+      setFeedbackStates(prev => ({
+        ...prev,
+        [dokumentId]: 'negative'
+      }));
       setShowNegativeFeedback(prev => {
         const newSet = new Set(prev);
         newSet.delete(dokumentId);
@@ -132,6 +146,8 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
         ...prev,
         [dokumentId]: ""
       }));
+      
+      alert("Vielen Dank für Ihr Feedback!");
     } catch (error) {
       console.error('Fehler beim Senden des negativen Feedbacks:', error);
       alert(`Fehler beim Senden des Feedbacks: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
@@ -501,7 +517,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                                     handlePositiveFeedback(dokument.id);
                                   }}
                                   disabled={feedbackLoading.has(dokument.id)}
-                                  className={styles.feedbackButton}
+                                  className={`${styles.feedbackButton} ${feedbackStates[dokument.id] === 'positive' ? styles.feedbackButtonActive : ''}`}
                                   title="Positives Feedback geben"
                                 >
                                   <HandThumbUpIcon className={styles.feedbackIcon} />
@@ -513,7 +529,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                                     toggleNegativeFeedback(dokument.id);
                                   }}
                                   disabled={feedbackLoading.has(dokument.id)}
-                                  className={styles.feedbackButton}
+                                  className={`${styles.feedbackButton} ${feedbackStates[dokument.id] === 'negative' ? styles.feedbackButtonActive : ''}`}
                                   title="Negatives Feedback geben"
                                 >
                                   <HandThumbDownIcon className={styles.feedbackIcon} />
