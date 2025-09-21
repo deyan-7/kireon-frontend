@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,7 +20,6 @@ import { LawAcronym } from '@/types/laws';
 
 export function LawAcronymsView() {
 
-  const t = useTranslations();
   const [acronyms, setAcronyms] = useState<LawAcronym[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,7 +45,7 @@ export function LawAcronymsView() {
       acronym.fullName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleEdit = (id: string) => {
+  const handleEdit = () => {
     // TODO: Implement edit functionality with modal
   };
 
@@ -117,7 +115,7 @@ export function LawAcronymsView() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(acronym.id)}
+                      onClick={() => handleEdit()}
                     >
                       <Edit className="w-4 h-4" />
                     </Button>

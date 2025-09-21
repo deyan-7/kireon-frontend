@@ -18,7 +18,7 @@ export function useDokumentPreviews() {
 
   const search = useCallback(async (searchText: string = '', bereich: string | null = null) => {
     try {
-      if (loading && dokumente.length === 0) {
+      if (dokumente.length === 0) {
         setLoading(true);
       } else {
         setRefreshing(true);
@@ -59,7 +59,7 @@ export function useDokumentPreviews() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [currentPage, itemsPerPage, loading, dokumente.length]);
+  }, [currentPage, itemsPerPage, dokumente.length]);
 
   const selectBereich = useCallback((bereich: string | null) => {
     setSelectedBereich(bereich);
@@ -92,7 +92,7 @@ export function useDokumentPreviews() {
 
   useEffect(() => {
     search();
-  }, []);
+  }, [search]);
 
   useEffect(() => {
     if (currentPage > 1) {

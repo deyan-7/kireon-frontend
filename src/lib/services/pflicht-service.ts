@@ -146,11 +146,11 @@ export async function createDokumentFromUrl(url: string): Promise<Dokument[]> {
     const errorText = await response.text();
 
     if (response.status === 409) {
-      throw new Error(`Dokumente für diese URL existieren bereits`);
+      throw new Error(`Zu dieser URL wurde bereits ein Dokument erstellt`);
     } else if (response.status === 400) {
-      throw new Error(`Ungültige URL: ${errorText}`);
-    } else if (response.status === 422) {
-      throw new Error(`URL ist erforderlich: ${errorText}`);
+      throw new Error(`Für diese URL kann kein Dokument erstellt werden`);
+    } else if (response.status === 500) {
+      throw new Error(`Ein unerwarteter Fehler ist aufgetreten`);
     }
 
     throw new Error(`API Error: ${response.status} ${errorText}`);

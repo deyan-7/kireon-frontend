@@ -23,7 +23,6 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [conflict, setConflict] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +38,6 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
     setLoading(true);
     setError(null);
     setSuccess(false);
-    setConflict(false);
 
     Promise.resolve().then(async () => {
       try {
@@ -54,19 +52,11 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
         }, 1500);
         
       } catch (err) {
-        console.error('Failed to create pflicht:', err);
+        console.error('Failed to create dokument:', err);
         let errorMessage = 'Fehler beim Erstellen des Dokuments.';
 
         if (err instanceof Error) {
-          if (err.message.includes('existieren bereits')) {
-            errorMessage = 'Für diese URL existieren bereits Dokumente.';
-          } else if (err.message.includes('Ungültige URL')) {
-            errorMessage = 'Die eingegebene URL ist ungültig. Bitte überprüfen Sie die URL.';
-          } else if (err.message.includes('URL ist erforderlich')) {
-            errorMessage = 'Bitte geben Sie eine URL ein.';
-          } else {
-            errorMessage = err.message;
-          }
+          errorMessage = err.message;
         }
         
         setError(errorMessage);
@@ -76,40 +66,12 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
     });
   };
 
-  const handleForceCreate = async () => {
-    if (!url.trim()) return;
-    
-    setLoading(true);
-    setError(null);
-    setConflict(false);
-    
-    Promise.resolve().then(async () => {
-      try {
-        await createDokumentFromUrl(url.trim());
-        setSuccess(true);
-        setUrl('');
-
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-          setSuccess(false);
-        }, 1500);
-        
-      } catch (err) {
-        console.error('Failed to force create pflicht:', err);
-        setError('Die Dokumente existieren bereits und können nicht erstellt werden.');
-      } finally {
-        setLoading(false);
-      }
-    });
-  };
 
   const handleClose = () => {
     if (!loading) {
       setUrl('');
       setError(null);
       setSuccess(false);
-      setConflict(false);
       setLoading(false);
       onClose();
     }
@@ -149,7 +111,7 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
               required
             />
             <p className={styles.helpText}>
-              Geben Sie die URL des Gesetzestextes ein, aus dem ein neues Dokument erstellt und die dazugehörigen Pflichtenwerden soll
+              Geben Sie die URL des Gesetzestextes ein, aus dem ein neues Dokument und die dazugehörigen Pflichten erstellt werden sollen
             </p>
           </div>
 
