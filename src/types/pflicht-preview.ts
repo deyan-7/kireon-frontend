@@ -13,6 +13,9 @@ export interface DokumentPreview {
   bereich: string | null;
   gesetzeskuerzel: string | null;
   gesetzgebung: string | null;
+  dokument_status: string | null;
+  verfahren_status: string | null;
+  extraction_timestamp: string;
   thema: string | null;
   url: string | null;
   pflichten: PflichtPreview[];
