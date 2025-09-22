@@ -126,10 +126,12 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
 
           {success && (
             <Alert className={styles.successAlert}>
+            <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
-                Dokument erfolgreich erstellt! Die Übersicht wird aktualisiert...
+                Das Dokument konnte erfolgreich erstellt werden! <br/> Die Übersicht wird aktualisiert...
               </AlertDescription>
+            </div>
             </Alert>
           )}
 
