@@ -518,7 +518,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                                     handlePositiveFeedback(dokument.id);
                                   }}
                                   disabled={feedbackLoading.has(dokument.id)}
-                                  className={`${styles.feedbackButton} ${feedbackStates[dokument.id] === 'positive' ? styles.feedbackButtonActive : ''}`}
+                                  className={`${styles.feedbackButton} ${styles.positive} ${feedbackStates[dokument.id] === 'positive' ? styles.feedbackButtonActive : ''}`}
                                   title="Positives Feedback geben"
                                 >
                                   <HandThumbUpIcon className={styles.feedbackIcon} />
@@ -530,7 +530,13 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                                     toggleNegativeFeedback(dokument.id);
                                   }}
                                   disabled={feedbackLoading.has(dokument.id)}
-                                  className={`${styles.feedbackButton} ${feedbackStates[dokument.id] === 'negative' ? `${styles.feedbackButtonActive} ${styles.negative}` : ''}`}
+                                  className={`${styles.feedbackButton} ${
+                                    feedbackStates[dokument.id] === 'negative' 
+                                      ? `${styles.feedbackButtonActive} ${styles.negative}` 
+                                      : showNegativeFeedback.has(dokument.id) 
+                                        ? styles.feedbackButtonExpanded 
+                                        : ''
+                                  }`}
                                   title="Negatives Feedback geben"
                                 >
                                   <HandThumbDownIcon className={styles.feedbackIcon} />
