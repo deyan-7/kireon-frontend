@@ -506,6 +506,13 @@
   align-items: center;
 }
 
+.feedbackQuestion {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-right: 0.25rem;
+}
+
 .feedbackButton {
   display: flex;
   align-items: center;
@@ -543,15 +550,25 @@
 }
 
 .feedbackButtonActive {
-  &:first-child {
-    background-color: #22c55e !important;
-    border-color: #16a34a !important;
+  background-color: #22c55e !important;
+  border-color: #16a34a !important;
+  color: white !important;
+  
+  &:hover {
+    background-color: #16a34a !important;
+    border-color: #15803d !important;
     color: white !important;
   }
+}
+
+.feedbackButtonActive.negative {
+  background-color: #dc2626 !important;
+  border-color: #b91c1c !important;
+  color: white !important;
   
-  &:last-child {
-    background-color: #dc2626 !important;
-    border-color: #b91c1c !important;
+  &:hover {
+    background-color: #b91c1c !important;
+    border-color: #991b1b !important;
     color: white !important;
   }
 }

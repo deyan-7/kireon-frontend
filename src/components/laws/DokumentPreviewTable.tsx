@@ -511,6 +511,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                           <div className={styles.feedbackContainer}>
                             <div className={styles.feedbackContent}>
                               <div className={styles.feedbackButtons}>
+                                <span className={styles.feedbackQuestion}>Feedback?</span>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -529,7 +530,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                                     toggleNegativeFeedback(dokument.id);
                                   }}
                                   disabled={feedbackLoading.has(dokument.id)}
-                                  className={`${styles.feedbackButton} ${feedbackStates[dokument.id] === 'negative' ? styles.feedbackButtonActive : ''}`}
+                                  className={`${styles.feedbackButton} ${feedbackStates[dokument.id] === 'negative' ? `${styles.feedbackButtonActive} ${styles.negative}` : ''}`}
                                   title="Negatives Feedback geben"
                                 >
                                   <HandThumbDownIcon className={styles.feedbackIcon} />
