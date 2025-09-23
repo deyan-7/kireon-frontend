@@ -11,8 +11,8 @@ import { AgentStreamProvider } from "@/context/AgentStreamProvider";
 import { TaskProvider } from "@/context/TaskContext";
 
 export const metadata: Metadata = {
-  title: "Kireon GPT",
-  description: "Kireon GPT",
+  title: "Kireon",
+  description: "Kireon",
 };
 
 export default async function RootLayout({

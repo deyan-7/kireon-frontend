@@ -22,25 +22,44 @@
   hyphens: auto;
 }
 
-.headerLink {
-  color: #3b82f6;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-
 .dialogBody {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.compactGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #fafafa;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.bottomRow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.fieldGroupFullWidth {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  font-size: 0.75rem;
 }
 
 
@@ -145,13 +164,6 @@
   background-color: #fafafa;
 }
 
-.outlookSection {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  background-color: #fafafa;
-}
-
 .sectionTitle {
   font-size: 1.125rem;
   font-weight: 600;
@@ -159,12 +171,6 @@
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
-}
-
-.fieldGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
 }
 
 .fieldGroup {
@@ -188,21 +194,6 @@
   word-break: break-word;
 }
 
-.laenderkuerzelInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  
-  div {
-    font-size: 0.875rem;
-    
-    strong {
-      color: #374151;
-      font-weight: 600;
-    }
-  }
-}
-
 .produkteList {
   display: flex;
   flex-wrap: wrap;
@@ -214,28 +205,6 @@
   align-items: center;
   gap: 0.25rem;
   font-size: 0.75rem;
-}
-
-.notesList {
-  margin: 0;
-  padding-left: 1rem;
-  
-  li {
-    font-size: 0.875rem;
-    margin-bottom: 0.25rem;
-  }
-}
-
-.externalLink {
-  color: #3b82f6;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 .actions {
@@ -279,9 +248,10 @@
     padding: 1rem;
   }
 
-  .fieldGrid {
+  .compactGrid {
     grid-template-columns: 1fr;
     gap: 1rem;
+    padding: 0.75rem;
   }
 
   .fieldLabel {

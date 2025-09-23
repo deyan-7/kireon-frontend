@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Users, Package, Clock, AlertCircle, RotateCcw } from 'lucide-react';
+import { Calendar, Users, AlertCircle, X } from 'lucide-react';
 import { getPflichtDetails, updatePflicht } from '@/lib/services/pflicht-service';
 import styles from './PflichtEditDialog.module.scss';
 
@@ -48,24 +47,7 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
   const handleInputChange = (field: keyof Pflicht, value: any) => {
     if (!pflicht) return;
     
-    setPflicht(prev => {
-      if (!prev) return prev;
-      
-      if (field === 'laenderkuerzel') {
-        return {
-          ...prev,
-          laenderkuerzel: {
-            ...prev.laenderkuerzel,
-            ...value
-          }
-        };
-      }
-      
-      return {
-        ...prev,
-        [field]: value
-      };
-    });
+    setPflicht(prev => prev ? { ...prev, [field]: value } : prev);
   };
 
   const handleArrayChange = (field: keyof Pflicht, value: string) => {
@@ -80,8 +62,6 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
       console.error('Missing pflicht or pflichtId:', { pflicht, pflichtId });
       return;
     }
-    
-    console.log('Saving pflicht with ID:', pflichtId, 'and data:', pflicht);
     
     setSaving(true);
     setError(null);
@@ -107,7 +87,6 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
     }
   };
 
-
   if (!pflichtId) return null;
 
   if (loading) {
@@ -130,8 +109,18 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
     return (
       <Dialog open={!!pflichtId} onOpenChange={onClose}>
         <DialogContent className={styles.dialogContent}>
-          <DialogHeader>
-            <DialogTitle>Fehler</DialogTitle>
+          <DialogHeader className={styles.dialogHeader}>
+            <DialogTitle className={styles.dialogTitle}>
+              Fehler beim Laden
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className={styles.closeButton}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </DialogHeader>
           <div className={styles.errorContainer}>
             <AlertCircle className={styles.errorIcon} />
@@ -152,35 +141,15 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
       <DialogContent className={styles.dialogContent}>
         <DialogHeader className={styles.dialogHeader}>
           <DialogTitle className={styles.dialogTitle}>
-            Pflicht bearbeiten
+            {pflicht.thema || 'Pflicht bearbeiten'}
           </DialogTitle>
         </DialogHeader>
         
         <div className={styles.dialogBody}>
-          {/* Basic Information */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Grundinformationen</h3>
-            <div className={styles.fieldGrid}>
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Dokument ID</Label>
-                <Input
-                  value={pflicht.dokument_id || ''}
-                  onChange={(e) => handleInputChange('dokument_id', e.target.value)}
-                  className={styles.fieldInput}
-                />
-              </div>
-              
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Gesetzgebung</Label>
-                <Input
-                  value={pflicht.gesetzgebung || ''}
-                  onChange={(e) => handleInputChange('gesetzgebung', e.target.value)}
-                  className={styles.fieldInput}
-                />
-              </div>
-              
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Stichtag</Label>
+          <div className={styles.compactGrid}>
+            <div className={styles.fieldGroup}>
+              <Label className={styles.fieldLabel}>Stichtag</Label>
+              <div className={styles.fieldValue}>
                 <div className={styles.iconValue}>
                   <Calendar className="h-4 w-4" />
                   <Input
@@ -189,176 +158,84 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
                     onChange={(e) => handleInputChange('stichtag', e.target.value ? new Date(e.target.value).toISOString() : null)}
                     className={styles.fieldInput}
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleInputChange('stichtag', null)}
-                    className={styles.resetButton}
-                    title="Stichtag zurücksetzen"
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Folgestatus</Label>
-                <Input
-                  value={pflicht.folgestatus || ''}
-                  onChange={(e) => handleInputChange('folgestatus', e.target.value)}
-                  className={styles.fieldInput}
-                />
-              </div>
-              
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Markt (kommagetrennt)</Label>
-                <Input
-                  value={[
-                    pflicht.laenderkuerzel || []
-                  ].filter(Boolean).join(', ') || ''}
-                  onChange={(e) => {
-                    const values = e.target.value.split(',').map(item => item.trim()).filter(item => item);
-                    const markt = values[0] || '';
-                    const laender = values.slice(1);
-                    handleInputChange('laenderkuerzel', { 
-                      ...pflicht.laenderkuerzel, 
-                      markt: markt,
-                      laender: laender 
-                    });
-                  }}
-                  className={styles.fieldInput}
-                />
-              </div>
-              
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Dokumentenstatus</Label>
-                <Select
-                  value={pflicht.dokument_status || ''}
-                  onValueChange={(value) => handleInputChange('dokument_status', value)}
-                >
-                  <SelectTrigger className={styles.selectTrigger}>
-                    <SelectValue placeholder="Status wählen">
-                      {pflicht.dokument_status || 'Status wählen'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className={styles.selectContent}>
-                    <SelectItem value="Entwurf" className={styles.selectItem}>Entwurf</SelectItem>
-                    <SelectItem value="Veröffentlicht" className={styles.selectItem}>Veröffentlicht</SelectItem>
-                    <SelectItem value="Geändert" className={styles.selectItem}>Geändert</SelectItem>
-                    <SelectItem value="Aufgehoben" className={styles.selectItem}>Aufgehoben</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Verfahrensstatus</Label>
-                <Select
-                  value={pflicht.verfahren_status || ''}
-                  onValueChange={(value) => handleInputChange('verfahren_status', value)}
-                >
-                  <SelectTrigger className={styles.selectTrigger}>
-                    <SelectValue placeholder="Status wählen">
-                      {pflicht.verfahren_status || 'Status wählen'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className={styles.selectContent}>
-                    <SelectItem value="In Vorbereitung" className={styles.selectItem}>In Vorbereitung</SelectItem>
-                    <SelectItem value="In Kraft" className={styles.selectItem}>In Kraft</SelectItem>
-                    <SelectItem value="Ausgesetzt" className={styles.selectItem}>Ausgesetzt</SelectItem>
-                    <SelectItem value="Beendet" className={styles.selectItem}>Beendet</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Extraktionszeitpunkt</Label>
-                <div className={styles.fieldValue}>
-                  <div className={styles.iconValue}>
-                    <Clock className="h-4 w-4" />
-                    {new Date(pflicht.extraction_timestamp).toLocaleString('de-DE')}
-                  </div>
                 </div>
               </div>
             </div>
-          </div>
+            
+            <div className={styles.fieldGroup}>
+              <Label className={styles.fieldLabel}>Folgestatus</Label>
+              <Input
+                value={pflicht.folgestatus || ''}
+                onChange={(e) => handleInputChange('folgestatus', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+            
+            <div className={styles.fieldGroup}>
+              <Label className={styles.fieldLabel}>Markt (kommagetrennt)</Label>
+              <Input
+                value={pflicht.laenderkuerzel?.join(', ') || ''}
+                onChange={(e) => handleArrayChange('laenderkuerzel', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
 
-          {/* Content Information */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Inhalt</h3>
-            <div className={styles.fieldGrid}>
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Thema</Label>
-                <Input
-                  value={pflicht.thema || ''}
-                  onChange={(e) => handleInputChange('thema', e.target.value)}
-                  className={styles.fieldInput}
-                />
-              </div>
-              
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Produktbereich</Label>
-                <div className={styles.iconValue}>
-                  <Package className="h-4 w-4" />
-                  <Input
-                    value={pflicht.produktbereich || ''}
-                    onChange={(e) => handleInputChange('produktbereich', e.target.value)}
-                    className={styles.fieldInput}
-                  />
-                </div>
-              </div>
-              
+            {pflicht.produkte && pflicht.produkte.length > 0 && (
               <div className={styles.fieldGroup}>
                 <Label className={styles.fieldLabel}>Produkte (kommagetrennt)</Label>
                 <Input
-                  value={pflicht.produkte?.join(', ') || ''}
+                  value={pflicht.produkte.join(', ') || ''}
                   onChange={(e) => handleArrayChange('produkte', e.target.value)}
                   className={styles.fieldInput}
                 />
               </div>
-            </div>
-          </div>
+            )}
 
-          {/* Detailed Information */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Informationen</h3>
-            <Textarea
-              value={pflicht.information || ''}
-              onChange={(e) => handleInputChange('information', e.target.value)}
-              className={styles.textarea}
-              rows={6}
-            />
-          </div>
-
-          {/* Affected Parties and Outlook */}
-          <div className={styles.outlookSection}>
-            <h3 className={styles.sectionTitle}>Betroffene und Ausblick</h3>
-            <div className={styles.fieldGrid}>
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Betroffene Akteure</Label>
-                <div className={styles.iconValue}>
-                  <Users className="h-4 w-4" />
-                  <Input
-                    value={pflicht.betroffene || ''}
-                    onChange={(e) => handleInputChange('betroffene', e.target.value)}
-                    className={styles.fieldInput}
-                  />
-                </div>
-              </div>
-              
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Ausblick</Label>
+            {pflicht.information && (
+              <div className={styles.fieldGroupFullWidth}>
+                <Label className={styles.fieldLabel}>Informationen</Label>
                 <Textarea
-                  value={pflicht.ausblick || ''}
-                  onChange={(e) => handleInputChange('ausblick', e.target.value)}
+                  value={pflicht.information || ''}
+                  onChange={(e) => handleInputChange('information', e.target.value)}
                   className={styles.textarea}
                   rows={4}
                 />
               </div>
-            </div>
+            )}
+
+            {(pflicht.betroffene || pflicht.ausblick) && (
+              <div className={styles.bottomRow}>
+                {pflicht.ausblick && (
+                  <div className={styles.fieldGroup}>
+                    <Label className={styles.fieldLabel}>Ausblick</Label>
+                    <Textarea
+                      value={pflicht.ausblick || ''}
+                      onChange={(e) => handleInputChange('ausblick', e.target.value)}
+                      className={styles.textarea}
+                      rows={3}
+                    />
+                  </div>
+                )}
+
+                {pflicht.betroffene && (
+                  <div className={styles.fieldGroup}>
+                    <Label className={styles.fieldLabel}>Betroffene Akteure</Label>
+                    <div className={styles.fieldValue}>
+                      <div className={styles.iconValue}>
+                        <Users className="h-4 w-4" />
+                        <Input
+                          value={pflicht.betroffene || ''}
+                          onChange={(e) => handleInputChange('betroffene', e.target.value)}
+                          className={styles.fieldInput}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Actions */}
           <div className={styles.actions}>
             <Button
               variant="outline"

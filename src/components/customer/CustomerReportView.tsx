@@ -25,11 +25,9 @@ export function CustomerReportView() {
 
   const handleDownloadReport = async (customer: Customer) => {
     try {
-      // Get auth token
       const { auth } = await import('@/lib/auth');
       const token = await auth.currentUser?.getIdToken();
 
-      // Prepare parameters for the PDF endpoint
       const gesetzeskuerzel = customer.subscribedLaws.join(',');
       const laenderkuerzel = customer.subscribedCountries.join(',');
       
@@ -43,8 +41,8 @@ export function CustomerReportView() {
         produkte: ''
       });
 
-      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io";
-      const response = await fetch(`${baseUrl}/pflicht/search-pdf?${params.toString()}`, {
+      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+      const response = await fetch(`${baseUrl}/pflicht/search/pdf?${params.toString()}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/pdf',
@@ -56,13 +54,11 @@ export function CustomerReportView() {
         throw new Error('Failed to generate PDF');
       }
 
-      // Create blob and download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
 
-      // Generate filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const cleanName = customer.name.replace(/[^a-zA-Z0-9\s-_]/g, '').replace(/\s+/g, '_');
       link.download = `Legal_Monitoring_${cleanName}_${timestamp}.pdf`;
@@ -133,7 +129,7 @@ export function CustomerReportView() {
                       <td colSpan={4} className={styles.detailCell}>
                         <div className={styles.detailsContainer}>
                           <div className={styles.detailSection}>
-                            <h4>Abonnierte Gesetze</h4>
+                            <h4>Abonnierte Rahmengesetze</h4>
                             <div className={styles.tags}>
                               {customer.subscribedLaws.map((law, index) => (
                                 <span key={index} className={styles.tag}>
@@ -143,7 +139,7 @@ export function CustomerReportView() {
                             </div>
                           </div>
                           <div className={styles.detailSection}>
-                            <h4>Länder</h4>
+                            <h4>Abonnierte Länder</h4>
                             <div className={styles.tags}>
                               {customer.subscribedCountries.map((country, index) => (
                                 <span key={index} className={styles.tag}>
