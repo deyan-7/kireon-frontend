@@ -370,7 +370,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
               return (
                 <React.Fragment key={dokument.id}>
                   {/* Dokument Row */}
-                  <tr className={styles.dokumentRow}>
+                  <tr className={`${styles.dokumentRow} ${isExpanded ? styles.dokumentRowExpanded : ''}`}>
                     <td className={styles.expandCell}>
                       <button
                         onClick={(e) => {
@@ -434,7 +434,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
 
                   {isExpanded && (
                     <>
-                      <tr className={styles.pflichtHeaderRow}>
+                      <tr className={`${styles.pflichtHeaderRow} ${isExpanded ? styles.expandedSectionRow : ''}`}>
                         <td></td>
                         <td className={styles.pflichtHeaderCell}>Stichtag</td>
                         <td className={styles.pflichtHeaderCell}>Thema</td>
@@ -452,11 +452,11 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                             return new Date(a.stichtag).getTime() - new Date(b.stichtag).getTime();
                           })
                           .map((pflicht) => (
-                            <tr 
-                              key={pflicht.id} 
-                              className={styles.pflichtRow}
-                              onClick={() => onSelectPflicht?.(pflicht.id)}
-                            >
+                                <tr 
+                                  key={pflicht.id} 
+                                  className={`${styles.pflichtRow} ${isExpanded ? styles.expandedSectionRow : ''}`}
+                                  onClick={() => onSelectPflicht?.(pflicht.id)}
+                                >
                               <td></td>
                               <td className={styles.pflichtCell}>
                                 <span className={styles.pflichtStichtag}>{formatDate(pflicht.stichtag)}</span>
@@ -494,7 +494,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                             </tr>
                           ))
                       ) : (
-                        <tr className={styles.pflichtRow}>
+                            <tr className={`${styles.pflichtRow} ${isExpanded ? styles.expandedSectionRow : ''}`}>
                           <td></td>
                           <td colSpan={6} className={styles.pflichtCell}>
                             <div className={styles.noPflichtenMessage}>
@@ -505,7 +505,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                       )}
                       
                       {/* Feedback Row */}
-                      <tr className={styles.feedbackRow}>
+                      <tr className={`${styles.feedbackRow} ${isExpanded ? styles.expandedSectionRow : ''}`}>
                         <td></td>
                         <td colSpan={6} className={styles.feedbackCell}>
                           <div className={styles.feedbackContainer}>

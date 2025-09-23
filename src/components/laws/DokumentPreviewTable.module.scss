@@ -203,6 +203,23 @@
   }
 }
 
+.dokumentRowExpanded {
+  border-left: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  border-top: 2px solid #d1d5db;
+  border-radius: 0.375rem 0.375rem 0 0;
+}
+
+.expandedSectionRow {
+  border-left: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  
+  &:last-child {
+    border-bottom: 1px solid #d1d5db;
+    border-radius: 0 0 0.375rem 0.375rem;
+  }
+}
+
 .pflichtRow {
   background-color: #fafafa;
   cursor: pointer;
@@ -453,6 +470,7 @@
 .feedbackRow {
   background-color: #fefce8;
   border-top: 2px solid #fde047;
+  border-bottom: 2px solid #d1d5db;
   
   &:hover {
     background-color: #fef9c3;
