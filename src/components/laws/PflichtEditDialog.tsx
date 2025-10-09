@@ -46,13 +46,13 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
 
   const handleInputChange = (field: keyof Pflicht, value: any) => {
     if (!pflicht) return;
-    
+
     setPflicht(prev => prev ? { ...prev, [field]: value } : prev);
   };
 
   const handleArrayChange = (field: keyof Pflicht, value: string) => {
     if (!pflicht) return;
-    
+
     const arrayValue = value.split(',').map(item => item.trim()).filter(item => item);
     setPflicht(prev => prev ? { ...prev, [field]: arrayValue } : prev);
   };
@@ -62,10 +62,10 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
       console.error('Missing pflicht or pflichtId:', { pflicht, pflichtId });
       return;
     }
-    
+
     setSaving(true);
     setError(null);
-    
+
     try {
       const updatedPflicht = await updatePflicht(pflichtId, pflicht);
       onSave(updatedPflicht);
@@ -144,7 +144,7 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
             {pflicht.thema || 'Pflicht bearbeiten'}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className={styles.dialogBody}>
           <div className={styles.compactGrid}>
             <div className={styles.fieldGroup}>
@@ -161,7 +161,16 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
                 </div>
               </div>
             </div>
-            
+
+            <div className={styles.fieldGroup}>
+              <Label className={styles.fieldLabel}>Stichtag Typ</Label>
+              <Input
+                value={pflicht.stichtag_typ || ''}
+                onChange={(e) => handleInputChange('stichtag_typ', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
             <div className={styles.fieldGroup}>
               <Label className={styles.fieldLabel}>Folgestatus</Label>
               <Input
@@ -170,7 +179,7 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
                 className={styles.fieldInput}
               />
             </div>
-            
+
             <div className={styles.fieldGroup}>
               <Label className={styles.fieldLabel}>Markt (kommagetrennt)</Label>
               <Input
@@ -202,6 +211,24 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
                 />
               </div>
             )}
+
+            <div className={styles.fieldGroupFullWidth}>
+              <Label className={styles.fieldLabel}>Verweise</Label>
+              <Input
+                value={pflicht.verweise || ''}
+                onChange={(e) => handleInputChange('verweise', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            <div className={styles.fieldGroupFullWidth}>
+              <Label className={styles.fieldLabel}>Rechtsgrundlage Ref.</Label>
+              <Input
+                value={pflicht.rechtsgrundlage_ref || ''}
+                onChange={(e) => handleInputChange('rechtsgrundlage_ref', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
 
             {(pflicht.betroffene || pflicht.ausblick) && (
               <div className={styles.bottomRow}>

@@ -42,7 +42,7 @@ export function CustomerReportView() {
       });
 
       const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-      const response = await fetch(`${baseUrl}/pflicht/search/pdf?${params.toString()}`, {
+      const response = await fetch(`${baseUrl}/api/documents/pflicht/report?${params.toString()}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/pdf',

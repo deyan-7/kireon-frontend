@@ -11,9 +11,11 @@ export interface Dokument {
   gesetzgebung: string | null;
   produktbereich: string | null;
   thema: string | null;
+  zusammenfassung: string | null;
   titel: string | null;
   url: string | null;
-  debug: DokumentDebugInfo | null;
+  trace_id: string | null;
+  extra_info: Record<string, any> | null;
   extraction_timestamp: string;
   pflichten: Pflicht[];
 }
@@ -29,14 +31,18 @@ export interface DokumentDebugInfo {
 export interface Pflicht {
   dokument_id: string;
   stichtag: string | null;
+  stichtag_typ: string | null;
   folgestatus: string | null;
   thema: string | null;
   information: string | null;
   produkte: string[] | null;
   betroffene: string | null;
   ausblick: string | null;
-  laenderkuerzel: LaenderKuerzel[] | null;
-  debug: PflichtDebugInfo | null;
+  laenderkuerzel: Country[] | null;
+  verweise: string | null;
+  rechtsgrundlage_ref: string | null;
+  belege: Beleg[] | null;
+  extra_info: Record<string, any> | null;
 }
 
 export interface PflichtDebugInfo {
@@ -55,6 +61,8 @@ export interface Beleg {
   text: string;
   quelle: string;
   relevanz: number;
+  anker?: string;
+  textauszug?: string;
 }
 
 export interface DokumentFeedback {

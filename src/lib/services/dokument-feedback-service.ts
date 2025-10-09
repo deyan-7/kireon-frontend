@@ -6,7 +6,7 @@ export const submitDokumentFeedback = async (dokumentId: string, feedback: Dokum
     const token = await auth.currentUser?.getIdToken();
     const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-    const response = await fetch(`${baseUrl}/dokument/${dokumentId}/feedback`, {
+    const response = await fetch(`${baseUrl}/api/documents/dokument/${dokumentId}/feedback`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -265,13 +265,15 @@
 
 .pflichtCell {
   padding: 0.75rem !important;
-  vertical-align: top;
+  vertical-align: middle;
   text-align: center;
-  
+  font-size: 0.875rem;
+  line-height: 1.5;
+
   &:nth-child(2), &:nth-child(3), &:nth-child(6) {
     text-align: left;
   }
-  
+
   .tags {
     justify-content: center;
   }
@@ -281,16 +283,24 @@
   color: #374151;
   font-size: 0.875rem;
   font-weight: 500;
+  display: inline-block;
+  line-height: 1.5;
 }
 
 .pflichtThema {
   color: #374151;
   font-size: 0.875rem;
+  font-weight: 400;
+  display: inline-block;
+  line-height: 1.5;
 }
 
 .pflichtFolgestatus {
   color: #374151;
   font-size: 0.875rem;
+  font-weight: 400;
+  display: inline-block;
+  line-height: 1.5;
 }
 
 .tags {

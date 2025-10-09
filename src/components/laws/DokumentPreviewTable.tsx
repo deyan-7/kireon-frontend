@@ -13,6 +13,7 @@ interface DokumentPreviewTableProps {
   dokumente: DokumentPreview[];
   filterText: string;
   onFilterChange: (text: string) => void;
+  onSelectDokument?: (dokumentId: string) => void;
   onSelectPflicht?: (pflichtId: number) => void;
   onAddNew: () => void;
   onDeleteDokument?: (dokumentId: string) => void;
@@ -29,6 +30,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
   dokumente,
   filterText,
   onFilterChange,
+  onSelectDokument,
   onSelectPflicht,
   onAddNew,
   onDeleteDokument,
@@ -179,7 +181,11 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
     try {
-      return new Date(dateString).toLocaleDateString('de-DE');
+      return new Date(dateString).toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
     } catch {
       return dateString;
     }
@@ -370,7 +376,10 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
               return (
                 <React.Fragment key={dokument.id}>
                   {/* Dokument Row */}
-                  <tr className={`${styles.dokumentRow} ${isExpanded ? styles.dokumentRowExpanded : ''}`}>
+                  <tr
+                    className={`${styles.dokumentRow} ${isExpanded ? styles.dokumentRowExpanded : ''}`}
+                    onClick={() => onSelectDokument?.(dokument.id)}
+                  >
                     <td className={styles.expandCell}>
                       <button
                         onClick={(e) => {

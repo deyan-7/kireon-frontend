@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Pflicht } from '@/types/pflicht';
+import { Pflicht, Beleg } from '@/types/pflicht';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, AlertCircle, X } from 'lucide-react';
+import { Calendar, Users, AlertCircle, X, BookOpenIcon } from 'lucide-react';
 import { getPflichtDetails } from '@/lib/services/pflicht-service';
 import styles from './PflichtDetailDialog.module.scss';
 
@@ -11,12 +11,14 @@ interface PflichtDetailDialogProps {
   pflichtId: number | null;
   onClose: () => void;
   onEdit?: () => void;
+  onShowBelege: (belege: Beleg[], pflichtThema: string) => void;
 }
 
 const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
   pflichtId,
   onClose,
   onEdit,
+  onShowBelege,
 }) => {
   const [pflicht, setPflicht] = useState<Pflicht | null>(null);
   const [loading, setLoading] = useState(false);
@@ -111,7 +113,7 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
             {pflicht.thema || 'Pflicht-Details'}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className={styles.dialogBody}>
           <div className={styles.compactGrid}>
             <div className={styles.fieldGroup}>
@@ -123,12 +125,12 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
                 </div>
               </div>
             </div>
-            
+
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Folgestatus</label>
               <div className={styles.fieldValue}>{pflicht.folgestatus || 'Nicht verfügbar'}</div>
             </div>
-            
+
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Markt</label>
               <div className={styles.fieldValue}>
@@ -168,6 +170,20 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
               </div>
             )}
 
+            {pflicht.verweise && (
+              <div className={styles.fieldGroupFullWidth}>
+                <label className={styles.fieldLabel}>Verweise</label>
+                <div className={styles.fieldValue}>{pflicht.verweise}</div>
+              </div>
+            )}
+
+            {pflicht.rechtsgrundlage_ref && (
+              <div className={styles.fieldGroupFullWidth}>
+                <label className={styles.fieldLabel}>Rechtsgrundlage Ref.</label>
+                <div className={styles.fieldValue}>{pflicht.rechtsgrundlage_ref}</div>
+              </div>
+            )}
+
             {(pflicht.betroffene || pflicht.ausblick) && (
               <div className={styles.bottomRow}>
                 {pflicht.ausblick && (
@@ -193,6 +209,16 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
           </div>
 
           <div className={styles.actions}>
+            {pflicht.belege && pflicht.belege.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => onShowBelege(pflicht.belege!, pflicht.thema || 'Unbekannte Pflicht')}
+                className={styles.actionButton}
+              >
+                <BookOpenIcon className="h-4 w-4 mr-2" />
+                Quellen anzeigen
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={onClose}
