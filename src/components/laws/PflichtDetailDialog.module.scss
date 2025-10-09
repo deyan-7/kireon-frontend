@@ -198,6 +198,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .produktBadge {
@@ -205,6 +207,11 @@
   align-items: center;
   gap: 0.25rem;
   font-size: 0.75rem;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .actions {
@@ -274,5 +281,10 @@
 
   .statusSection {
     justify-content: center;
+  }
+
+  .produktBadge {
+    max-width: 150px;
+    font-size: 0.7rem;
   }
 }
