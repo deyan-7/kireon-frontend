@@ -6,7 +6,7 @@ export async function deleteDokument(dokumentId: string): Promise<void> {
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const response = await fetch(`${baseUrl}/api/documents/dokument/${dokumentId}`, {
+  const response = await fetch(`${baseUrl}/api/dokument/${dokumentId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -35,7 +35,7 @@ export async function getDokumentPreviews(params: DokumentPreviewSearchParams = 
   if (params.sort_by) searchParams.append('sort_by', params.sort_by);
   if (params.sort_order) searchParams.append('sort_order', params.sort_order);
 
-  const requestUrl = `${baseUrl}/api/documents/dokument/search?${searchParams.toString()}`;
+  const requestUrl = `${baseUrl}/api/dokument/search?${searchParams.toString()}`;
 
   const response = await fetch(requestUrl, {
     method: 'GET',
@@ -85,7 +85,7 @@ export async function getPflichtDetails(pflichtId: number): Promise<Pflicht> {
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const requestUrl = `${baseUrl}/api/documents/pflicht/${pflichtId}`;
+  const requestUrl = `${baseUrl}/api/pflicht/${pflichtId}`;
 
   const response = await fetch(requestUrl, {
     method: 'GET',
@@ -107,7 +107,7 @@ export async function getDokumentDetails(dokumentId: string): Promise<Dokument> 
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const requestUrl = `${baseUrl}/api/documents/dokument/${dokumentId}`;
+  const requestUrl = `${baseUrl}/api/dokument/${dokumentId}`;
 
   const response = await fetch(requestUrl, {
     method: 'GET',
@@ -129,7 +129,7 @@ export async function updatePflicht(pflichtId: number, pflicht: Pflicht): Promis
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const requestUrl = `${baseUrl}/api/documents/pflicht/${pflichtId}`;
+  const requestUrl = `${baseUrl}/api/pflicht/${pflichtId}`;
 
   const response = await fetch(requestUrl, {
     method: 'PUT',
@@ -153,7 +153,7 @@ export async function createDokumentFromUrl(url: string): Promise<Dokument> {
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const requestUrl = `${baseUrl}/api/documents/dokument?url=${encodeURIComponent(url)}`;
+  const requestUrl = `${baseUrl}/api/dokument?url=${encodeURIComponent(url)}`;
 
   const response = await fetch(requestUrl, {
     method: 'POST',
@@ -187,7 +187,7 @@ export async function deletePflicht(pflichtId: number): Promise<{ message: strin
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const requestUrl = `${baseUrl}/api/documents/pflicht/${pflichtId}`;
+  const requestUrl = `${baseUrl}/api/pflicht/${pflichtId}`;
 
   const response = await fetch(requestUrl, {
     method: 'DELETE',
