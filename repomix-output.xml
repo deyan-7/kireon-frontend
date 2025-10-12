@@ -106,28 +106,32 @@ src/
     laws/
       BereicheSidebar.module.scss
       BereicheSidebar.tsx
+      ChangeLogView.tsx
       CreateDokumentModal.module.scss
       CreateDokumentModal.tsx
+      DokumentDialogPanel.tsx
       DokumentPreviewTable.module.scss
       DokumentPreviewTable.tsx
       DokumentSummaryDialog.module.scss
-      DokumentSummaryDialog.tsx
+      DokumentSummaryView.tsx
       GeneralLawDetailDialog.module.scss
       GeneralLawDetailDialog.tsx
       GeneralLawTable.module.scss
       GeneralLawTable.tsx
+      InstructionCard.module.scss
+      InstructionCard.tsx
       LawAcronymsView.tsx
+      LawMonitorChatPanel.module.scss
       LawMonitorChatPanel.tsx
       LawsDashboard.tsx
       PflichtDetailDialog.module.scss
-      PflichtDetailDialog.tsx
+      PflichtDetailView.tsx
+      PflichtDialogPanel.tsx
       PflichtEditDialog.module.scss
-      PflichtEditDialog.tsx
+      PflichtEditView.tsx
+      SourcesView.tsx
     shared/
-      DetailPanel.module.scss
-      DetailPanel.tsx
-      RightSidebar.module.scss
-      RightSidebar.tsx
+      ContextualSidebar.tsx
       SearchableTagSelector.tsx
     ui/
       alert.tsx
@@ -227,9 +231,12 @@ src/
       pflicht-service.ts
     api.ts
     auth.ts
+    tool-parsers.ts
     utils.ts
   stores/
-    rightPanelStore.ts
+    dokumentDialogStore.ts
+    pflichtDialogStore.ts
+    sidebarStore.ts
   styles/
     custom.scss
     globals.css
@@ -263,385 +270,131 @@ tsconfig.json
 <files>
 This section contains the contents of the repository's files.
 
-<file path="src/components/laws/LawMonitorChatPanel.tsx">
-"use client";
-
-import { useEffect, useRef, useMemo } from "react";
-import { useAgentStreamContext } from "@/context/AgentStreamProvider";
-import { useRightPanelStore } from "@/stores/rightPanelStore";
-import { useAuth } from "@/context/AuthContext";
-import ChatMessage from "@/components/ChatMessage";
-import TextInput from "@/components/TextInput";
-import { Role } from "@/domain/constants";
-import { formatMarkdownHtml } from "@/domain/markdown-service";
-
-const LawMonitorChatPanel = () => {
-  const { chatMessages, isStreaming, sendMessage } = useAgentStreamContext();
-  const { context } = useRightPanelStore();
-  const { user } = useAuth();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const threadId = useMemo(() => {
-    if (!context) return "global";
-    if (context.pflichtId) return `pflicht-${context.pflichtId}`;
-    if (context.documentId) return `doc-${context.documentId}`;
-    return "global";
-  }, [context]);
-
-  const handleSendMessage = async (message: string) => {
-    if (!user || !context || !message?.trim()) return;
-    const token = await user.getIdToken();
-    const agentConfig = {
-      pflicht_id: context.pflichtId,
-      document_id: context.documentId,
-    };
-
-    console.log("agentConfig", agentConfig);
-    await sendMessage(
-      {
-        thread_id: threadId,
-        user_id: user.uid,
-        message,
-        agent_id: "law-monitor-agent",
-        stream_tokens: true,
-        agent_config: agentConfig,
-      },
-      token
-    );
-  };
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages, isStreaming]);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: "1rem" }}>
-        {chatMessages.map((msg, index) => (
-          <ChatMessage
-            key={msg.id || `msg-${index}`}
-            role={(msg.role as Role) ?? Role.AI}
-            isStartScreen={false}
-            isLoadingArtifact={false}
-          >
-            <div
-              className="markdown-chat"
-              dangerouslySetInnerHTML={{
-                __html: formatMarkdownHtml(msg.content ?? ""),
-              }}
-            />
-          </ChatMessage>
-        ))}
-        {isStreaming && chatMessages[chatMessages.length - 1]?.role !== "ai" && (
-          <ChatMessage role={Role.AI} isStartScreen={false} isLoadingArtifact={false} />
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      <div style={{ padding: "1rem", borderTop: "1px solid #e5e7eb" }}>
-        <TextInput inputEnabled={!isStreaming} onSubmit={handleSendMessage} />
-      </div>
-    </div>
-  );
-};
-
-export default LawMonitorChatPanel;
-</file>
-
-<file path="src/components/shared/DetailPanel.module.scss">
-@keyframes slideInFromRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+<file path="src/components/laws/LawMonitorChatPanel.module.scss">
+.activityBadge {
+  position: relative;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: inline-block;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  overflow: hidden;
 }
 
-.panelOverlay {
+.activityBadge::after {
+  content: '';
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.1);
-  z-index: 40;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.panel {
-  width: 100%;
-  max-width: 900px;
+  left: -150%;
+  width: 150%;
   height: 100%;
-  background-color: #fff;
-  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  animation: slideInFromRight 0.3s ease-out;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
+  transform: skewX(-20deg);
+  opacity: 0;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  flex-shrink: 0;
+.active::after {
+  opacity: 1;
+  animation: shimmer 1.6s ease-in-out infinite;
 }
 
-.title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin: 0;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  cursor: pointer;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.closeButton:hover {
-  background-color: #f3f4f6;
-}
-
-.closeIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #6b7280;
-}
-
-.content {
-  padding: 1.5rem;
-  overflow-y: auto;
-  flex-grow: 1;
+@keyframes shimmer {
+  0% { left: -150%; }
+  100% { left: 150%; }
 }
 </file>
 
-<file path="src/components/shared/DetailPanel.tsx">
-"use client";
+<file path="src/lib/tool-parsers.ts">
+export type NormalizedToolCall = { name: string; args: Record<string, any> };
 
-import React from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import styles from './DetailPanel.module.scss';
-
-interface DetailPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-}
-
-const DetailPanel: React.FC<DetailPanelProps> = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className={styles.panelOverlay}>
-      <div className={styles.panel}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>{title}</h2>
-          <button className={styles.closeButton} onClick={onClose} aria-label="Schließen">
-            <XMarkIcon className={styles.closeIcon} />
-          </button>
-        </div>
-        <div className={styles.content}>{children}</div>
-      </div>
-    </div>
-  );
-};
-
-export default DetailPanel;
-</file>
-
-<file path="src/components/ResizableSplitView.module.scss">
-.splitViewContainer {
-  display: flex;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-}
-
-.mainPanel {
-  flex-grow: 1;
-  height: 100%;
-  overflow-y: auto;
-  transition: width 0.2s ease-in-out;
-}
-
-.dragger {
-  width: 5px;
-  background-color: #e5e7eb; // border-gray-200
-  cursor: col-resize;
-  flex-shrink: 0;
-  height: 100%;
-
-  &:hover {
-    background-color: #3b82f6; // blue-500
+function tryJsonParse<T = any>(s?: string | null): T | undefined {
+  if (!s) return undefined;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return undefined;
   }
 }
 
-.sidePanel {
-  flex-shrink: 0;
-  height: 100%;
-  background-color: white;
-  border-left: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.sidePanelHeader {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  flex-shrink: 0;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  cursor: pointer;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-  
-  &:hover {
-    background-color: #f3f4f6; // gray-100
-  }
-}
-
-.closeIcon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #6b7280; // gray-500
-}
-
-.sidePanelContent {
-  flex-grow: 1;
-  overflow-y: auto;
-  height: 100%;
-}
-</file>
-
-<file path="src/components/ResizableSplitView.tsx">
-"use client";
-
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import styles from './ResizableSplitView.module.scss';
-
-interface ResizableSplitViewProps {
-  mainContent: React.ReactNode;
-  sidePanelContent: React.ReactNode;
-  isSidePanelOpen: boolean;
-  onSidePanelClose: () => void;
-  initialSidePanelWidth?: number;
-  minSidePanelWidth?: number;
-}
-
-const ResizableSplitView: React.FC<ResizableSplitViewProps> = ({
-  mainContent,
-  sidePanelContent,
-  isSidePanelOpen,
-  onSidePanelClose,
-  initialSidePanelWidth = 400,
-  minSidePanelWidth = 300,
-}) => {
-  const [panelWidth, setPanelWidth] = useState(initialSidePanelWidth);
-  const isResizing = useRef(false);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isResizing.current) return;
-    const newWidth = window.innerWidth - e.clientX;
-    if (newWidth >= minSidePanelWidth) {
-      setPanelWidth(newWidth);
+export function normalizeToolCalls(raw: any): NormalizedToolCall[] {
+  if (!raw) return [];
+  // Support both OpenAI-like tool_calls and custom_data.tool_calls
+  // Shapes:
+  // - { name: 'read_section', args: {...} }
+  // - { function: { name: 'read_section', arguments: '{...}' } }
+  const arr = Array.isArray(raw) ? raw : [];
+  const calls: NormalizedToolCall[] = [];
+  for (const t of arr) {
+    if (!t) continue;
+    if (t.name && t.args) {
+      calls.push({ name: t.name, args: t.args });
+    } else if (t.function?.name) {
+      const parsed = tryJsonParse<Record<string, any>>(t.function.arguments);
+      calls.push({ name: t.function.name, args: parsed ?? {} });
     }
-  }, [minSidePanelWidth]);
-
-  const handleMouseUp = useCallback(() => {
-    isResizing.current = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  }, [handleMouseMove]);
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    isResizing.current = true;
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  useEffect(() => {
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [handleMouseMove, handleMouseUp]);
-
-  return (
-    <div className={styles.splitViewContainer}>
-      <div
-        className={styles.mainPanel}
-        style={{ width: isSidePanelOpen ? `calc(100% - ${panelWidth}px - 5px)` : '100%' }}
-      >
-        {mainContent}
-      </div>
-      {isSidePanelOpen && (
-        <>
-          <div
-            className={styles.dragger}
-            onMouseDown={handleMouseDown}
-          />
-          <div className={styles.sidePanel} style={{ width: `${panelWidth}px` }}>
-            <div className={styles.sidePanelHeader}>
-              <button onClick={onSidePanelClose} className={styles.closeButton}>
-                <XMarkIcon className={styles.closeIcon} />
-              </button>
-            </div>
-            <div className={styles.sidePanelContent}>
-              {sidePanelContent}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
-export default ResizableSplitView;
-</file>
-
-<file path="src/stores/rightPanelStore.ts">
-import { create } from 'zustand';
-
-interface ChatContext {
-  documentId?: string;
-  pflichtId?: number;
+  }
+  return calls;
 }
 
-interface RightPanelState {
-  isOpen: boolean;
-  context: ChatContext | null;
-  openPanel: (context: ChatContext) => void;
-  closePanel: () => void;
+function romanToInt(roman: string): number | string {
+  if (!roman) return '';
+  const map: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+  let total = 0;
+  let prev = 0;
+  for (let i = roman.length - 1; i >= 0; i--) {
+    const val = map[roman[i].toUpperCase()] ?? 0;
+    if (val < prev) total -= val; else total += val;
+    prev = val;
+  }
+  // Sanity: if conversion seems wrong, just return original roman
+  return total > 0 ? total : roman;
 }
 
-export const useRightPanelStore = create<RightPanelState>((set) => ({
-  isOpen: false,
-  context: null,
-  openPanel: (context) => set({ isOpen: true, context }),
-  closePanel: () => set({ isOpen: false, context: null }),
-}));
+function parseReadSectionArgs(args: Record<string, any>): string | null {
+  const identifier = args?.identifier as string | undefined;
+  if (!identifier) return null;
+  const parts = identifier.split('/');
+  let chapter: string | number | undefined;
+  let article: string | undefined;
+  for (const p of parts) {
+    if (p.toLowerCase().startsWith('chapter_')) {
+      const roman = p.split('_')[1] || '';
+      chapter = romanToInt(roman);
+    }
+    if (p.toLowerCase().startsWith('article')) {
+      const m = p.match(/(?:artikel_)?(\d+)/i);
+      if (m) article = m[1];
+    }
+  }
+  if (chapter || article) {
+    const segs = [] as string[];
+    if (chapter) segs.push(`Kapitel ${chapter}`);
+    if (article) segs.push(`Artikel ${article}`);
+    return `Lese ${segs.join(' ')}`;
+  }
+  return `Lese Abschnitt`;
+}
+
+export function formatToolActivity(call: NormalizedToolCall): string | null {
+  switch (call.name) {
+    case 'read_section':
+      return parseReadSectionArgs(call.args);
+    case 'get_content_tree': {
+      const docId = call.args?.document_id;
+      if (!docId) return 'Analysiere Dokument';
+      return `Analysiere Dokument ${docId}`;
+    }
+    case 'update_object': {
+      const ot = call.args?.object_type;
+      return `Editiere ${ot ?? ''}`.trim();
+    }
+    default:
+      return null;
+  }
+}
 </file>
 
 <file path=".github/workflows/build-check.yml">
@@ -2665,6 +2418,309 @@ const BereicheSidebar: React.FC<BereicheSidebarProps> = ({
 export default BereicheSidebar;
 </file>
 
+<file path="src/components/laws/ChangeLogView.tsx">
+import React, { useEffect, useState, useCallback } from 'react';
+import { ChangeHistory } from '@/types/pflicht';
+import { getChangeHistory, revertChange } from '@/lib/services/pflicht-service';
+// Removed revert button per request
+
+interface ChangeLogViewProps {
+  objectType: 'pflicht' | 'dokument';
+  objectId: number | string;
+  refreshKey?: number;
+}
+
+const ChangeLogView: React.FC<ChangeLogViewProps> = ({ objectType, objectId, refreshKey }) => {
+  const [items, setItems] = useState<ChangeHistory[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getChangeHistory(objectType, objectId);
+      setItems(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Fehler beim Laden der Änderungshistorie');
+    } finally {
+      setLoading(false);
+    }
+  }, [objectType, objectId, refreshKey]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const handleRevert = async (historyId: number) => {
+    if (!confirm('Diese Änderung wirklich zurücksetzen?')) return;
+    try {
+      await revertChange(historyId);
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Fehler beim Zurücksetzen');
+    }
+  };
+
+  if (loading) return <div style={{ padding: '1rem' }}>Lade Änderungshistorie...</div>;
+  if (error) return <div style={{ padding: '1rem', color: '#b91c1c' }}>{error}</div>;
+
+  // Map technical field names to user-friendly German labels
+  const fieldNameMap: Record<string, string> = {
+    'stichtag': 'Stichtag',
+    'stichtag_typ': 'Stichtag Typ',
+    'folgestatus': 'Folgestatus',
+    'laenderkuerzel': 'Länder',
+    'produkte': 'Produkte',
+    'information': 'Informationen',
+    'verweise': 'Verweise',
+    'rechtsgrundlage_ref': 'Rechtsgrundlage Ref.',
+    'ausblick': 'Ausblick',
+    'betroffene': 'Betroffene Akteure',
+    'details_per_betroffene': 'Handlungsanweisungen je Akteur',
+    'betroffener': 'Betroffener',
+    'handlungsanweisungen': 'Handlungsanweisungen',
+    'national_overrides': 'Nationale Umsetzungen',
+    'titel': 'Titel',
+    'beschreibung': 'Beschreibung',
+  };
+
+  const formatPath = (path?: string) => {
+    if (!path) return '';
+    const parts = path.split('/').filter(Boolean);
+
+    // Build a readable path
+    const readableParts: string[] = [];
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+
+      // Skip numeric indices for top-level arrays
+      if (part.match(/^\d+$/)) {
+        // Get the index number
+        const index = parseInt(part, 10) + 1; // Convert to 1-based
+        // Only show index if it's in a nested structure
+        if (i > 0) {
+          readableParts.push(`#${index}`);
+        }
+        continue;
+      }
+
+      // Map field name or use original
+      const readable = fieldNameMap[part] || part;
+      readableParts.push(readable);
+    }
+
+    return readableParts.join(' → ');
+  };
+
+  const fmtVal = (v: any) => {
+    if (v === null || v === undefined || v === '') return '—';
+    if (typeof v === 'string') return v;
+    try {
+      const s = JSON.stringify(v);
+      return s.length > 60 ? s.slice(0, 57) + '…' : s;
+    } catch {
+      return String(v);
+    }
+  };
+
+  const renderDiff = (oldValue: any, newValue: any) => {
+    const oldStr = fmtVal(oldValue);
+    const newStr = fmtVal(newValue);
+
+    // For long text strings, show full old and new values in colored boxes
+    if (typeof oldValue === 'string' && typeof newValue === 'string' &&
+        oldValue.length > 50 && newValue.length > 50) {
+      return (
+        <div style={{ paddingLeft: '0.5rem', fontSize: '0.875rem' }}>
+          <div style={{
+            backgroundColor: '#fee2e2',
+            padding: '0.5rem',
+            borderRadius: '0.375rem',
+            marginBottom: '0.5rem',
+            borderLeft: '3px solid #ef4444'
+          }}>
+            <div style={{ fontWeight: 600, color: '#991b1b', marginBottom: '0.25rem', fontSize: '0.75rem' }}>
+              Vorher:
+            </div>
+            <div style={{ color: '#991b1b', lineHeight: '1.5' }}>
+              {oldValue}
+            </div>
+          </div>
+          <div style={{
+            backgroundColor: '#dcfce7',
+            padding: '0.5rem',
+            borderRadius: '0.375rem',
+            borderLeft: '3px solid #22c55e'
+          }}>
+            <div style={{ fontWeight: 600, color: '#166534', marginBottom: '0.25rem', fontSize: '0.75rem' }}>
+              Nachher:
+            </div>
+            <div style={{ color: '#166534', lineHeight: '1.5' }}>
+              {newValue}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // For short strings or non-strings, use simple arrow notation
+    return (
+      <div style={{ color: '#4b5563', paddingLeft: '0.5rem', fontSize: '0.875rem' }}>
+        <span style={{ color: '#dc2626', textDecoration: 'line-through' }}>{oldStr}</span>
+        {' → '}
+        <span style={{ color: '#16a34a', fontWeight: 500 }}>{newStr}</span>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ padding: '1rem', overflowY: 'auto', height: '100%' }}>
+      {items.length === 0 && <div>Keine Änderungen vorhanden.</div>}
+      {items.map((h) => (
+        <div key={h.id} style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '0.75rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontWeight: 600 }}>{h.applied_by || 'Unbekannt'}</div>
+              <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>{new Date(h.applied_at).toLocaleString('de-DE')}</div>
+            </div>
+            {h.reverted && (
+              <span style={{ fontSize: '0.75rem', color: '#10b981' }}>Zurückgesetzt</span>
+            )}
+          </div>
+
+          {/* Friendly change list */}
+          <div style={{ marginTop: '0.5rem', display: 'grid', gap: '0.75rem' }}>
+            {(h.changes || []).map((c: any, idx: number) => {
+              const key = formatPath(c.path);
+
+              return (
+                <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div style={{ color: '#374151', fontWeight: 500, fontSize: '0.875rem' }}>{key}</div>
+                  {c.op === 'replace' ? (
+                    renderDiff(c.old_value, c.value)
+                  ) : c.op === 'add' ? (
+                    <div style={{ color: '#4b5563', paddingLeft: '0.5rem', fontSize: '0.875rem' }}>
+                      <span style={{ color: '#16a34a', fontWeight: 500 }}>Hinzugefügt: {fmtVal(c.value)}</span>
+                    </div>
+                  ) : c.op === 'remove' ? (
+                    <div style={{ color: '#4b5563', paddingLeft: '0.5rem', fontSize: '0.875rem' }}>
+                      <span style={{ color: '#dc2626', textDecoration: 'line-through' }}>Entfernt: {fmtVal(c.old_value)}</span>
+                    </div>
+                  ) : (
+                    <div style={{ color: '#4b5563', paddingLeft: '0.5rem', fontSize: '0.875rem' }}>
+                      {c.op}: {fmtVal(c.value)}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default ChangeLogView;
+</file>
+
+<file path="src/components/laws/DokumentDialogPanel.tsx">
+"use client";
+
+import React, { useEffect, useState } from 'react';
+import { useDokumentDialogStore } from '@/stores/dokumentDialogStore';
+import DokumentSummaryView from '@/components/laws/DokumentSummaryView';
+import { Button } from '@/components/ui/button';
+import { MessageSquare, Clock, X } from 'lucide-react';
+import { useSidebarStore } from '@/stores/sidebarStore';
+import { Dokument } from '@/types/pflicht';
+
+const panelStyles: React.CSSProperties = {
+  position: 'absolute',
+  top: '1rem',
+  right: '1rem',
+  width: '50%',
+  minWidth: 720,
+  maxWidth: 1400,
+  height: 'calc(100% - 2rem)',
+  background: '#fff',
+  border: '1px solid #e5e7eb',
+  borderRadius: 8,
+  boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+  display: 'flex',
+  flexDirection: 'column',
+  zIndex: 30,
+};
+
+const headerStyles: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '0.5rem 0.75rem',
+  borderBottom: '1px solid #e5e7eb',
+};
+
+const contentStyles: React.CSSProperties = {
+  flex: 1,
+  minHeight: 0,
+  overflow: 'auto',
+};
+
+const DokumentDialogPanel: React.FC = () => {
+  const { isOpen, dokumentId, title, close } = useDokumentDialogStore();
+  const { open, updateContext } = useSidebarStore();
+  const [doc, setDoc] = useState<Dokument | null>(null);
+
+  useEffect(() => {
+    if (doc && dokumentId) {
+      updateContext({
+        title: doc?.thema || title || 'Dokument',
+        dokumentId,
+        objectType: 'dokument',
+        objectId: dokumentId,
+      });
+    }
+  }, [doc, dokumentId, title, updateContext]);
+
+  if (!isOpen || !dokumentId) return null;
+
+  return (
+    <div style={panelStyles}>
+      <div style={headerStyles}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{doc?.thema || title || 'Dokument'}</h3>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => open('chat', { dokumentId, objectType: 'dokument', objectId: dokumentId, title: doc?.thema || title || 'Dokument' })}
+            title="Chat"
+          >
+            <MessageSquare className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => open('history', { dokumentId, objectType: 'dokument', objectId: dokumentId, title: doc?.thema || title || 'Dokument' })}
+            title="Verlauf"
+          >
+            <Clock className="h-5 w-5" />
+          </Button>
+          <button onClick={close} title="Schließen" style={{ padding: 6 }}>
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+      <div style={contentStyles}>
+        <DokumentSummaryView dokumentId={dokumentId} onLoaded={setDoc} />
+      </div>
+    </div>
+  );
+};
+
+export default DokumentDialogPanel;
+</file>
+
 <file path="src/components/laws/DokumentSummaryDialog.module.scss">
 // src/components/laws/DokumentSummaryDialog.module.scss
 
@@ -2729,6 +2785,11 @@ export default BereicheSidebar;
 
 .summarySection {
   margin-top: 1rem;
+  padding-left: 1rem;
+
+  .fieldLabel {
+    margin-bottom: 0.5rem;
+  }
 }
 
 .summaryContent {
@@ -2736,6 +2797,7 @@ export default BereicheSidebar;
   color: #374151;
   line-height: 1.6;
   white-space: pre-wrap;
+  padding-left: 0.5rem;
 }
 
 .loadingContainer,
@@ -2775,7 +2837,7 @@ export default BereicheSidebar;
 }
 </file>
 
-<file path="src/components/laws/DokumentSummaryDialog.tsx">
+<file path="src/components/laws/DokumentSummaryView.tsx">
 // src/components/laws/DokumentSummaryDialog.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dokument } from '@/types/pflicht';
@@ -2784,13 +2846,12 @@ import { getDokumentDetails } from '@/lib/services/pflicht-service';
 import { AlertCircle } from 'lucide-react';
 import styles from './DokumentSummaryDialog.module.scss';
 
-interface DokumentSummaryDialogProps {
+interface DokumentSummaryViewProps {
   dokumentId: string | null;
+  onLoaded?: (doc: Dokument) => void;
 }
 
-const DokumentSummaryDialog: React.FC<DokumentSummaryDialogProps> = ({
-  dokumentId,
-}) => {
+const DokumentSummaryView: React.FC<DokumentSummaryViewProps> = ({ dokumentId, onLoaded }) => {
   const [dokument, setDokument] = useState<Dokument | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -2803,6 +2864,7 @@ const DokumentSummaryDialog: React.FC<DokumentSummaryDialogProps> = ({
     try {
       const data = await getDokumentDetails(dokumentId);
       setDokument(data);
+      onLoaded?.(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Laden der Dokument-Details');
     } finally {
@@ -2869,7 +2931,7 @@ const DokumentSummaryDialog: React.FC<DokumentSummaryDialogProps> = ({
   return renderContent();
 };
 
-export default DokumentSummaryDialog;
+export default DokumentSummaryView;
 </file>
 
 <file path="src/components/laws/GeneralLawDetailDialog.module.scss">
@@ -3254,129 +3316,921 @@ const GeneralLawTable: React.FC<GeneralLawTableProps> = ({
 export default GeneralLawTable;
 </file>
 
-<file path="src/components/shared/RightSidebar.module.scss">
-// src/components/shared/RightSidebar.module.scss
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+<file path="src/components/laws/InstructionCard.module.scss">
+// src/components/laws/InstructionCard.module.scss
+.card {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
 }
-
-@keyframes slideIn {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  animation: fadeIn 0.3s ease-out;
-}
-
-.sidebar {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  max-width: 500px;
-  height: 100%;
-  background-color: white;
-  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  animation: slideIn 0.3s ease-out;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  flex-shrink: 0;
-}
-
 .title {
-  font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
 }
-
-.closeButton {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  cursor: pointer;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-  &:hover {
-    background-color: #f3f4f6;
-  }
-}
-
-.closeIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #6b7280;
-}
-
-.content {
-  padding: 1.5rem;
-  overflow-y: auto;
-  flex-grow: 1;
+.instructions {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin: 0;
 }
 </file>
 
-<file path="src/components/shared/RightSidebar.tsx">
-// src/components/shared/RightSidebar.tsx
+<file path="src/components/laws/InstructionCard.tsx">
 import React from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import styles from './RightSidebar.module.scss';
+import styles from './InstructionCard.module.scss';
 
-interface RightSidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface InstructionCardProps {
   title: string;
-  children: React.ReactNode;
+  instructions: string | null;
 }
 
-const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) {
-    return null;
-  }
+const InstructionCard: React.FC<InstructionCardProps> = ({ title, instructions }) => {
+  if (!instructions) return null;
+  return (
+    <div className={styles.card}>
+      <h4 className={styles.title}>{title}</h4>
+      <p className={styles.instructions}>{instructions}</p>
+    </div>
+  );
+};
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
+export default InstructionCard;
+</file>
+
+<file path="src/components/laws/PflichtDetailView.tsx">
+import React, { useState, useEffect, useCallback } from 'react';
+import { Pflicht } from '@/types/pflicht';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Users, AlertCircle } from 'lucide-react';
+import { useSidebarStore } from '@/stores/sidebarStore';
+import InstructionCard from '@/components/laws/InstructionCard';
+import { getPflichtDetails } from '@/lib/services/pflicht-service';
+import styles from './PflichtDetailDialog.module.scss';
+
+interface PflichtDetailViewProps { pflichtId: number | null; onLoaded?: (pflicht: Pflicht) => void }
+
+const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoaded }) => {
+  const [pflicht, setPflicht] = useState<Pflicht | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { updateContext } = useSidebarStore();
+
+  const loadPflichtDetails = useCallback(async () => {
+    if (!pflichtId) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getPflichtDetails(pflichtId);
+      setPflicht(data);
+      onLoaded?.(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Fehler beim Laden der Pflicht-Details');
+    } finally {
+      setLoading(false);
+    }
+  }, [pflichtId]);
+
+  useEffect(() => {
+    if (pflichtId) {
+      loadPflichtDetails();
+    }
+  }, [pflichtId, loadPflichtDetails]);
+
+  // Keep header sources icon in sync with loaded belege
+  useEffect(() => {
+    if (pflicht?.belege && pflicht.belege.length > 0) {
+      updateContext({ belege: pflicht.belege });
+    }
+  }, [pflicht?.belege, updateContext]);
+
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Nicht verfügbar';
+    try {
+      return new Date(dateString).toLocaleDateString('de-DE');
+    } catch {
+      return dateString;
     }
   };
 
+  if (!pflichtId) return null;
+
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner} />
+        <p>Lade Pflicht-Details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <AlertCircle className={styles.errorIcon} />
+        <p className={styles.errorMessage}>{error}</p>
+        <Button onClick={loadPflichtDetails} variant="outline">
+          Erneut versuchen
+        </Button>
+      </div>
+    );
+  }
+
+  if (!pflicht) return null;
+
   return (
-    <div className={styles.overlay} onClick={handleOverlayClick}>
-      <div className={styles.sidebar}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>{title}</h2>
-          <button
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label="Schließen"
+        <div className={styles.dialogBody}>
+          {/* Actions moved to ContextualSidebar header/footer */}
+          <div className={styles.compactGrid}>
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Stichtag</label>
+              <div className={styles.fieldValue}>
+                <div className={styles.iconValue}>
+                  <Calendar className="h-4 w-4" />
+                  {formatDate(pflicht.stichtag)}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Folgestatus</label>
+              <div className={styles.fieldValue}>{pflicht.folgestatus || 'Nicht verfügbar'}</div>
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Markt</label>
+              <div className={styles.fieldValue}>
+                {pflicht.laenderkuerzel && pflicht.laenderkuerzel.length > 0 ? (
+                  <div className={styles.tags}>
+                    {pflicht.laenderkuerzel.map((kuerzel, index) => (
+                      <Badge key={index} variant="outline" className={styles.tag}>
+                        {kuerzel}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  'Nicht verfügbar'
+                )}
+              </div>
+            </div>
+
+            {pflicht.produkte && pflicht.produkte.length > 0 && (
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Produkte</label>
+                <div className={styles.fieldValue}>
+                  <div className={styles.produkteList}>
+                    {pflicht.produkte.map((produkt, index) => (
+                      <Badge key={index} variant="outline" className={styles.produktBadge}>
+                        {produkt}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {pflicht.information && (
+              <div className={styles.fieldGroupFullWidth}>
+                <label className={styles.fieldLabel}>Informationen</label>
+                <div className={styles.fieldValue}>{pflicht.information}</div>
+              </div>
+            )}
+
+            {pflicht.verweise && (
+              <div className={styles.fieldGroupFullWidth}>
+                <label className={styles.fieldLabel}>Verweise</label>
+                <div className={styles.fieldValue}>{pflicht.verweise}</div>
+              </div>
+            )}
+
+            {pflicht.rechtsgrundlage_ref && (
+              <div className={styles.fieldGroupFullWidth}>
+                <label className={styles.fieldLabel}>Rechtsgrundlage Ref.</label>
+                <div className={styles.fieldValue}>{pflicht.rechtsgrundlage_ref}</div>
+              </div>
+            )}
+
+            {(pflicht.betroffene || pflicht.ausblick) && (
+              <div className={styles.bottomRow}>
+                {pflicht.ausblick && (
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Ausblick</label>
+                    <div className={styles.fieldValue}>{pflicht.ausblick}</div>
+                  </div>
+                )}
+
+                {pflicht.betroffene && (
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Betroffene Akteure</label>
+                    <div className={styles.fieldValue}>
+                      <div className={styles.iconValue}>
+                        <Users className="h-4 w-4" />
+                        {pflicht.betroffene}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {(pflicht.details_per_betroffene?.length || pflicht.national_overrides?.length) ? (
+            <div className={styles.instructionsSection}>
+              <label className={styles.fieldLabel}>Handlungsanweisungen</label>
+              <div className={styles.fieldValue}>
+                {pflicht.details_per_betroffene?.map((detail, index) => (
+                  <InstructionCard key={`actor-${index}`} title={detail.betroffener} instructions={detail.handlungsanweisungen} />
+                ))}
+                {pflicht.national_overrides?.map((override, index) => (
+                  <InstructionCard key={`override-${index}`} title={`Nationale Umsetzung: ${override.laenderkuerzel}`} instructions={override.handlungsanweisungen} />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+  );
+};
+
+export default PflichtDetailView;
+</file>
+
+<file path="src/components/laws/PflichtDialogPanel.tsx">
+"use client";
+
+import React, { useEffect, useState } from 'react';
+import { usePflichtDialogStore } from '@/stores/pflichtDialogStore';
+import PflichtDetailView from '@/components/laws/PflichtDetailView';
+import PflichtEditView from '@/components/laws/PflichtEditView';
+import { Button } from '@/components/ui/button';
+import { MessageSquare, Clock, BookOpen, Pencil, X } from 'lucide-react';
+import { useSidebarStore } from '@/stores/sidebarStore';
+
+const panelStyles: React.CSSProperties = {
+  position: 'absolute',
+  top: '1rem',
+  right: '1rem',
+  width: '70%',
+  minWidth: 720,
+  maxWidth: 1400,
+  height: 'calc(100% - 2rem)',
+  background: '#fff',
+  border: '1px solid #e5e7eb',
+  borderRadius: 8,
+  boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+  display: 'flex',
+  flexDirection: 'column',
+  zIndex: 30,
+};
+
+const headerStyles: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '0.5rem 0.75rem',
+  borderBottom: '1px solid #e5e7eb',
+};
+
+const contentStyles: React.CSSProperties = {
+  flex: 1,
+  minHeight: 0,
+  overflow: 'auto',
+};
+
+const PflichtDialogPanel: React.FC = () => {
+  const { isOpen, pflichtId, title, close } = usePflichtDialogStore();
+  const { open } = useSidebarStore();
+  const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [pflichtData, setPflichtData] = useState<any | null>(null);
+  const { updateContext } = useSidebarStore();
+
+  useEffect(() => {
+    if (!isOpen) {
+      setMode('view');
+    }
+  }, [isOpen]);
+
+  // Keep sidebar context in sync with current Pflicht title/ids so title and tab enables are correct
+  useEffect(() => {
+    if (pflichtData && pflichtId) {
+      updateContext({
+        title: pflichtData?.thema || title || 'Pflicht',
+        pflichtId,
+        dokumentId: pflichtData?.dokument_id,
+        objectType: 'pflicht',
+        objectId: pflichtId,
+        belege: pflichtData?.belege || [],
+      });
+    }
+  }, [pflichtData, pflichtId, title, updateContext]);
+
+  if (!isOpen || !pflichtId) return null;
+
+  return (
+    <div style={panelStyles}>
+      <div style={headerStyles}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{title || 'Pflicht-Details'}</h3>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() =>
+              open('chat', {
+                pflichtId,
+                dokumentId: pflichtData?.dokument_id,
+                objectType: 'pflicht',
+                objectId: pflichtId,
+                title: pflichtData?.thema || title || 'Pflicht',
+              })
+            }
+            title="Chat"
           >
-            <XMarkIcon className={styles.closeIcon} />
+            <MessageSquare className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() =>
+              open('history', {
+                objectType: 'pflicht',
+                objectId: pflichtId,
+                pflichtId,
+                dokumentId: pflichtData?.dokument_id,
+                title: pflichtData?.thema || title || 'Pflicht',
+              })
+            }
+            title="Verlauf"
+          >
+            <Clock className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() =>
+              open('sources', {
+                belege: pflichtData?.belege || [],
+                pflichtId,
+                dokumentId: pflichtData?.dokument_id,
+                objectType: 'pflicht',
+                objectId: pflichtId,
+                title: pflichtData?.thema || title || 'Pflicht',
+              })
+            }
+            title="Quellen"
+          >
+            <BookOpen className="h-5 w-5" />
+          </Button>
+          {mode === 'view' && (
+            <Button variant="ghost" size="icon" onClick={() => setMode('edit')} title="Bearbeiten">
+              <Pencil className="h-5 w-5" />
+            </Button>
+          )}
+          <button onClick={close} title="Schließen" style={{ padding: 6 }}>
+            <X className="h-5 w-5" />
           </button>
         </div>
-        <div className={styles.content}>
-          {children}
-        </div>
+      </div>
+      <div style={contentStyles}>
+        {mode === 'view' ? (
+          <PflichtDetailView pflichtId={pflichtId} onLoaded={setPflichtData} />
+        ) : (
+          <PflichtEditView pflichtId={pflichtId} onCancel={() => setMode('view')} onSaved={() => setMode('view')} />
+        )}
       </div>
     </div>
   );
 };
 
-export default RightSidebar;
+export default PflichtDialogPanel;
+</file>
+
+<file path="src/components/laws/PflichtEditView.tsx">
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Pflicht } from '@/types/pflicht';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Calendar, Users, AlertCircle } from 'lucide-react';
+import { getPflichtDetails, patchObject } from '@/lib/services/pflicht-service';
+import styles from './PflichtEditDialog.module.scss';
+
+interface PflichtEditViewProps {
+  pflichtId: number | null;
+  onCancel?: () => void;
+  onSaved?: (pflicht: Pflicht) => void;
+}
+
+import { useSidebarStore } from '@/stores/sidebarStore';
+
+const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, onSaved }) => {
+  const [pflicht, setPflicht] = useState<Pflicht | null>(null);
+  const [original, setOriginal] = useState<Pflicht | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { close, setEditSaveHandler } = useSidebarStore();
+  const saveRef = useRef<() => void>(() => {});
+
+  const loadPflichtDetails = useCallback(async () => {
+    if (!pflichtId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getPflichtDetails(pflichtId);
+      setPflicht(data);
+      setOriginal(data);
+    } catch (err) {
+      console.error('Failed to load pflicht details:', err);
+      setError(err instanceof Error ? err.message : 'Fehler beim Laden der Pflicht-Details.');
+    } finally {
+      setLoading(false);
+    }
+  }, [pflichtId]);
+
+  useEffect(() => {
+    loadPflichtDetails();
+  }, [pflichtId, loadPflichtDetails]);
+
+  const handleInputChange = (field: keyof Pflicht, value: any) => {
+    if (!pflicht) return;
+
+    setPflicht(prev => prev ? { ...prev, [field]: value } : prev);
+  };
+
+  const handleArrayChange = (field: keyof Pflicht, value: string) => {
+    if (!pflicht) return;
+
+    const arrayValue = value.split(',').map(item => item.trim()).filter(item => item);
+    setPflicht(prev => prev ? { ...prev, [field]: arrayValue } : prev);
+  };
+
+  const handleSave = async () => {
+    if (!pflicht || !pflichtId) {
+      console.error('Missing pflicht or pflichtId:', { pflicht, pflichtId });
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      // compute minimal updates vs original
+      const updates: Record<string, any> = {};
+      const curr = pflicht as any;
+      const prev = (original ?? {}) as any;
+      const keys = new Set<string>([...Object.keys(curr || {}), ...Object.keys(prev || {})]);
+      for (const key of keys) {
+        const a = curr?.[key];
+        const b = prev?.[key];
+        if (JSON.stringify(a) !== JSON.stringify(b)) {
+          updates[key] = a;
+        }
+      }
+
+      const updated = await patchObject('pflicht', pflichtId, updates);
+      if (onSaved) onSaved(updated);
+      else close();
+    } catch (err) {
+      console.error('Failed to update pflicht:', err);
+      setError(err instanceof Error ? err.message : 'Fehler beim Speichern der Änderungen.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // When used in the sidebar, we expose a stable save handler; in panel mode this is unused
+  useEffect(() => {
+    saveRef.current = handleSave;
+  });
+  useEffect(() => {
+    const stableInvoker = () => saveRef.current();
+    setEditSaveHandler(stableInvoker);
+    return () => setEditSaveHandler(null);
+  }, [setEditSaveHandler]);
+
+  const ensureArray = <T,>(arr: T[] | null | undefined): T[] => Array.isArray(arr) ? arr : [];
+
+  const handleActorDetailChange = (index: number, field: 'betroffener' | 'handlungsanweisungen', value: string) => {
+    setPflicht(prev => {
+      if (!prev) return prev;
+      const list = ensureArray(prev.details_per_betroffene);
+      const updated = [...list];
+      const current = updated[index] ?? { betroffener: '', handlungsanweisungen: '' };
+      const item = { ...current, [field]: value } as any;
+      updated[index] = item;
+      return { ...prev, details_per_betroffene: updated };
+    });
+  };
+
+  const addActorDetail = () => {
+    setPflicht(prev => prev ? { ...prev, details_per_betroffene: [...ensureArray(prev.details_per_betroffene), { betroffener: '', handlungsanweisungen: '' }] } : prev);
+  };
+
+  const removeActorDetail = (index: number) => {
+    setPflicht(prev => {
+      if (!prev) return prev;
+      const updated = ensureArray(prev.details_per_betroffene).filter((_, i) => i !== index);
+      return { ...prev, details_per_betroffene: updated };
+    });
+  };
+
+  const handleOverrideChange = (index: number, field: 'laenderkuerzel' | 'handlungsanweisungen', value: string) => {
+    setPflicht(prev => {
+      if (!prev) return prev;
+      const list = ensureArray(prev.national_overrides);
+      const updated = [...list];
+      const current = updated[index] ?? { laenderkuerzel: '', handlungsanweisungen: '' };
+      const item = { ...current, [field]: value } as any;
+      updated[index] = item;
+      return { ...prev, national_overrides: updated };
+    });
+  };
+
+  const addOverride = () => {
+    setPflicht(prev => prev ? { ...prev, national_overrides: [...ensureArray(prev.national_overrides), { laenderkuerzel: '', handlungsanweisungen: '' }] } : prev);
+  };
+
+  const removeOverride = (index: number) => {
+    setPflicht(prev => {
+      if (!prev) return prev;
+      const updated = ensureArray(prev.national_overrides).filter((_, i) => i !== index);
+      return { ...prev, national_overrides: updated };
+    });
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '';
+    try {
+      return new Date(dateString).toISOString().split('T')[0];
+    } catch {
+      return '';
+    }
+  };
+
+  if (!pflichtId) return null;
+
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner} />
+        <p>Lade Pflicht-Details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <AlertCircle className={styles.errorIcon} />
+        <p className={styles.errorMessage}>{error}</p>
+        <Button onClick={loadPflichtDetails} variant="outline">
+          Erneut versuchen
+        </Button>
+      </div>
+    );
+  }
+
+  if (!pflicht) return null;
+
+  return (
+        <>
+          <div className={styles.dialogBody}>
+            <div className={styles.compactGrid}>
+              <div className={styles.fieldGroup}>
+                <Label className={styles.fieldLabel}>Stichtag</Label>
+                <div className={styles.fieldValue}>
+                  <div className={styles.iconValue}>
+                    <Calendar className="h-4 w-4" />
+                    <Input
+                      type="date"
+                      value={formatDate(pflicht.stichtag)}
+                      onChange={(e) => handleInputChange('stichtag', e.target.value ? new Date(e.target.value).toISOString() : null)}
+                      className={styles.fieldInput}
+                    />
+                  </div>
+                </div>
+              </div>
+
+            <div className={styles.fieldGroup}>
+              <Label className={styles.fieldLabel}>Stichtag Typ</Label>
+              <Input
+                value={pflicht.stichtag_typ || ''}
+                onChange={(e) => handleInputChange('stichtag_typ', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <Label className={styles.fieldLabel}>Folgestatus</Label>
+              <Input
+                value={pflicht.folgestatus || ''}
+                onChange={(e) => handleInputChange('folgestatus', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <Label className={styles.fieldLabel}>Markt (kommagetrennt)</Label>
+              <Input
+                value={pflicht.laenderkuerzel?.join(', ') || ''}
+                onChange={(e) => handleArrayChange('laenderkuerzel', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            {pflicht.produkte && pflicht.produkte.length > 0 && (
+              <div className={styles.fieldGroup}>
+                <Label className={styles.fieldLabel}>Produkte (kommagetrennt)</Label>
+                <Input
+                  value={pflicht.produkte.join(', ') || ''}
+                  onChange={(e) => handleArrayChange('produkte', e.target.value)}
+                  className={styles.fieldInput}
+                />
+              </div>
+            )}
+
+            {pflicht.information && (
+              <div className={styles.fieldGroupFullWidth}>
+                <Label className={styles.fieldLabel}>Informationen</Label>
+                <Textarea
+                  value={pflicht.information || ''}
+                  onChange={(e) => handleInputChange('information', e.target.value)}
+                  className={styles.textarea}
+                  rows={4}
+                />
+              </div>
+            )}
+
+            <div className={styles.fieldGroupFullWidth}>
+              <Label className={styles.fieldLabel}>Verweise</Label>
+              <Input
+                value={pflicht.verweise || ''}
+                onChange={(e) => handleInputChange('verweise', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            <div className={styles.fieldGroupFullWidth}>
+              <Label className={styles.fieldLabel}>Rechtsgrundlage Ref.</Label>
+              <Input
+                value={pflicht.rechtsgrundlage_ref || ''}
+                onChange={(e) => handleInputChange('rechtsgrundlage_ref', e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            {(pflicht.betroffene || pflicht.ausblick) && (
+              <div className={styles.bottomRow}>
+                {pflicht.ausblick && (
+                  <div className={styles.fieldGroup}>
+                    <Label className={styles.fieldLabel}>Ausblick</Label>
+                    <Textarea
+                      value={pflicht.ausblick || ''}
+                      onChange={(e) => handleInputChange('ausblick', e.target.value)}
+                      className={styles.textarea}
+                      rows={3}
+                    />
+                  </div>
+                )}
+
+                {pflicht.betroffene && (
+                  <div className={styles.fieldGroup}>
+                    <Label className={styles.fieldLabel}>Betroffene Akteure</Label>
+                    <div className={styles.fieldValue}>
+                      <div className={styles.iconValue}>
+                        <Users className="h-4 w-4" />
+                        <Input
+                          value={pflicht.betroffene || ''}
+                          onChange={(e) => handleInputChange('betroffene', e.target.value)}
+                          className={styles.fieldInput}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Actor-specific instructions */}
+            <div className={styles.fieldGroupFullWidth}>
+              <Label className={styles.fieldLabel}>Handlungsanweisungen je Akteur</Label>
+              {ensureArray(pflicht.details_per_betroffene).map((d, i) => (
+                <div key={i} className={styles.dynamicFieldItem}>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <Input
+                      placeholder="Betroffener"
+                      value={d?.betroffener || ''}
+                      onChange={(e) => handleActorDetailChange(i, 'betroffener', e.target.value)}
+                    />
+                    <Button variant="outline" onClick={() => removeActorDetail(i)}>Entfernen</Button>
+                  </div>
+                  <Textarea
+                    placeholder="Handlungsanweisungen"
+                    value={d?.handlungsanweisungen || ''}
+                    onChange={(e) => handleActorDetailChange(i, 'handlungsanweisungen', e.target.value)}
+                    rows={3}
+                    className={styles.textarea}
+                  />
+                </div>
+              ))}
+              <Button variant="outline" onClick={addActorDetail} className={styles.addButton}>Akteur hinzufügen</Button>
+            </div>
+
+            {/* National overrides */}
+            <div className={styles.fieldGroupFullWidth}>
+              <Label className={styles.fieldLabel}>Nationale Umsetzungen</Label>
+              {ensureArray(pflicht.national_overrides).map((o, i) => (
+                <div key={i} className={styles.dynamicFieldItem}>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <Input
+                      placeholder="Länderkürzel"
+                      value={o?.laenderkuerzel || ''}
+                      onChange={(e) => handleOverrideChange(i, 'laenderkuerzel', e.target.value)}
+                      style={{ maxWidth: 200 }}
+                    />
+                    <Button variant="outline" onClick={() => removeOverride(i)}>Entfernen</Button>
+                  </div>
+                  <Textarea
+                    placeholder="Handlungsanweisungen"
+                    value={o?.handlungsanweisungen || ''}
+                    onChange={(e) => handleOverrideChange(i, 'handlungsanweisungen', e.target.value)}
+                    rows={3}
+                    className={styles.textarea}
+                  />
+                </div>
+              ))}
+              <Button variant="outline" onClick={addOverride} className={styles.addButton}>Umsetzung hinzufügen</Button>
+            </div>
+            </div>
+          </div>
+
+          <div className={styles.actions}>
+            <Button variant="outline" onClick={onCancel ?? close} className={styles.actionButton} disabled={saving}>
+              Abbrechen
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSave}
+              className={styles.actionButton}
+              disabled={saving}
+            >
+              {saving ? 'Speichern...' : 'Speichern'}
+            </Button>
+          </div>
+        </>
+  );
+};
+
+export default PflichtEditView;
+</file>
+
+<file path="src/components/laws/SourcesView.tsx">
+import React from 'react';
+import { Beleg } from '@/types/pflicht';
+
+interface SourcesViewProps {
+  belege: Beleg[];
+}
+
+const SourcesView: React.FC<SourcesViewProps> = ({ belege }) => {
+  if (!belege || belege.length === 0) {
+    return <div style={{ padding: '1rem' }}>Keine Quellen verfügbar.</div>;
+  }
+
+  return (
+    <div style={{ padding: '1rem', overflowY: 'auto', height: '100%' }}>
+      {belege.map((beleg, index) => (
+        <div key={index} style={{ marginBottom: '1.25rem' }}>
+          <h4 style={{ fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
+            {beleg.anker || beleg.quelle}
+          </h4>
+          <p style={{ color: '#4b5563', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
+            {beleg.textauszug || beleg.text}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default SourcesView;
+</file>
+
+<file path="src/components/shared/ContextualSidebar.tsx">
+"use client";
+
+import React, { useMemo } from 'react';
+import { useSidebarStore } from '@/stores/sidebarStore';
+import DokumentSummaryView from '@/components/laws/DokumentSummaryView';
+import ChangeLogView from '@/components/laws/ChangeLogView';
+import SourcesView from '@/components/laws/SourcesView';
+import { Button } from '@/components/ui/button';
+import { AgentStreamProvider } from '@/context/AgentStreamProvider';
+import LawMonitorChatPanel from '@/components/laws/LawMonitorChatPanel';
+
+export const ContextualSidebar: React.FC = () => {
+  const { view, context, close, open } = useSidebarStore();
+  if (!view) return null;
+
+  const title = context?.title || '';
+
+  const tabs = useMemo(() => {
+    return [
+      { key: 'chat' as const, label: 'Chat', enabled: true },
+      { key: 'history' as const, label: 'Historie', enabled: !!(context?.objectType && context?.objectId !== undefined) },
+      { key: 'sources' as const, label: 'Quellen', enabled: !!(context?.belege && context.belege.length > 0) },
+    ];
+  }, [context?.objectType, context?.objectId, context?.belege]);
+
+  const truncate = (s: string, n = 60) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
+
+  const renderContent = () => {
+    switch (view) {
+      case 'chat':
+        return (
+          <AgentStreamProvider>
+            <LawMonitorChatPanel />
+          </AgentStreamProvider>
+        );
+      case 'history':
+        return context?.objectType && context.objectId !== undefined ? (
+          <ChangeLogView objectType={context.objectType} objectId={context.objectId!} refreshKey={(context as any)?.refreshKey} />
+        ) : null;
+      case 'sources':
+        return context?.belege ? <SourcesView belege={context.belege} /> : null;
+      // Dokument summary is shown in its own overlay panel, not in the sidebar
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Top tab bar (moved to very top, no separate close button) */}
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.25rem 0.5rem', borderBottom: '1px solid #e5e7eb' }}>
+        {tabs.map((t) => {
+          const isActive = view === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => t.enabled && open(t.key as any, { ...(context || {}) })}
+              disabled={!t.enabled && !isActive}
+              style={{
+                padding: '0.35rem 0.5rem',
+                fontSize: '0.85rem',
+                color: isActive ? '#111827' : t.enabled ? '#4b5563' : '#9ca3af',
+                border: 'none',
+                background: 'transparent',
+                borderBottom: `2px solid ${isActive ? '#3b82f6' : 'transparent'}`,
+                fontWeight: isActive ? 600 : 500,
+                cursor: t.enabled || isActive ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+        <div style={{ marginLeft: 'auto' }}>
+          <button
+            onClick={close}
+            aria-label="Schließen"
+            title="Schließen"
+            style={{
+              padding: '0.25rem 0.5rem',
+              background: 'transparent',
+              border: '1px solid #e5e7eb',
+              borderRadius: 6,
+              color: '#374151',
+              cursor: 'pointer',
+            }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
+      {/* Secondary context bar with smaller title */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.35rem 0.75rem', borderBottom: '1px solid #f3f4f6' }}>
+        <div style={{ fontSize: '0.85rem', color: '#374151' }}>{title ? truncate(title, 60) : ''}</div>
+      </div>
+
+      <div style={{ flex: 1, minHeight: 0 }}>
+        {renderContent()}
+      </div>
+
+      <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid #e5e7eb', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }} />
+    </div>
+  );
+};
+
+export default ContextualSidebar;
 </file>
 
 <file path="src/components/ui/alert.tsx">
@@ -5653,6 +6507,78 @@ const Protected = ({ children }: { children: ReactNode }) => {
 export default Protected;
 </file>
 
+<file path="src/components/ResizableSplitView.module.scss">
+.splitViewContainer {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  flex: 1; /* ensure it grows to fill parent flex container */
+}
+
+.mainPanel {
+  flex-grow: 1;
+  height: 100%;
+  overflow-y: auto;
+  transition: width 0.2s ease-in-out;
+}
+
+.dragger {
+  width: 5px;
+  background-color: #e5e7eb; // border-gray-200
+  cursor: col-resize;
+  flex-shrink: 0;
+  height: 100%;
+
+  &:hover {
+    background-color: #3b82f6; // blue-500
+  }
+}
+
+.sidePanel {
+  flex-shrink: 0;
+  height: 100%;
+  background-color: white;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidePanelHeader {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #f3f4f6; // gray-100
+  }
+}
+
+.closeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #6b7280; // gray-500
+}
+
+.sidePanelContent {
+  flex-grow: 1;
+  overflow-y: auto;
+  height: 100%;
+}
+</file>
+
 <file path="src/components/ScrollDownButton.tsx">
 "use client";
 
@@ -7085,6 +8011,89 @@ export function cn(...inputs: ClassValue[]) {
 }
 </file>
 
+<file path="src/stores/dokumentDialogStore.ts">
+import { create } from 'zustand';
+
+interface DokumentDialogState {
+  isOpen: boolean;
+  dokumentId: string | null;
+  title?: string;
+  open: (dokumentId: string, title?: string) => void;
+  close: () => void;
+}
+
+export const useDokumentDialogStore = create<DokumentDialogState>((set) => ({
+  isOpen: false,
+  dokumentId: null,
+  title: undefined,
+  open: (dokumentId, title) => set({ isOpen: true, dokumentId, title }),
+  close: () => set({ isOpen: false, dokumentId: null, title: undefined }),
+}));
+</file>
+
+<file path="src/stores/pflichtDialogStore.ts">
+import { create } from 'zustand';
+
+interface PflichtDialogState {
+  isOpen: boolean;
+  pflichtId: number | null;
+  title?: string;
+  open: (pflichtId: number, title?: string) => void;
+  close: () => void;
+}
+
+export const usePflichtDialogStore = create<PflichtDialogState>((set) => ({
+  isOpen: false,
+  pflichtId: null,
+  title: undefined,
+  open: (pflichtId, title) => set({ isOpen: true, pflichtId, title }),
+  close: () => set({ isOpen: false, pflichtId: null, title: undefined }),
+}));
+</file>
+
+<file path="src/stores/sidebarStore.ts">
+import { create } from 'zustand';
+import type { Beleg } from '@/types/pflicht';
+
+export type SidebarView = 'chat' | 'details' | 'edit' | 'history' | 'sources' | 'dokument' | null;
+
+export interface SidebarContext {
+  pflichtId?: number;
+  dokumentId?: string;
+  objectType?: 'pflicht' | 'dokument';
+  objectId?: number | string;
+  belege?: Beleg[];
+  title?: string;
+  refreshKey?: number;
+}
+
+interface SidebarState {
+  view: SidebarView;
+  context: SidebarContext | null;
+  open: (view: SidebarView, context: SidebarContext) => void;
+  close: () => void;
+  updateContext: (partial: Partial<SidebarContext>) => void;
+  // Edit view save wiring
+  setEditSaveHandler: (fn: (() => void) | null) => void;
+  triggerEditSave: () => void;
+  _editSaveHandler: (() => void) | null;
+}
+
+export const useSidebarStore = create<SidebarState>((set) => ({
+  view: null,
+  context: null,
+  open: (view, context) => set({ view, context }),
+  close: () => set({ view: null, context: null, _editSaveHandler: null }),
+  updateContext: (partial) => set((state) => ({ context: { ...(state.context || {}), ...partial } })),
+  setEditSaveHandler: (fn) => set({ _editSaveHandler: fn }),
+  triggerEditSave: () => set((state) => {
+    state._editSaveHandler?.();
+    return {} as any;
+  }),
+  _editSaveHandler: null,
+}));
+</file>
+
 <file path="src/types/generic.ts">
 export class NetworkingError {
   code: number | null;
@@ -7346,6 +8355,114 @@ const DashboardPage: React.FC = () => {
 export default DashboardPage;
 </file>
 
+<file path="src/components/laws/LawMonitorChatPanel.tsx">
+"use client";
+
+import { useEffect, useRef, useMemo } from "react";
+import { useAgentStreamContext } from "@/context/AgentStreamProvider";
+import { useSidebarStore } from "@/stores/sidebarStore";
+import { useAuth } from "@/context/AuthContext";
+import ChatMessage from "@/components/ChatMessage";
+import TextInput from "@/components/TextInput";
+import { Role } from "@/domain/constants";
+import { formatMarkdownHtml } from "@/domain/markdown-service";
+import { v4 as uuidv4 } from "uuid";
+import { normalizeToolCalls, formatToolActivity } from "@/lib/tool-parsers";
+import styles from "./LawMonitorChatPanel.module.scss";
+
+const LawMonitorChatPanel = () => {
+  const { chatMessages, isStreaming, sendMessage } = useAgentStreamContext();
+  const { context } = useSidebarStore();
+  const { user } = useAuth();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const threadId = useMemo(() => {
+    // return a random uuid
+    return uuidv4();
+  }, [context]);
+
+  const handleSendMessage = async (message: string) => {
+    if (!user || !context || !message?.trim()) return;
+    const token = await user.getIdToken();
+    const agentConfig = {
+      pflicht_id: context.pflichtId,
+      document_id: context.dokumentId,
+    };
+
+    console.log("agentConfig", agentConfig);
+    await sendMessage(
+      {
+        thread_id: threadId,
+        user_id: user.uid,
+        message,
+        agent_id: "law-monitor-agent",
+        stream_tokens: true,
+        agent_config: agentConfig,
+      },
+      token
+    );
+  };
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages, isStreaming]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "1rem" }}>
+        {chatMessages.map((msg, index) => (
+          <ChatMessage
+            key={msg.id || `msg-${index}`}
+            role={(msg.role as Role) ?? Role.AI}
+            isStartScreen={false}
+            isLoadingArtifact={false}
+          >
+            {/* Tool activity badge if tool calls present */}
+            {(() => {
+              const toolCallsRaw = msg.meta?.tool_calls || msg.tool_calls;
+              const calls = normalizeToolCalls(toolCallsRaw);
+              if (!calls.length) return null;
+              const labels = calls
+                .map((c) => formatToolActivity(c))
+                .filter(Boolean) as string[];
+              if (!labels.length) return null;
+              const isActive = isStreaming && (!msg.content || msg.content.length === 0);
+              return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
+                  {labels.map((label, i) => (
+                    <span key={`${label}-${i}`} className={`${styles.activityBadge} ${isActive ? styles.active : ''}`}>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
+
+            {Boolean(msg.content) && (
+              <div
+                className="markdown-chat"
+                dangerouslySetInnerHTML={{
+                  __html: formatMarkdownHtml(msg.content ?? ""),
+                }}
+              />
+            )}
+          </ChatMessage>
+        ))}
+        {isStreaming && chatMessages[chatMessages.length - 1]?.role !== "ai" && (
+          <ChatMessage role={Role.AI} isStartScreen={false} isLoadingArtifact={false} />
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+      <div style={{ padding: "1rem", borderTop: "1px solid #e5e7eb" }}>
+        <TextInput inputEnabled={!isStreaming} onSubmit={handleSendMessage} />
+      </div>
+    </div>
+  );
+};
+
+export default LawMonitorChatPanel;
+</file>
+
 <file path="src/components/laws/LawsDashboard.tsx">
 'use client';
 
@@ -7388,247 +8505,6 @@ export function LawsDashboard({ children }: LawsDashboardProps) {
       <div>{children}</div>
     </div>
   );
-}
-</file>
-
-<file path="src/components/laws/PflichtEditDialog.module.scss">
-.dialogContent {
-  max-width: 900px;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.dialogHeader {
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 1.5rem;
-  position: relative;
-}
-
-.dialogTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  padding-right: 3rem;
-  line-height: 1.4;
-  word-wrap: break-word;
-  hyphens: auto;
-}
-
-.closeButton {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 0.5rem;
-  min-width: auto;
-  height: 2rem;
-  width: 2rem;
-}
-
-.dialogBody {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.compactGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  padding: 1rem;
-  background-color: #fafafa;
-  border-radius: 0.5rem;
-  border: 1px solid #e5e7eb;
-}
-
-.bottomRow {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.fieldGroupFullWidth {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.fieldGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.fieldLabel {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.fieldValue {
-  font-size: 0.875rem;
-  color: #1f2937;
-  line-height: 1.5;
-  word-break: break-word;
-}
-
-.fieldInput {
-  font-size: 0.875rem;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  background-color: white;
-  width: 100%;
-  box-sizing: border-box;
-  
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-}
-
-.textarea {
-  font-size: 0.875rem;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  background-color: white;
-  resize: vertical;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  min-height: 60px;
-  
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-}
-
-.iconValue {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.loadingContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  text-align: center;
-}
-
-.loadingSpinner {
-  width: 2rem;
-  height: 2rem;
-  border: 2px solid #e5e7eb;
-  border-top: 2px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.errorContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  text-align: center;
-}
-
-.errorIcon {
-  width: 3rem;
-  height: 3rem;
-  color: #ef4444;
-  margin-bottom: 1rem;
-}
-
-.errorMessage {
-  color: #ef4444;
-  margin-bottom: 1rem;
-  font-weight: 500;
-}
-
-.actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
-  margin-top: 1rem;
-}
-
-.actionButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-}
-
-// Responsive design
-@media (max-width: 768px) {
-  .dialogContent {
-    max-width: 95vw;
-    max-height: 95vh;
-  }
-
-  .dialogHeader {
-    padding-bottom: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .dialogTitle {
-    font-size: 1.125rem;
-  }
-
-  .dialogBody {
-    gap: 1.5rem;
-  }
-
-  .compactGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 0.75rem;
-  }
-
-
-  .fieldLabel {
-    font-size: 0.8125rem;
-  }
-
-  .fieldInput {
-    font-size: 0.8125rem;
-  }
-
-  .textarea {
-    font-size: 0.8125rem;
-  }
-
-  .actions {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .actionButton {
-    width: 100%;
-    justify-content: center;
-  }
 }
 </file>
 
@@ -8859,6 +9735,89 @@ export default ConversationChat;
     transition: color 0.3s ease;
   }
 }
+</file>
+
+<file path="src/components/ResizableSplitView.tsx">
+"use client";
+
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import styles from './ResizableSplitView.module.scss';
+
+interface ResizableSplitViewProps {
+  mainContent: React.ReactNode;
+  sidePanelContent: React.ReactNode;
+  isSidePanelOpen: boolean;
+  onSidePanelClose: () => void;
+  initialSidePanelWidth?: number;
+  minSidePanelWidth?: number;
+}
+
+const ResizableSplitView: React.FC<ResizableSplitViewProps> = ({
+  mainContent,
+  sidePanelContent,
+  isSidePanelOpen,
+  onSidePanelClose,
+  initialSidePanelWidth = 400,
+  minSidePanelWidth = 300,
+}) => {
+  const [panelWidth, setPanelWidth] = useState(initialSidePanelWidth);
+  const isResizing = useRef(false);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing.current) return;
+    const newWidth = window.innerWidth - e.clientX;
+    if (newWidth >= minSidePanelWidth) {
+      setPanelWidth(newWidth);
+    }
+  }, [minSidePanelWidth]);
+
+  const handleMouseUp = useCallback(() => {
+    isResizing.current = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  }, [handleMouseMove]);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    isResizing.current = true;
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
+
+  return (
+    <div className={styles.splitViewContainer}>
+      <div
+        className={styles.mainPanel}
+        style={{ width: isSidePanelOpen ? `calc(100% - ${panelWidth}px - 5px)` : '100%' }}
+      >
+        {mainContent}
+      </div>
+      {isSidePanelOpen && (
+        <>
+          <div
+            className={styles.dragger}
+            onMouseDown={handleMouseDown}
+          />
+          <div className={styles.sidePanel} style={{ width: `${panelWidth}px` }}>
+            <div className={styles.sidePanelContent}>
+              {sidePanelContent}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default ResizableSplitView;
 </file>
 
 <file path="src/components/ScrollDownButton.module.scss">
@@ -10933,10 +11892,6 @@ export let isProduction = false;
 export default config;
 </file>
 
-<file path=".env.local">
-NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
-</file>
-
 <file path="openapi-ts.config.ts">
 import { defineConfig } from "@hey-api/openapi-ts";
 
@@ -11001,51 +11956,6 @@ export default defineConfig({
     "customer_title": "Customers",
     "welcome_message": "Select an area to get started."
   }
-}
-</file>
-
-<file path="src/app/[locale]/layout.tsx">
-import type { Metadata } from "next";
-import "@/styles/globals.css";
-import "@/styles/custom.scss";
-import "highlight.js/styles/github.css";
-
-import { AuthProvider } from "@/context/AuthContext";
-import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { routing } from "@/i18n/routing";
-import { notFound } from "next/navigation";
-import { AgentStreamProvider } from "@/context/AgentStreamProvider";
-import { TaskProvider } from "@/context/TaskContext";
-
-export const metadata: Metadata = {
-  title: "Kireon",
-  description: "Kireon",
-};
-
-export default async function RootLayout({
-  children,
-  params,
-}: Readonly<{
-  children: React.ReactNode;
-  params: Promise<{ locale: string }>;
-}>) {
-  const { locale } = await params;
-  if (!hasLocale(routing.locales, locale)) {
-    notFound();
-  }
-  return (
-    <html lang={locale}>
-      <body suppressHydrationWarning>
-        <NextIntlClientProvider>
-          <AuthProvider>
-            <TaskProvider>
-              <AgentStreamProvider>{children}</AgentStreamProvider>
-            </TaskProvider>
-          </AuthProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
-  );
 }
 </file>
 
@@ -11263,6 +12173,262 @@ export default async function RootLayout({
   .progressStats {
     flex-direction: column;
     gap: 0.5rem;
+  }
+}
+</file>
+
+<file path="src/components/laws/PflichtEditDialog.module.scss">
+.dialogContent {
+  max-width: 900px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.dialogHeader {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.dialogTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  padding-right: 3rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.closeButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.5rem;
+  min-width: auto;
+  height: 2rem;
+  width: 2rem;
+}
+
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.compactGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #fafafa;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.bottomRow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.fieldGroupFullWidth {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.fieldValue {
+  font-size: 0.875rem;
+  color: #1f2937;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.fieldInput {
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  width: 100%;
+  box-sizing: border-box;
+  
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.textarea {
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  resize: vertical;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 60px;
+  background-clip: padding-box;
+  position: relative;
+  z-index: 1;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.dynamicFieldItem {
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  position: relative;
+}
+
+.addButton {
+  margin-top: 1.5rem;
+  position: relative;
+  z-index: 0;
+}
+
+.iconValue {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.loadingSpinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.errorIcon {
+  width: 3rem;
+  height: 3rem;
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.errorMessage {
+  color: #ef4444;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem 0.5rem 1rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1rem;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .dialogContent {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+
+  .dialogHeader {
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .dialogTitle {
+    font-size: 1.125rem;
+  }
+
+  .dialogBody {
+    gap: 1.5rem;
+  }
+
+  .compactGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0.75rem;
+  }
+
+
+  .fieldLabel {
+    font-size: 0.8125rem;
+  }
+
+  .fieldInput {
+    font-size: 0.8125rem;
+  }
+
+  .textarea {
+    font-size: 0.8125rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .actionButton {
+    width: 100%;
+    justify-content: center;
   }
 }
 </file>
@@ -11544,42 +12710,6 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-</file>
-
-<file path="src/context/AgentStreamProvider.tsx">
-"use client";
-
-import { useAgentStream } from "@/lib/hooks/useAgentStream";
-import React, { createContext, useContext, ReactNode } from "react";
-
-const StreamContext = createContext<ReturnType<typeof useAgentStream> | null>(
-  null
-);
-
-export const useAgentStreamContext = () => {
-  const context = useContext(StreamContext);
-  if (!context) {
-    throw new Error(
-      "useAgentStreamContext must be used within an AgentStreamProvider"
-    );
-  }
-  return context;
-};
-
-interface AgentStreamProviderProps {
-  children: ReactNode;
-}
-
-export const AgentStreamProvider = ({ children }: AgentStreamProviderProps) => {
-  const stream = useAgentStream(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stream` ||
-    "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io/api/stream"
-  );
-
-  return (
-    <StreamContext.Provider value={stream}>{children}</StreamContext.Provider>
-  );
-};
 </file>
 
 <file path="src/lib/hooks/useCustomerData.ts">
@@ -12345,6 +13475,10 @@ pre {
 }
 </file>
 
+<file path=".env.local">
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+</file>
+
 <file path=".gitignore">
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
@@ -12473,6 +13607,51 @@ memory/*
     "tailwindcss": "4.1.7",
     "typescript": "5"
   }
+}
+</file>
+
+<file path="src/app/[locale]/layout.tsx">
+import type { Metadata } from "next";
+import "@/styles/globals.css";
+import "@/styles/custom.scss";
+import "highlight.js/styles/github.css";
+
+import { AuthProvider } from "@/context/AuthContext";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { routing } from "@/i18n/routing";
+import { notFound } from "next/navigation";
+import { AgentStreamProvider } from "@/context/AgentStreamProvider";
+import { TaskProvider } from "@/context/TaskContext";
+
+export const metadata: Metadata = {
+  title: "Kireon",
+  description: "Kireon",
+};
+
+export default async function RootLayout({
+  children,
+  params,
+}: Readonly<{
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}>) {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+  return (
+    <html lang={locale}>
+      <body suppressHydrationWarning>
+        <NextIntlClientProvider>
+          <AuthProvider>
+            <TaskProvider>
+              <AgentStreamProvider>{children}</AgentStreamProvider>
+            </TaskProvider>
+          </AuthProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
 }
 </file>
 
@@ -12818,6 +13997,136 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
 export default CreateDokumentModal;
 </file>
 
+<file path="src/context/AgentStreamProvider.tsx">
+"use client";
+
+import { useAgentStream } from "@/lib/hooks/useAgentStream";
+import React, { createContext, useContext, ReactNode } from "react";
+
+const StreamContext = createContext<ReturnType<typeof useAgentStream> | null>(
+  null
+);
+
+export const useAgentStreamContext = () => {
+  const context = useContext(StreamContext);
+  if (!context) {
+    throw new Error(
+      "useAgentStreamContext must be used within an AgentStreamProvider"
+    );
+  }
+  return context;
+};
+
+interface AgentStreamProviderProps {
+  children: ReactNode;
+}
+
+export const AgentStreamProvider = ({ children }: AgentStreamProviderProps) => {
+  const stream = useAgentStream(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stream` ||
+    "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io/api/stream"
+  );
+
+  return (
+    <StreamContext.Provider value={stream}>{children}</StreamContext.Provider>
+  );
+};
+</file>
+
+<file path="src/lib/services/dokument-feedback-service.ts">
+import { auth } from "@/lib/auth";
+import { DokumentFeedback } from "@/types/pflicht";
+
+export const submitDokumentFeedback = async (dokumentId: string, feedback: DokumentFeedback): Promise<void> => {
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+    const response = await fetch(`${baseUrl}/api/dokument/${dokumentId}/feedback`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(feedback),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} ${errorText}`);
+    }
+  } catch (error) {
+    console.error("Error submitting dokument feedback:", error);
+    throw error;
+  }
+};
+</file>
+
+<file path="src/types/pflicht-preview.ts">
+export interface PflichtPreview {
+  id: number;
+  dokument_id: string | null;
+  thema: string | null;
+  stichtag: string | null;
+  folgestatus: string | null;
+  produkte: string[] | null;
+  laenderkuerzel: string[] | null;
+}
+
+export interface DokumentPreview {
+  id: string;
+  bereich: string | null;
+  gesetzeskuerzel: string | null;
+  gesetzgebung: string | null;
+  dokument_status: string | null;
+  verfahren_status: string | null;
+  extraction_timestamp: string;
+  thema: string | null;
+  url: string | null;
+  pflichten: PflichtPreview[];
+}
+
+export interface DokumentPreviewSearchParams {
+  pagination_offset?: number;
+  pagination_size?: number;
+  bereich?: string | null;
+  gesetzeskuerzel?: string | null;
+  gesetzgebung?: string | null;
+  thema_search?: string | null;
+  sort_by?: string;
+  sort_order?: "asc" | "desc";
+}
+
+export interface DokumentPreviewResponse {
+  data: DokumentPreview[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface SearchResultResponse {
+  results: DokumentPreview[];
+  total_count: number;
+}
+</file>
+
+<file path="docker-compose.yaml">
+version: '3.8'
+
+services:
+  hiring-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_BACKEND_URL: "http://localhost:8000"
+    image: kireon-frontend:latest
+    ports:
+      - "3000:8080"
+    restart: unless-stopped
+</file>
+
 <file path="src/components/laws/PflichtDetailDialog.module.scss">
 .dialogContent {
   max-width: 900px;
@@ -12871,6 +14180,23 @@ export default CreateDokumentModal;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+
+  .fieldLabel {
+    padding-left: 0;
+  }
+}
+
+.instructionsSection {
+  margin-top: 1.5rem;
+  padding-left: 1rem;
+
+  .fieldLabel {
+    margin-bottom: 0.75rem;
+  }
+
+  .fieldValue {
+    padding-left: 0.5rem;
+  }
 }
 
 .tags {
@@ -13111,628 +14437,201 @@ export default CreateDokumentModal;
 }
 </file>
 
-<file path="src/lib/services/dokument-feedback-service.ts">
-import { auth } from "@/lib/auth";
-import { DokumentFeedback } from "@/types/pflicht";
+<file path="Dockerfile">
+FROM node:20-alpine AS deps
 
-export const submitDokumentFeedback = async (dokumentId: string, feedback: DokumentFeedback): Promise<void> => {
-  try {
-    const token = await auth.currentUser?.getIdToken();
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+ARG NEXT_PUBLIC_BACKEND_URL
 
-    const response = await fetch(`${baseUrl}/api/dokument/${dokumentId}/feedback`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(feedback),
-    });
+ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-https://backend.niceforest-23188099.westeurope.azurecontainerapps.io}
+ARG NEXT_PUBLIC_ALLOW_ANONYMOUS=true
+ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS
+RUN echo "NEXT_PUBLIC_BACKEND_URL is: $NEXT_PUBLIC_BACKEND_URL"
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP error! status: ${response.status} ${errorText}`);
-    }
-  } catch (error) {
-    console.error("Error submitting dokument feedback:", error);
-    throw error;
-  }
-};
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+
+# Create .env file from build argument
+RUN echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" > .env && \
+    echo "NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS" >> .env
+
+RUN yarn install --frozen-lockfile
+
+FROM node:20-alpine AS builder
+
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_ALLOW_ANONYMOUS=true
+ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-https://backend.niceforest-23188099.westeurope.azurecontainerapps.io}
+ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Create .env file from build argument
+RUN echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" > .env && \
+    echo "NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS" >> .env
+
+RUN yarn build
+
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=true
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy the standalone output
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+# Set permissions
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
 </file>
 
-<file path="src/types/pflicht-preview.ts">
-export interface PflichtPreview {
-  id: number;
-  dokument_id: string | null;
-  thema: string | null;
-  stichtag: string | null;
-  folgestatus: string | null;
-  produkte: string[] | null;
-  laenderkuerzel: string[] | null;
-}
+<file path="src/components/laws/LawAcronymsView.tsx">
+'use client';
 
-export interface DokumentPreview {
-  id: string;
-  bereich: string | null;
-  gesetzeskuerzel: string | null;
-  gesetzgebung: string | null;
-  dokument_status: string | null;
-  verfahren_status: string | null;
-  extraction_timestamp: string;
-  thema: string | null;
-  url: string | null;
-  pflichten: PflichtPreview[];
-}
-
-export interface DokumentPreviewSearchParams {
-  pagination_offset?: number;
-  pagination_size?: number;
-  bereich?: string | null;
-  gesetzeskuerzel?: string | null;
-  gesetzgebung?: string | null;
-  thema_search?: string | null;
-  sort_by?: string;
-  sort_order?: "asc" | "desc";
-}
-
-export interface DokumentPreviewResponse {
-  data: DokumentPreview[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface SearchResultResponse {
-  results: DokumentPreview[];
-  total_count: number;
-}
-</file>
-
-<file path="docker-compose.yaml">
-version: '3.8'
-
-services:
-  hiring-frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_BACKEND_URL: "http://localhost:8000"
-    image: kireon-frontend:latest
-    ports:
-      - "3000:8080"
-    restart: unless-stopped
-</file>
-
-<file path="src/components/laws/PflichtDetailDialog.tsx">
-import React, { useState, useEffect, useCallback } from 'react';
-import { Pflicht, Beleg } from '@/types/pflicht';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, AlertCircle, BookOpenIcon, MessageSquare } from 'lucide-react';
-import { useRightPanelStore } from '@/stores/rightPanelStore';
-import { getPflichtDetails } from '@/lib/services/pflicht-service';
-import styles from './PflichtDetailDialog.module.scss';
-
-interface PflichtDetailDialogProps {
-  pflichtId: number | null;
-  onClose: () => void;
-  onEdit?: () => void;
-  onShowBelege: (belege: Beleg[], pflichtThema: string) => void;
-}
-
-const PflichtDetailView: React.FC<PflichtDetailDialogProps> = ({
-  pflichtId,
-  onClose,
-  onEdit,
-  onShowBelege,
-}) => {
-  const [pflicht, setPflicht] = useState<Pflicht | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { openPanel } = useRightPanelStore();
-
-  const loadPflichtDetails = useCallback(async () => {
-    if (!pflichtId) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getPflichtDetails(pflichtId);
-      setPflicht(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler beim Laden der Pflicht-Details');
-    } finally {
-      setLoading(false);
-    }
-  }, [pflichtId]);
-
-  useEffect(() => {
-    if (pflichtId) {
-      loadPflichtDetails();
-    }
-  }, [pflichtId, loadPflichtDetails]);
-
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Nicht verfügbar';
-    try {
-      return new Date(dateString).toLocaleDateString('de-DE');
-    } catch {
-      return dateString;
-    }
-  };
-
-  if (!pflichtId) return null;
-
-  if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner} />
-        <p>Lade Pflicht-Details...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={styles.errorContainer}>
-        <AlertCircle className={styles.errorIcon} />
-        <p className={styles.errorMessage}>{error}</p>
-        <Button onClick={loadPflichtDetails} variant="outline">
-          Erneut versuchen
-        </Button>
-      </div>
-    );
-  }
-
-  if (!pflicht) return null;
-
-
-  return (
-        <div className={styles.dialogBody}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openPanel({ documentId: pflicht.dokument_id, pflichtId })}
-              title="Law Monitor Chat öffnen"
-            >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Chat öffnen
-            </Button>
-          </div>
-          <div className={styles.compactGrid}>
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Stichtag</label>
-              <div className={styles.fieldValue}>
-                <div className={styles.iconValue}>
-                  <Calendar className="h-4 w-4" />
-                  {formatDate(pflicht.stichtag)}
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Folgestatus</label>
-              <div className={styles.fieldValue}>{pflicht.folgestatus || 'Nicht verfügbar'}</div>
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Markt</label>
-              <div className={styles.fieldValue}>
-                {pflicht.laenderkuerzel && pflicht.laenderkuerzel.length > 0 ? (
-                  <div className={styles.tags}>
-                    {pflicht.laenderkuerzel.map((kuerzel, index) => (
-                      <Badge key={index} variant="outline" className={styles.tag}>
-                        {kuerzel}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  'Nicht verfügbar'
-                )}
-              </div>
-            </div>
-
-            {pflicht.produkte && pflicht.produkte.length > 0 && (
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Produkte</label>
-                <div className={styles.fieldValue}>
-                  <div className={styles.produkteList}>
-                    {pflicht.produkte.map((produkt, index) => (
-                      <Badge key={index} variant="outline" className={styles.produktBadge}>
-                        {produkt}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {pflicht.information && (
-              <div className={styles.fieldGroupFullWidth}>
-                <label className={styles.fieldLabel}>Informationen</label>
-                <div className={styles.fieldValue}>{pflicht.information}</div>
-              </div>
-            )}
-
-            {pflicht.verweise && (
-              <div className={styles.fieldGroupFullWidth}>
-                <label className={styles.fieldLabel}>Verweise</label>
-                <div className={styles.fieldValue}>{pflicht.verweise}</div>
-              </div>
-            )}
-
-            {pflicht.rechtsgrundlage_ref && (
-              <div className={styles.fieldGroupFullWidth}>
-                <label className={styles.fieldLabel}>Rechtsgrundlage Ref.</label>
-                <div className={styles.fieldValue}>{pflicht.rechtsgrundlage_ref}</div>
-              </div>
-            )}
-
-            {(pflicht.betroffene || pflicht.ausblick) && (
-              <div className={styles.bottomRow}>
-                {pflicht.ausblick && (
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Ausblick</label>
-                    <div className={styles.fieldValue}>{pflicht.ausblick}</div>
-                  </div>
-                )}
-
-                {pflicht.betroffene && (
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Betroffene Akteure</label>
-                    <div className={styles.fieldValue}>
-                      <div className={styles.iconValue}>
-                        <Users className="h-4 w-4" />
-                        {pflicht.betroffene}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.actions}>
-            {pflicht.belege && pflicht.belege.length > 0 && (
-              <Button
-                variant="outline"
-                onClick={() => onShowBelege(pflicht.belege!, pflicht.thema || 'Unbekannte Pflicht')}
-                className={styles.actionButton}
-              >
-                <BookOpenIcon className="h-4 w-4 mr-2" />
-                Quellen anzeigen
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className={styles.actionButton}
-            >
-              Schließen
-            </Button>
-            {onEdit && (
-              <Button
-                variant="outline"
-                onClick={onEdit}
-                className={styles.actionButton}
-              >
-                Bearbeiten
-              </Button>
-            )}
-          </div>
-          <div className={styles.actions}>
-            {pflicht.belege && pflicht.belege.length > 0 && (
-              <Button
-                variant="outline"
-                onClick={() => onShowBelege(pflicht.belege!, pflicht.thema || 'Unbekannte Pflicht')}
-                className={styles.actionButton}
-              >
-                <BookOpenIcon className="h-4 w-4 mr-2" />
-                Quellen anzeigen
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className={styles.actionButton}
-            >
-              Schließen
-            </Button>
-            {onEdit && (
-              <Button
-                variant="outline"
-                onClick={onEdit}
-                className={styles.actionButton}
-              >
-                Bearbeiten
-              </Button>
-            )}
-          </div>
-        </div>
-  );
-};
-
-export default PflichtDetailView;
-</file>
-
-<file path="src/components/laws/PflichtEditDialog.tsx">
-import React, { useState, useEffect, useCallback } from 'react';
-import { Pflicht } from '@/types/pflicht';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Calendar, Users, AlertCircle } from 'lucide-react';
-import { getPflichtDetails, updatePflicht } from '@/lib/services/pflicht-service';
-import styles from './PflichtEditDialog.module.scss';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Search, Plus, Edit } from 'lucide-react';
+import { getLawAcronyms } from '@/lib/services/laws-service';
+import { LawAcronym } from '@/types/laws';
 
-interface PflichtEditDialogProps {
-  pflichtId: number | null;
-  onClose: () => void;
-  onSave: (updatedPflicht: Pflicht) => void;
-}
+export function LawAcronymsView() {
 
-const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
-  pflichtId,
-  onClose,
-  onSave,
-}) => {
-  const [pflicht, setPflicht] = useState<Pflicht | null>(null);
+  const [acronyms, setAcronyms] = useState<LawAcronym[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadPflichtDetails = useCallback(async () => {
-    if (!pflichtId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getPflichtDetails(pflichtId);
-      setPflicht(data);
-    } catch (err) {
-      console.error('Failed to load pflicht details:', err);
-      setError(err instanceof Error ? err.message : 'Fehler beim Laden der Pflicht-Details.');
-    } finally {
-      setLoading(false);
-    }
-  }, [pflichtId]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    loadPflichtDetails();
-  }, [pflichtId, loadPflichtDetails]);
+    const loadAcronyms = async () => {
+      try {
+        setLoading(true);
+        const data = await getLawAcronyms();
+        setAcronyms(data);
+      } catch (error) {
+        console.error('Failed to load law acronyms:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAcronyms();
+  }, []);
 
-  const handleInputChange = (field: keyof Pflicht, value: any) => {
-    if (!pflicht) return;
+  const filteredAcronyms = acronyms.filter(
+    (acronym) =>
+      acronym.acronym.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      acronym.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    setPflicht(prev => prev ? { ...prev, [field]: value } : prev);
+  const handleEdit = () => {
+    // TODO: Implement edit functionality with modal
   };
 
-  const handleArrayChange = (field: keyof Pflicht, value: string) => {
-    if (!pflicht) return;
-
-    const arrayValue = value.split(',').map(item => item.trim()).filter(item => item);
-    setPflicht(prev => prev ? { ...prev, [field]: arrayValue } : prev);
+  const handleAdd = () => {
+    // TODO: Implement add functionality with modal
   };
-
-  const handleSave = async () => {
-    if (!pflicht || !pflichtId) {
-      console.error('Missing pflicht or pflichtId:', { pflicht, pflichtId });
-      return;
-    }
-
-    setSaving(true);
-    setError(null);
-
-    try {
-      const updatedPflicht = await updatePflicht(pflichtId, pflicht);
-      onSave(updatedPflicht);
-      onClose();
-    } catch (err) {
-      console.error('Failed to update pflicht:', err);
-      setError(err instanceof Error ? err.message : 'Fehler beim Speichern der Änderungen.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '';
-    try {
-      return new Date(dateString).toISOString().split('T')[0];
-    } catch {
-      return '';
-    }
-  };
-
-  if (!pflichtId) return null;
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner} />
-        <p>Lade Pflicht-Details...</p>
-      </div>
+      <Card>
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="text-muted-foreground">Lade Gesetzeskürzel...</div>
+        </CardContent>
+      </Card>
     );
   }
-
-  if (error) {
-    return (
-      <div className={styles.errorContainer}>
-        <AlertCircle className={styles.errorIcon} />
-        <p className={styles.errorMessage}>{error}</p>
-        <Button onClick={loadPflichtDetails} variant="outline">
-          Erneut versuchen
-        </Button>
-      </div>
-    );
-  }
-
-  if (!pflicht) return null;
 
   return (
-        <div className={styles.dialogBody}>
-          <div className={styles.compactGrid}>
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>Stichtag</Label>
-              <div className={styles.fieldValue}>
-                <div className={styles.iconValue}>
-                  <Calendar className="h-4 w-4" />
-                  <Input
-                    type="date"
-                    value={formatDate(pflicht.stichtag)}
-                    onChange={(e) => handleInputChange('stichtag', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                    className={styles.fieldInput}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>Stichtag Typ</Label>
-              <Input
-                value={pflicht.stichtag_typ || ''}
-                onChange={(e) => handleInputChange('stichtag_typ', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>Folgestatus</Label>
-              <Input
-                value={pflicht.folgestatus || ''}
-                onChange={(e) => handleInputChange('folgestatus', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>Markt (kommagetrennt)</Label>
-              <Input
-                value={pflicht.laenderkuerzel?.join(', ') || ''}
-                onChange={(e) => handleArrayChange('laenderkuerzel', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
-
-            {pflicht.produkte && pflicht.produkte.length > 0 && (
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Produkte (kommagetrennt)</Label>
-                <Input
-                  value={pflicht.produkte.join(', ') || ''}
-                  onChange={(e) => handleArrayChange('produkte', e.target.value)}
-                  className={styles.fieldInput}
-                />
-              </div>
-            )}
-
-            {pflicht.information && (
-              <div className={styles.fieldGroupFullWidth}>
-                <Label className={styles.fieldLabel}>Informationen</Label>
-                <Textarea
-                  value={pflicht.information || ''}
-                  onChange={(e) => handleInputChange('information', e.target.value)}
-                  className={styles.textarea}
-                  rows={4}
-                />
-              </div>
-            )}
-
-            <div className={styles.fieldGroupFullWidth}>
-              <Label className={styles.fieldLabel}>Verweise</Label>
-              <Input
-                value={pflicht.verweise || ''}
-                onChange={(e) => handleInputChange('verweise', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
-
-            <div className={styles.fieldGroupFullWidth}>
-              <Label className={styles.fieldLabel}>Rechtsgrundlage Ref.</Label>
-              <Input
-                value={pflicht.rechtsgrundlage_ref || ''}
-                onChange={(e) => handleInputChange('rechtsgrundlage_ref', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
-
-            {(pflicht.betroffene || pflicht.ausblick) && (
-              <div className={styles.bottomRow}>
-                {pflicht.ausblick && (
-                  <div className={styles.fieldGroup}>
-                    <Label className={styles.fieldLabel}>Ausblick</Label>
-                    <Textarea
-                      value={pflicht.ausblick || ''}
-                      onChange={(e) => handleInputChange('ausblick', e.target.value)}
-                      className={styles.textarea}
-                      rows={3}
-                    />
-                  </div>
-                )}
-
-                {pflicht.betroffene && (
-                  <div className={styles.fieldGroup}>
-                    <Label className={styles.fieldLabel}>Betroffene Akteure</Label>
-                    <div className={styles.fieldValue}>
-                      <div className={styles.iconValue}>
-                        <Users className="h-4 w-4" />
-                        <Input
-                          value={pflicht.betroffene || ''}
-                          onChange={(e) => handleInputChange('betroffene', e.target.value)}
-                          className={styles.fieldInput}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+    <Card>
+      <CardHeader>
+        <CardTitle>Gesetzeskürzel verwalten</CardTitle>
+        <CardDescription>
+          Verwaltung von Abkürzungen und Kurzbezeichnungen für Gesetze und Verordnungen
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-2 flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Suche nach Stichwort, Gesetz oder Titel..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
           </div>
-
-          <div className={styles.actions}>
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className={styles.actionButton}
-              disabled={saving}
-            >
-              Abbrechen
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleSave}
-              className={styles.actionButton}
-              disabled={saving}
-            >
-              {saving ? 'Speichern...' : 'Speichern'}
-            </Button>
-          </div>
-          <div className={styles.actions}>
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className={styles.actionButton}
-              disabled={saving}
-            >
-              Abbrechen
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleSave}
-              className={styles.actionButton}
-              disabled={saving}
-            >
-              {saving ? 'Speichern...' : 'Speichern'}
-            </Button>
-          </div>
+          <Button onClick={handleAdd}>
+            <Plus className="w-4 h-4 mr-2" />
+            Neues Kürzel
+          </Button>
         </div>
-  );
-};
 
-export default PflichtEditDialog;
+        <Table>
+          <TableCaption>
+            {filteredAcronyms.length} von {acronyms.length} Gesetzeskürzeln
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Kürzel</TableHead>
+              <TableHead>Vollständiger Name</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Aktionen</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAcronyms.map((acronym) => (
+              <TableRow key={acronym.id}>
+                <TableCell className="font-medium">{acronym.acronym}</TableCell>
+                <TableCell>{acronym.fullName}</TableCell>
+                <TableCell>
+                  <Badge variant={acronym.isActive ? 'default' : 'secondary'}>
+                    {acronym.isActive ? 'Aktiv' : 'Inaktiv'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit()}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
 </file>
 
 <file path="src/lib/hooks/useAgentStream.ts">
@@ -14016,16 +14915,12 @@ export function useAgentStream(endpoint: string) {
     const role = final.type === "ai" ? "ai" : final.type;
 
     if (role === "ai") {
-      if (!final.content?.trim()) {
-        console.debug("Skipped empty AI message", final);
-        return;
-      }
-
       const finalChat: ExtendedChatMessage = {
         id: final.run_id,
         role,
-        content: final.content,
-        meta: final.custom_data,
+        content: final.content ?? "",
+        // Prefer SSE meta (payload.custom_data), fallback to message-embedded custom_data
+        meta: sseMeta ?? final.custom_data,
       };
 
       if (final?.custom_data?.all_tasks_summary) {
@@ -14112,277 +15007,6 @@ export function useAgentStream(endpoint: string) {
     getParsedArtifactContent,
     clearArtifacts,
   };
-}
-</file>
-
-<file path="Dockerfile">
-FROM node:20-alpine AS deps
-
-ARG NEXT_PUBLIC_BACKEND_URL
-
-ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-https://backend.niceforest-23188099.westeurope.azurecontainerapps.io}
-ARG NEXT_PUBLIC_ALLOW_ANONYMOUS=true
-ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS
-RUN echo "NEXT_PUBLIC_BACKEND_URL is: $NEXT_PUBLIC_BACKEND_URL"
-
-WORKDIR /app
-
-COPY package.json yarn.lock ./
-
-# Create .env file from build argument
-RUN echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" > .env && \
-    echo "NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS" >> .env
-
-RUN yarn install --frozen-lockfile
-
-FROM node:20-alpine AS builder
-
-ARG NEXT_PUBLIC_BACKEND_URL
-ARG NEXT_PUBLIC_ALLOW_ANONYMOUS=true
-ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-https://backend.niceforest-23188099.westeurope.azurecontainerapps.io}
-ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS
-
-WORKDIR /app
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-
-# Create .env file from build argument
-RUN echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" > .env && \
-    echo "NEXT_PUBLIC_ALLOW_ANONYMOUS=$NEXT_PUBLIC_ALLOW_ANONYMOUS" >> .env
-
-RUN yarn build
-
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
-ENV NEXT_PUBLIC_ALLOW_ANONYMOUS=true
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy the standalone output
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-
-# Set permissions
-USER nextjs
-
-EXPOSE 3000
-
-CMD ["node", "server.js"]
-</file>
-
-<file path="src/components/laws/LawAcronymsView.tsx">
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Edit } from 'lucide-react';
-import { getLawAcronyms } from '@/lib/services/laws-service';
-import { LawAcronym } from '@/types/laws';
-
-export function LawAcronymsView() {
-
-  const [acronyms, setAcronyms] = useState<LawAcronym[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  useEffect(() => {
-    const loadAcronyms = async () => {
-      try {
-        setLoading(true);
-        const data = await getLawAcronyms();
-        setAcronyms(data);
-      } catch (error) {
-        console.error('Failed to load law acronyms:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadAcronyms();
-  }, []);
-
-  const filteredAcronyms = acronyms.filter(
-    (acronym) =>
-      acronym.acronym.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      acronym.fullName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleEdit = () => {
-    // TODO: Implement edit functionality with modal
-  };
-
-  const handleAdd = () => {
-    // TODO: Implement add functionality with modal
-  };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Lade Gesetzeskürzel...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Gesetzeskürzel verwalten</CardTitle>
-        <CardDescription>
-          Verwaltung von Abkürzungen und Kurzbezeichnungen für Gesetze und Verordnungen
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-2 flex-1 max-w-sm">
-            <Search className="w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Suche nach Stichwort, Gesetz oder Titel..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
-          </div>
-          <Button onClick={handleAdd}>
-            <Plus className="w-4 h-4 mr-2" />
-            Neues Kürzel
-          </Button>
-        </div>
-
-        <Table>
-          <TableCaption>
-            {filteredAcronyms.length} von {acronyms.length} Gesetzeskürzeln
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Kürzel</TableHead>
-              <TableHead>Vollständiger Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Aktionen</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAcronyms.map((acronym) => (
-              <TableRow key={acronym.id}>
-                <TableCell className="font-medium">{acronym.acronym}</TableCell>
-                <TableCell>{acronym.fullName}</TableCell>
-                <TableCell>
-                  <Badge variant={acronym.isActive ? 'default' : 'secondary'}>
-                    {acronym.isActive ? 'Aktiv' : 'Inaktiv'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit()}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-}
-</file>
-
-<file path="src/types/pflicht.ts">
-import { Country } from './counties';
-
-export type LaenderKuerzel = Country;
-
-export interface Dokument {
-  id: string;
-  dokument_status: string | null;
-  verfahren_status: string | null;
-  bereich: string | null;
-  gesetzeskuerzel: string | null;
-  gesetzgebung: string | null;
-  produktbereich: string | null;
-  thema: string | null;
-  zusammenfassung: string | null;
-  titel: string | null;
-  url: string | null;
-  trace_id: string | null;
-  extra_info: Record<string, any> | null;
-  extraction_timestamp: string;
-  pflichten: Pflicht[];
-}
-
-export interface DokumentDebugInfo {
-  bereich: string | null;
-  gesetzeskuerzel: string | null;
-  gesetzgebung: string | null;
-  dokument_status: string | null;
-  verfahren_status: string | null;
-}
-
-export interface Pflicht {
-  dokument_id: string;
-  stichtag: string | null;
-  stichtag_typ: string | null;
-  folgestatus: string | null;
-  thema: string | null;
-  information: string | null;
-  produkte: string[] | null;
-  betroffene: string | null;
-  ausblick: string | null;
-  laenderkuerzel: Country[] | null;
-  verweise: string | null;
-  rechtsgrundlage_ref: string | null;
-  belege: Beleg[] | null;
-  extra_info: Record<string, any> | null;
-}
-
-export interface PflichtDebugInfo {
-  stichtag_entscheidung: string | null;
-  stichtag_kandidaten: string[] | null;
-  stichtag_typen: string[] | null;
-  normanker_belege: Beleg[] | null;
-  folgestatus_belege: Beleg[] | null;
-  laenderkuerzel_begruendung: string | null;
-  produkte_belege: Beleg[] | null;
-  betroffene_belege: Beleg[] | null;
-  ausblick_belege: Beleg[] | null;
-}
-
-export interface Beleg {
-  text: string;
-  quelle: string;
-  relevanz: number;
-  anker?: string;
-  textauszug?: string;
-}
-
-export interface DokumentFeedback {
-  feedback_type: "positive" | "negative";
-  message?: string | null;
 }
 </file>
 
@@ -15254,6 +15878,105 @@ export function CustomerReportView() {
 }
 </file>
 
+<file path="src/types/pflicht.ts">
+import { Country } from './counties';
+
+export type LaenderKuerzel = Country;
+
+export interface Dokument {
+  id: string;
+  dokument_status: string | null;
+  verfahren_status: string | null;
+  bereich: string | null;
+  gesetzeskuerzel: string | null;
+  gesetzgebung: string | null;
+  produktbereich: string | null;
+  thema: string | null;
+  zusammenfassung: string | null;
+  titel: string | null;
+  url: string | null;
+  trace_id: string | null;
+  extra_info: Record<string, any> | null;
+  extraction_timestamp: string;
+  pflichten: Pflicht[];
+}
+
+export interface DokumentDebugInfo {
+  bereich: string | null;
+  gesetzeskuerzel: string | null;
+  gesetzgebung: string | null;
+  dokument_status: string | null;
+  verfahren_status: string | null;
+}
+
+export interface Pflicht {
+  dokument_id: string;
+  stichtag: string | null;
+  stichtag_typ: string | null;
+  folgestatus: string | null;
+  thema: string | null;
+  information: string | null;
+  produkte: string[] | null;
+  betroffene: string | null;
+  ausblick: string | null;
+  laenderkuerzel: Country[] | null;
+  verweise: string | null;
+  rechtsgrundlage_ref: string | null;
+  belege: Beleg[] | null;
+  extra_info: Record<string, any> | null;
+  // New fields per updated model
+  details_per_betroffene: ActorDetails[] | null;
+  national_overrides: NationalOverride[] | null;
+}
+
+export interface PflichtDebugInfo {
+  stichtag_entscheidung: string | null;
+  stichtag_kandidaten: string[] | null;
+  stichtag_typen: string[] | null;
+  normanker_belege: Beleg[] | null;
+  folgestatus_belege: Beleg[] | null;
+  laenderkuerzel_begruendung: string | null;
+  produkte_belege: Beleg[] | null;
+  betroffene_belege: Beleg[] | null;
+  ausblick_belege: Beleg[] | null;
+}
+
+export interface Beleg {
+  text: string;
+  quelle: string;
+  relevanz: number;
+  anker?: string;
+  textauszug?: string;
+}
+
+export interface DokumentFeedback {
+  feedback_type: "positive" | "negative";
+  message?: string | null;
+}
+
+export interface ChangeHistory {
+  id: number;
+  target_object_type: string;
+  target_object_id: string | number;
+  changes: any[];
+  applied_at: string;
+  applied_by: string;
+  reverted: boolean;
+  reverted_at: string | null;
+  reverted_by: string | null;
+}
+
+export interface ActorDetails {
+  betroffener: string;
+  handlungsanweisungen: string | null;
+}
+
+export interface NationalOverride {
+  laenderkuerzel: string;
+  handlungsanweisungen: string | null;
+}
+</file>
+
 <file path="src/components/laws/DokumentPreviewTable.tsx">
 import React, { useState } from 'react';
 import { DokumentPreview } from '@/types/pflicht-preview';
@@ -15265,6 +15988,7 @@ import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { deletePflicht } from '@/lib/services/pflicht-service';
 import { submitDokumentFeedback } from '@/lib/services/dokument-feedback-service';
 import styles from './DokumentPreviewTable.module.scss';
+import { useSidebarStore } from '@/stores/sidebarStore';
 // Chat trigger moved to Pflicht dialog; no panel trigger in table
 
 interface DokumentPreviewTableProps {
@@ -15300,6 +16024,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
   onPageChange,
   refreshing = false,
 }) => {
+  const { open } = useSidebarStore();
   const [expandedDokumente, setExpandedDokumente] = useState<Set<string>>(new Set());
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
   const [showNegativeFeedback, setShowNegativeFeedback] = useState<Set<string>>(new Set());
@@ -15747,16 +16472,28 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                                 </span>
                               </td>
                               <td className={styles.pflichtCell}>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeletePflicht(pflicht.id, pflicht.thema || 'Unbekannte Pflicht');
-                                  }}
-                                  className={styles.deleteButton}
-                                  title="Pflicht löschen"
-                                >
-                                  <TrashIcon className={styles.deleteIcon} />
-                                </button>
+                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      open('history', { objectType: 'pflicht', objectId: pflicht.id, title: 'Änderungsverlauf' });
+                                    }}
+                                    className={styles.deleteButton}
+                                    title="Änderungsverlauf anzeigen"
+                                  >
+                                    H
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeletePflicht(pflicht.id, pflicht.thema || 'Unbekannte Pflicht');
+                                    }}
+                                    className={styles.deleteButton}
+                                    title="Pflicht löschen"
+                                  >
+                                    <TrashIcon className={styles.deleteIcon} />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))
@@ -15890,7 +16627,7 @@ export default DokumentPreviewTable;
 
 <file path="src/lib/services/pflicht-service.ts">
 import { DokumentPreviewSearchParams, DokumentPreviewResponse, SearchResultResponse } from '@/types/pflicht-preview';
-import { Pflicht, Dokument } from '@/types/pflicht';
+import { Pflicht, Dokument, ChangeHistory } from '@/types/pflicht';
 import { auth } from '@/lib/auth';
 
 export async function deleteDokument(dokumentId: string): Promise<void> {
@@ -15984,6 +16721,7 @@ export async function getPflichtDetails(pflichtId: number): Promise<Pflicht> {
       'accept': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
     },
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -16006,6 +16744,7 @@ export async function getDokumentDetails(dokumentId: string): Promise<Dokument> 
       'accept': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
     },
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -16037,6 +16776,38 @@ export async function updatePflicht(pflichtId: number, pflicht: Pflicht): Promis
     throw new Error(`API Error: ${response.status} ${errorText}`);
   }
 
+  return response.json();
+}
+
+export async function patchObject(
+  objectType: 'pflicht' | 'dokument',
+  objectId: number | string,
+  updates: Record<string, any>,
+  options?: { add_to_list?: Record<string, any>; remove_from_list?: Record<string, any>; is_assistant_update?: boolean }
+): Promise<any> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const requestUrl = `${baseUrl}/api/object/${objectType}/${objectId}`;
+  const response = await fetch(requestUrl, {
+    method: 'PATCH',
+    headers: {
+      'accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    },
+    body: JSON.stringify({
+      payload: {
+        updates,
+        ...(options?.add_to_list ? { add_to_list: options.add_to_list } : {}),
+        ...(options?.remove_from_list ? { remove_from_list: options.remove_from_list } : {}),
+        is_assistant_update: options?.is_assistant_update ?? false,
+      },
+    }),
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API Error: ${response.status} ${errorText}`);
+  }
   return response.json();
 }
 
@@ -16102,6 +16873,33 @@ export async function deletePflicht(pflichtId: number): Promise<{ message: strin
 
   return response.json();
 }
+
+export async function getChangeHistory(objectType: 'pflicht' | 'dokument', objectId: number | string): Promise<ChangeHistory[]> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const response = await fetch(`${baseUrl}/api/object/${objectType}/${objectId}/history`, {
+    headers: { ...(token && { 'Authorization': `Bearer ${token}` }) },
+    cache: 'no-store',
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch change history: ${response.status} ${errorText}`);
+  }
+  return response.json();
+}
+
+export async function revertChange(historyId: number): Promise<void> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const response = await fetch(`${baseUrl}/api/object/history/${historyId}/revert`, {
+    method: 'POST',
+    headers: { ...(token && { 'Authorization': `Bearer ${token}` }) },
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to revert change: ${response.status} ${errorText}`);
+  }
+}
 </file>
 
 <file path="src/app/[locale]/(main)/laws/page.tsx">
@@ -16109,20 +16907,18 @@ export async function deletePflicht(pflichtId: number): Promise<{ message: strin
 
 import { useState } from 'react';
 import { useDokumentPreviews } from '@/lib/hooks/useDokumentPreviews';
-// Removed LawsSplitView and BereicheSidebar in favor of ResizableSplitView
 import DokumentPreviewTable from '@/components/laws/DokumentPreviewTable';
-import PflichtDetailView from '@/components/laws/PflichtDetailDialog';
-import PflichtEditView from '@/components/laws/PflichtEditDialog';
 import CreateDokumentModal from '@/components/laws/CreateDokumentModal';
-import DokumentSummaryView from '@/components/laws/DokumentSummaryDialog';
-import RightSidebar from '@/components/shared/RightSidebar';
-import { useRightPanelStore } from '@/stores/rightPanelStore';
 import { AgentStreamProvider } from '@/context/AgentStreamProvider';
 import LawMonitorChatPanel from '@/components/laws/LawMonitorChatPanel';
 import { deleteDokument } from '@/lib/services/pflicht-service';
-import { Beleg } from '@/types/pflicht';
 import ResizableSplitView from '@/components/ResizableSplitView';
-import DetailPanel from '@/components/shared/DetailPanel';
+import { useSidebarStore } from '@/stores/sidebarStore';
+import { ContextualSidebar } from '@/components/shared/ContextualSidebar';
+import PflichtDialogPanel from '@/components/laws/PflichtDialogPanel';
+import DokumentDialogPanel from '@/components/laws/DokumentDialogPanel';
+import { usePflichtDialogStore } from '@/stores/pflichtDialogStore';
+import { useDokumentDialogStore } from '@/stores/dokumentDialogStore';
 
 export default function LawsPage() {
   const {
@@ -16139,42 +16935,29 @@ export default function LawsPage() {
     search,
   } = useDokumentPreviews();
 
-  const [selectedPflichtId, setSelectedPflichtId] = useState<number | null>(null);
-  const [selectedDokumentId, setSelectedDokumentId] = useState<string | null>(null);
-  const [editingPflichtId, setEditingPflichtId] = useState<number | null>(null);
   const [showCreateDokumentModal, setShowCreateDokumentModal] = useState(false);
-  const [sidebarContent, setSidebarContent] = useState<{ title: string; belege: Beleg[] } | null>(null);
-  const [detailPanelTitle, setDetailPanelTitle] = useState('');
-
-  const { isOpen, closePanel } = useRightPanelStore();
+  const { view, open, close } = useSidebarStore();
+  const { open: openPflichtDialog } = usePflichtDialogStore();
+  const { open: openDokumentDialog } = useDokumentDialogStore();
 
 
 
   const handleDokumentClick = (dokumentId: string) => {
     const doc = dokumente.find(d => d.id === dokumentId);
-    setDetailPanelTitle(doc?.thema || 'Dokument Zusammenfassung');
-    setSelectedDokumentId(dokumentId);
+    openDokumentDialog(dokumentId, doc?.thema || 'Dokument');
   };
 
   // Deprecated: handled by handleCloseDetailPanel
 
   const handlePflichtClick = (pflichtId: number) => {
     const pflicht = dokumente.flatMap(d => d.pflichten).find(p => p.id === pflichtId);
-    setDetailPanelTitle(pflicht?.thema || 'Pflicht-Details');
-    setSelectedPflichtId(pflichtId);
+    openPflichtDialog(pflichtId, pflicht?.thema || 'Pflicht-Details');
   };
 
   // Deprecated: handled by handleCloseDetailPanel
 
 
-  const handleEditPflichtClick = () => {
-    if (selectedPflichtId) {
-      const pflicht = dokumente.flatMap(d => d.pflichten).find(p => p.id === selectedPflichtId);
-      setDetailPanelTitle(`Bearbeite: ${pflicht?.thema}` || 'Pflicht bearbeiten');
-      setEditingPflichtId(selectedPflichtId);
-      setSelectedPflichtId(null);
-    }
-  };
+  // Editing is handled within PflichtDetailView via sidebar store
 
   // Deprecated: handled by handleCloseDetailPanel
 
@@ -16188,10 +16971,7 @@ export default function LawsPage() {
     }
   };
 
-  const handlePflichtSaved = () => {
-    setEditingPflichtId(null);
-    search(filterText);
-  };
+  // Optionally refresh after edits
 
   const handlePflichtDeleted = () => {
     search(filterText);
@@ -16206,27 +16986,13 @@ export default function LawsPage() {
     search(text);
   };
 
-  const handleShowBelege = (belege: Beleg[], pflichtThema: string) => {
-    setSidebarContent({
-      title: `Quellen für: "${pflichtThema}"`,
-      belege: belege,
-    });
-  };
-
-  const handleCloseBelegeSidebar = () => {
-    setSidebarContent(null);
-  };
+  // Sources now open via sidebar store
 
   if (loading && dokumente.length === 0 && !refreshing) {
     return <div>Lade Dokumente...</div>;
   }
   
-  const handleCloseDetailPanel = () => {
-    setSelectedPflichtId(null);
-    setEditingPflichtId(null);
-    setSelectedDokumentId(null);
-    setDetailPanelTitle('');
-  };
+  const isSidebarOpen = view !== null;
 
   const mainContent = (
     <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
@@ -16236,8 +17002,7 @@ export default function LawsPage() {
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             onClick={() => {
-              // Open chat panel without specific context; Pflicht dialog provides precise context
-              useRightPanelStore.getState().openPanel({});
+              open('chat', {});
             }}
             className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50"
             title="Law Monitor Chat öffnen"
@@ -16266,47 +17031,17 @@ export default function LawsPage() {
         />
       </div>
 
-      <DetailPanel
-        isOpen={!!selectedPflichtId || !!editingPflichtId || !!selectedDokumentId}
-        onClose={handleCloseDetailPanel}
-        title={detailPanelTitle}
-      >
-        {selectedPflichtId && (
-          <PflichtDetailView
-            pflichtId={selectedPflichtId}
-            onClose={handleCloseDetailPanel}
-            onEdit={handleEditPflichtClick}
-            onShowBelege={handleShowBelege}
-          />
-        )}
-        {editingPflichtId && (
-          <PflichtEditView
-            pflichtId={editingPflichtId}
-            onClose={handleCloseDetailPanel}
-            onSave={handlePflichtSaved}
-          />
-        )}
-        {selectedDokumentId && (
-          <DokumentSummaryView dokumentId={selectedDokumentId} />
-        )}
-      </DetailPanel>
+      {/* Overlay panels for Pflicht and Dokument summaries */}
+      <PflichtDialogPanel />
+      <DokumentDialogPanel />
     </div>
   );
 
-  const sidePanelContent = (
-    <AgentStreamProvider>
-      <LawMonitorChatPanel />
-    </AgentStreamProvider>
-  );
+  const sidePanelContent = <ContextualSidebar />;
 
   return (
-    <div style={{ height: 'calc(100vh - 5rem)', display: 'flex', flexDirection: 'column' }}>
-      <ResizableSplitView
-        mainContent={mainContent}
-        sidePanelContent={sidePanelContent}
-        isSidePanelOpen={isOpen}
-        onSidePanelClose={closePanel}
-      />
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <ResizableSplitView mainContent={mainContent} sidePanelContent={sidePanelContent} isSidePanelOpen={isSidebarOpen} onSidePanelClose={close} />
 
       {showCreateDokumentModal && (
         <CreateDokumentModal
@@ -16316,22 +17051,7 @@ export default function LawsPage() {
         />
       )}
 
-      <RightSidebar
-        isOpen={!!sidebarContent}
-        onClose={handleCloseBelegeSidebar}
-        title={sidebarContent?.title || ''}
-      >
-        {sidebarContent?.belege.map((beleg, index) => (
-          <div key={index} style={{ marginBottom: '1.5rem' }}>
-            <h4 style={{ fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
-              {beleg.anker || beleg.quelle}
-            </h4>
-            <p style={{ color: '#4b5563', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
-              {beleg.textauszug || beleg.text}
-            </p>
-          </div>
-        ))}
-      </RightSidebar>
+      {/* Old RightSidebar removed; sources handled in ContextualSidebar */}
 
     </div>
   );

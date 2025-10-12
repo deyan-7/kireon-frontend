@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar, Users, AlertCircle } from 'lucide-react';
 import { getPflichtDetails, patchObject } from '@/lib/services/pflicht-service';
+import { useObjectRefreshStore } from '@/stores/objectRefreshStore';
 import styles from './PflichtEditDialog.module.scss';
 
 interface PflichtEditViewProps {
@@ -23,6 +24,7 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { close, setEditSaveHandler } = useSidebarStore();
+  const bump = useObjectRefreshStore((s) => s.bump);
   const saveRef = useRef<() => void>(() => {});
 
   const loadPflichtDetails = useCallback(async () => {
@@ -82,6 +84,7 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
       }
 
       const updated = await patchObject('pflicht', pflichtId, updates);
+      bump('pflicht', pflichtId);
       if (onSaved) onSaved(updated);
       else close();
     } catch (err) {

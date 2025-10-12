@@ -2,16 +2,15 @@
 
 import React, { useMemo } from 'react';
 import { useSidebarStore } from '@/stores/sidebarStore';
-import DokumentSummaryView from '@/components/laws/DokumentSummaryView';
 import ChangeLogView from '@/components/laws/ChangeLogView';
 import SourcesView from '@/components/laws/SourcesView';
-import { Button } from '@/components/ui/button';
 import { AgentStreamProvider } from '@/context/AgentStreamProvider';
 import LawMonitorChatPanel from '@/components/laws/LawMonitorChatPanel';
+import { useChatStore } from '@/stores/chatStore';
 
 export const ContextualSidebar: React.FC = () => {
   const { view, context, close, open } = useSidebarStore();
-  if (!view) return null;
+  const findOrCreateSession = useChatStore((s) => s.findOrCreateSession);
 
   const title = context?.title || '';
 
@@ -22,6 +21,8 @@ export const ContextualSidebar: React.FC = () => {
       { key: 'sources' as const, label: 'Quellen', enabled: !!(context?.belege && context.belege.length > 0) },
     ];
   }, [context?.objectType, context?.objectId, context?.belege]);
+
+  if (!view) return null;
 
   const truncate = (s: string, n = 60) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 
@@ -54,7 +55,17 @@ export const ContextualSidebar: React.FC = () => {
           return (
             <button
               key={t.key}
-              onClick={() => t.enabled && open(t.key as any, { ...(context || {}) })}
+              onClick={() => {
+                if (!t.enabled && !isActive) return;
+                const current = { ...(context || {}) };
+                if (t.key === 'chat' && context) {
+                  try {
+                    const sessionId = findOrCreateSession(context);
+                    current.chatSessionId = sessionId;
+                  } catch {}
+                }
+                open(t.key as any, current as any);
+              }}
               disabled={!t.enabled && !isActive}
               style={{
                 padding: '0.35rem 0.5rem',
@@ -71,6 +82,23 @@ export const ContextualSidebar: React.FC = () => {
             </button>
           );
         })}
+        <div style={{ marginLeft: 'auto' }}>
+          <button
+            onClick={close}
+            aria-label="Schließen"
+            title="Schließen"
+            style={{
+              padding: '0.25rem 0.5rem',
+              background: 'transparent',
+              border: '1px solid #e5e7eb',
+              borderRadius: 6,
+              color: '#374151',
+              cursor: 'pointer',
+            }}
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       {/* Secondary context bar with smaller title */}

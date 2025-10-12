@@ -56,6 +56,27 @@
   }
 }
 
+.instructionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: #fafafa;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+
+  .fieldLabel {
+    padding-left: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .fieldValue {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;

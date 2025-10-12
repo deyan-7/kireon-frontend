@@ -6,6 +6,7 @@ import { Calendar, Users, AlertCircle } from 'lucide-react';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import InstructionCard from '@/components/laws/InstructionCard';
 import { getPflichtDetails } from '@/lib/services/pflicht-service';
+import { useObjectRefreshStore, objectKey } from '@/stores/objectRefreshStore';
 import styles from './PflichtDetailDialog.module.scss';
 
 interface PflichtDetailViewProps { pflichtId: number | null; onLoaded?: (pflicht: Pflicht) => void }
@@ -37,6 +38,14 @@ const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoad
       loadPflichtDetails();
     }
   }, [pflichtId, loadPflichtDetails]);
+
+  // Invalidate when a bump happens for this Pflicht
+  const refreshTs = useObjectRefreshStore((s) => s.timestamps[objectKey('pflicht', pflichtId ?? 'none')]);
+  useEffect(() => {
+    if (pflichtId && refreshTs) {
+      loadPflichtDetails();
+    }
+  }, [pflichtId, refreshTs, loadPflichtDetails]);
 
   // Keep header sources icon in sync with loaded belege
   useEffect(() => {
@@ -177,7 +186,7 @@ const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoad
           </div>
 
           {(pflicht.details_per_betroffene?.length || pflicht.national_overrides?.length) ? (
-            <div className={styles.fieldGroupFullWidth}>
+            <div className={styles.instructionsSection}>
               <label className={styles.fieldLabel}>Handlungsanweisungen</label>
               <div className={styles.fieldValue}>
                 {pflicht.details_per_betroffene?.map((detail, index) => (

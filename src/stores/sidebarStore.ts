@@ -11,6 +11,7 @@ export interface SidebarContext {
   belege?: Beleg[];
   title?: string;
   refreshKey?: number;
+  chatSessionId?: string;
 }
 
 interface SidebarState {

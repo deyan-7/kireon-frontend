@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dokument } from '@/types/pflicht';
 import { Button } from '@/components/ui/button';
 import { getDokumentDetails } from '@/lib/services/pflicht-service';
+import { useObjectRefreshStore, objectKey } from '@/stores/objectRefreshStore';
 import { AlertCircle } from 'lucide-react';
 import styles from './DokumentSummaryDialog.module.scss';
 
@@ -37,6 +38,14 @@ const DokumentSummaryView: React.FC<DokumentSummaryViewProps> = ({ dokumentId, o
       loadDokumentDetails();
     }
   }, [dokumentId, loadDokumentDetails]);
+
+  // Refresh when bumped
+  const refreshTs = useObjectRefreshStore((s) => s.timestamps[objectKey('dokument', dokumentId ?? 'none')]);
+  useEffect(() => {
+    if (dokumentId && refreshTs) {
+      loadDokumentDetails();
+    }
+  }, [dokumentId, refreshTs, loadDokumentDetails]);
 
   if (!dokumentId) return null;
 

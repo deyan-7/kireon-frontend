@@ -1,0 +1,35 @@
+.activityBadge {
+  position: relative;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: inline-block;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.activityBadge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
+  transform: skewX(-20deg);
+  opacity: 0;
+}
+
+.active::after {
+  opacity: 1;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -150%; }
+  100% { left: 150%; }
+}
+

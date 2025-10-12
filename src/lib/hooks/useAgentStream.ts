@@ -1,9 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { useCallback, useRef, useState } from "react";
+import { useObjectRefreshStore } from "@/stores/objectRefreshStore";
+import { normalizeToolCalls } from "@/lib/tool-parsers";
 import { useLocale } from "./useLocale";
 import { useTaskContext } from "@/context/TaskContext";
 import { ChatHistory, ChatMessage } from "@/client";
+import { useChatStore } from "@/stores/chatStore";
 
 export interface StreamOptions {
   agent_id?: string;
@@ -175,14 +178,34 @@ export function useAgentStream(endpoint: string) {
   };
 
   const stream = useCallback(
-    async (options: StreamOptions, token?: string) => {
+    async (options: StreamOptions, token?: string, sessionId?: string) => {
       setIsStreaming(true);
       setError(null);
       chatRef.current = {};
       artifactRef.current = {};
       messageBufferRef.current = "";
 
-      if (options.message) sendUserMessage(options.message);
+      if (options.message) {
+        // Keep local panel state for existing consumers
+        sendUserMessage(options.message);
+        // Also add to session store if provided
+        if (sessionId) {
+          try {
+            const add = useChatStore.getState().addMessage;
+            const setStatus = useChatStore.getState().setStreamingStatus;
+            const touchDraft = useChatStore.getState().updateStreamingMessage;
+            add(sessionId, {
+              id: `human_${Date.now()}`,
+              role: "human",
+              content: options.message,
+              type: "human",
+            } as any);
+            // Immediately set streaming true and create an empty draft so UI can show spinner
+            setStatus(sessionId, true);
+            touchDraft(sessionId, "");
+          } catch {}
+        }
+      }
 
       try {
         const res = await fetch(
@@ -248,16 +271,25 @@ export function useAgentStream(endpoint: string) {
                   ),
                   draft,
                 ]);
+                // Mirror into chat store if session context provided
+                if (sessionId) {
+                  try {
+                    const update = useChatStore.getState().updateStreamingMessage;
+                    const setStatus = useChatStore.getState().setStreamingStatus;
+                    setStatus(sessionId, true);
+                    update(sessionId, payload.content);
+                  } catch {}
+                }
               }
 
               if (payload.type === "message") {
-                handleFinalMessage(payload.content, payload.custom_data);
+                handleFinalMessage(payload.content, payload.custom_data, sessionId);
               }
             } catch {
               messageBufferRef.current += raw;
               try {
                 const payload = JSON.parse(messageBufferRef.current);
-                handleFinalMessage(payload.content, payload.custom_data);
+                handleFinalMessage(payload.content, payload.custom_data, sessionId);
                 messageBufferRef.current = "";
               } catch {
                 // still incomplete
@@ -268,27 +300,31 @@ export function useAgentStream(endpoint: string) {
       } catch (err: any) {
         setIsStreaming(false);
         setError(err.message ?? "Unknown error");
+        if (sessionId) {
+          try {
+            const setStatus = useChatStore.getState().setStreamingStatus;
+            setStatus(sessionId, false);
+          } catch {}
+        }
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [endpoint, locale, updateTasks]
   );
 
-  const handleFinalMessage = (final: any, sseMeta: any) => {
+  const handleFinalMessage = (final: any, sseMeta: any, sessionId?: string) => {
     const role = final.type === "ai" ? "ai" : final.type;
 
     if (role === "ai") {
-      if (!final.content?.trim()) {
-        console.debug("Skipped empty AI message", final);
-        return;
-      }
-
       const finalChat: ExtendedChatMessage = {
         id: final.run_id,
         role,
-        content: final.content,
-        meta: final.custom_data,
+        content: final.content ?? "",
+        // Prefer SSE meta (payload.custom_data), fallback to message-embedded custom_data
+        meta: sseMeta ?? final.custom_data,
       };
+      const finishReason =
+        sseMeta?.response_metadata?.finish_reason || final.response_metadata?.finish_reason;
 
       if (final?.custom_data?.all_tasks_summary) {
         updateTasks(
@@ -303,6 +339,61 @@ export function useAgentStream(endpoint: string) {
         );
         return [...filtered, finalChat];
       });
+
+      // Mirror into chat store session with special handling for tool_calls stage
+      if (sessionId) {
+        try {
+          const toolCalls = (sseMeta?.custom_data?.tool_calls) || (final.custom_data?.tool_calls) || final.tool_calls;
+          const setDraftMeta = useChatStore.getState().setStreamingDraftMeta;
+          const setStatus = useChatStore.getState().setStreamingStatus;
+          // If model announces tool calls (pre-token), show badge on draft and keep streaming
+          if (finishReason === 'tool_calls' || (toolCalls && !finalChat.content)) {
+            setStatus(sessionId, true);
+            setDraftMeta(sessionId, { tool_calls: toolCalls });
+          } else {
+            useChatStore.setState((state) => {
+              const session = state.sessions[sessionId];
+              if (!session) return state as any;
+              const filtered = session.messages.filter(
+                (m) => !(typeof m.id === 'string' && (m.id.startsWith('streaming_') || m.id === final.run_id))
+              );
+              return {
+                sessions: {
+                  ...state.sessions,
+                  [sessionId]: {
+                    ...session,
+                    messages: [...filtered, { ...finalChat, type: 'ai' as any }],
+                  },
+                },
+              } as any;
+            });
+            setStatus(sessionId, false);
+          }
+        } catch {}
+      }
+
+      // Detect updates from tool calls and schedule refresh bumps
+      try {
+        const toolCallsRaw = (sseMeta?.custom_data?.tool_calls) || (final.custom_data?.tool_calls) || final.tool_calls;
+        const calls = normalizeToolCalls(toolCallsRaw);
+        const bumps: { object_type: 'pflicht' | 'dokument'; object_id: string | number }[] = [];
+        for (const c of calls) {
+          if (c.name === 'update_object') {
+            const ot = (c.args?.object_type || '').toLowerCase();
+            const oid = c.args?.object_id;
+            if ((ot === 'pflicht' || ot === 'dokument') && (oid !== undefined && oid !== null)) {
+              bumps.push({ object_type: ot, object_id: oid });
+            }
+          }
+        }
+        if (bumps.length) {
+          const bump = useObjectRefreshStore.getState().bump;
+          // Small delay to allow backend to persist change
+          setTimeout(() => {
+            for (const b of bumps) bump(b.object_type, b.object_id);
+          }, 1200);
+        }
+      } catch {}
 
       // Clear any streaming buffer for this node if present
       const node = sseMeta?.node ?? sseMeta?.langgraph_node ?? "default";
@@ -373,5 +464,8 @@ export function useAgentStream(endpoint: string) {
     loadHistory,
     getParsedArtifactContent,
     clearArtifacts,
+    // expose chat store helpers for session-based chat usage
+    findOrCreateSession: useChatStore.getState().findOrCreateSession,
+    clearSession: useChatStore.getState().clearSession,
   };
 }

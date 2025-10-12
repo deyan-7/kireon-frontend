@@ -61,6 +61,11 @@
 
 .summarySection {
   margin-top: 1rem;
+  padding-left: 1rem;
+
+  .fieldLabel {
+    margin-bottom: 0.5rem;
+  }
 }
 
 .summaryContent {
@@ -68,6 +73,7 @@
   color: #374151;
   line-height: 1.6;
   white-space: pre-wrap;
+  padding-left: 0.5rem;
 }
 
 .loadingContainer,
