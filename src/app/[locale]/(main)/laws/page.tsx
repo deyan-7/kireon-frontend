@@ -2,20 +2,18 @@
 
 import { useState } from 'react';
 import { useDokumentPreviews } from '@/lib/hooks/useDokumentPreviews';
-// Removed LawsSplitView and BereicheSidebar in favor of ResizableSplitView
 import DokumentPreviewTable from '@/components/laws/DokumentPreviewTable';
-import PflichtDetailView from '@/components/laws/PflichtDetailDialog';
-import PflichtEditView from '@/components/laws/PflichtEditDialog';
 import CreateDokumentModal from '@/components/laws/CreateDokumentModal';
-import DokumentSummaryView from '@/components/laws/DokumentSummaryDialog';
-import RightSidebar from '@/components/shared/RightSidebar';
-import { useRightPanelStore } from '@/stores/rightPanelStore';
 import { AgentStreamProvider } from '@/context/AgentStreamProvider';
 import LawMonitorChatPanel from '@/components/laws/LawMonitorChatPanel';
 import { deleteDokument } from '@/lib/services/pflicht-service';
-import { Beleg } from '@/types/pflicht';
 import ResizableSplitView from '@/components/ResizableSplitView';
-import DetailPanel from '@/components/shared/DetailPanel';
+import { useSidebarStore } from '@/stores/sidebarStore';
+import { ContextualSidebar } from '@/components/shared/ContextualSidebar';
+import PflichtDialogPanel from '@/components/laws/PflichtDialogPanel';
+import DokumentDialogPanel from '@/components/laws/DokumentDialogPanel';
+import { usePflichtDialogStore } from '@/stores/pflichtDialogStore';
+import { useDokumentDialogStore } from '@/stores/dokumentDialogStore';
 
 export default function LawsPage() {
   const {
@@ -32,42 +30,29 @@ export default function LawsPage() {
     search,
   } = useDokumentPreviews();
 
-  const [selectedPflichtId, setSelectedPflichtId] = useState<number | null>(null);
-  const [selectedDokumentId, setSelectedDokumentId] = useState<string | null>(null);
-  const [editingPflichtId, setEditingPflichtId] = useState<number | null>(null);
   const [showCreateDokumentModal, setShowCreateDokumentModal] = useState(false);
-  const [sidebarContent, setSidebarContent] = useState<{ title: string; belege: Beleg[] } | null>(null);
-  const [detailPanelTitle, setDetailPanelTitle] = useState('');
-
-  const { isOpen, closePanel } = useRightPanelStore();
+  const { view, open, close } = useSidebarStore();
+  const { open: openPflichtDialog } = usePflichtDialogStore();
+  const { open: openDokumentDialog } = useDokumentDialogStore();
 
 
 
   const handleDokumentClick = (dokumentId: string) => {
     const doc = dokumente.find(d => d.id === dokumentId);
-    setDetailPanelTitle(doc?.thema || 'Dokument Zusammenfassung');
-    setSelectedDokumentId(dokumentId);
+    openDokumentDialog(dokumentId, doc?.thema || 'Dokument');
   };
 
   // Deprecated: handled by handleCloseDetailPanel
 
   const handlePflichtClick = (pflichtId: number) => {
     const pflicht = dokumente.flatMap(d => d.pflichten).find(p => p.id === pflichtId);
-    setDetailPanelTitle(pflicht?.thema || 'Pflicht-Details');
-    setSelectedPflichtId(pflichtId);
+    openPflichtDialog(pflichtId, pflicht?.thema || 'Pflicht-Details');
   };
 
   // Deprecated: handled by handleCloseDetailPanel
 
 
-  const handleEditPflichtClick = () => {
-    if (selectedPflichtId) {
-      const pflicht = dokumente.flatMap(d => d.pflichten).find(p => p.id === selectedPflichtId);
-      setDetailPanelTitle(`Bearbeite: ${pflicht?.thema}` || 'Pflicht bearbeiten');
-      setEditingPflichtId(selectedPflichtId);
-      setSelectedPflichtId(null);
-    }
-  };
+  // Editing is handled within PflichtDetailView via sidebar store
 
   // Deprecated: handled by handleCloseDetailPanel
 
@@ -81,10 +66,7 @@ export default function LawsPage() {
     }
   };
 
-  const handlePflichtSaved = () => {
-    setEditingPflichtId(null);
-    search(filterText);
-  };
+  // Optionally refresh after edits
 
   const handlePflichtDeleted = () => {
     search(filterText);
@@ -99,27 +81,13 @@ export default function LawsPage() {
     search(text);
   };
 
-  const handleShowBelege = (belege: Beleg[], pflichtThema: string) => {
-    setSidebarContent({
-      title: `Quellen für: "${pflichtThema}"`,
-      belege: belege,
-    });
-  };
-
-  const handleCloseBelegeSidebar = () => {
-    setSidebarContent(null);
-  };
+  // Sources now open via sidebar store
 
   if (loading && dokumente.length === 0 && !refreshing) {
     return <div>Lade Dokumente...</div>;
   }
   
-  const handleCloseDetailPanel = () => {
-    setSelectedPflichtId(null);
-    setEditingPflichtId(null);
-    setSelectedDokumentId(null);
-    setDetailPanelTitle('');
-  };
+  const isSidebarOpen = view !== null;
 
   const mainContent = (
     <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
@@ -129,8 +97,7 @@ export default function LawsPage() {
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             onClick={() => {
-              // Open chat panel without specific context; Pflicht dialog provides precise context
-              useRightPanelStore.getState().openPanel({});
+              open('chat', {});
             }}
             className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50"
             title="Law Monitor Chat öffnen"
@@ -159,47 +126,17 @@ export default function LawsPage() {
         />
       </div>
 
-      <DetailPanel
-        isOpen={!!selectedPflichtId || !!editingPflichtId || !!selectedDokumentId}
-        onClose={handleCloseDetailPanel}
-        title={detailPanelTitle}
-      >
-        {selectedPflichtId && (
-          <PflichtDetailView
-            pflichtId={selectedPflichtId}
-            onClose={handleCloseDetailPanel}
-            onEdit={handleEditPflichtClick}
-            onShowBelege={handleShowBelege}
-          />
-        )}
-        {editingPflichtId && (
-          <PflichtEditView
-            pflichtId={editingPflichtId}
-            onClose={handleCloseDetailPanel}
-            onSave={handlePflichtSaved}
-          />
-        )}
-        {selectedDokumentId && (
-          <DokumentSummaryView dokumentId={selectedDokumentId} />
-        )}
-      </DetailPanel>
+      {/* Overlay panels for Pflicht and Dokument summaries */}
+      <PflichtDialogPanel />
+      <DokumentDialogPanel />
     </div>
   );
 
-  const sidePanelContent = (
-    <AgentStreamProvider>
-      <LawMonitorChatPanel />
-    </AgentStreamProvider>
-  );
+  const sidePanelContent = <ContextualSidebar />;
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ResizableSplitView
-        mainContent={mainContent}
-        sidePanelContent={sidePanelContent}
-        isSidePanelOpen={isOpen}
-        onSidePanelClose={closePanel}
-      />
+      <ResizableSplitView mainContent={mainContent} sidePanelContent={sidePanelContent} isSidePanelOpen={isSidebarOpen} onSidePanelClose={close} />
 
       {showCreateDokumentModal && (
         <CreateDokumentModal
@@ -209,22 +146,7 @@ export default function LawsPage() {
         />
       )}
 
-      <RightSidebar
-        isOpen={!!sidebarContent}
-        onClose={handleCloseBelegeSidebar}
-        title={sidebarContent?.title || ''}
-      >
-        {sidebarContent?.belege.map((beleg, index) => (
-          <div key={index} style={{ marginBottom: '1.5rem' }}>
-            <h4 style={{ fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
-              {beleg.anker || beleg.quelle}
-            </h4>
-            <p style={{ color: '#4b5563', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
-              {beleg.textauszug || beleg.text}
-            </p>
-          </div>
-        ))}
-      </RightSidebar>
+      {/* Old RightSidebar removed; sources handled in ContextualSidebar */}
 
     </div>
   );

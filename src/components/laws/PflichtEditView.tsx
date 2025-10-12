@@ -1,28 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Pflicht } from '@/types/pflicht';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar, Users, AlertCircle } from 'lucide-react';
-import { getPflichtDetails, updatePflicht } from '@/lib/services/pflicht-service';
+import { getPflichtDetails, patchObject } from '@/lib/services/pflicht-service';
 import styles from './PflichtEditDialog.module.scss';
 
-interface PflichtEditDialogProps {
+interface PflichtEditViewProps {
   pflichtId: number | null;
-  onClose: () => void;
-  onSave: (updatedPflicht: Pflicht) => void;
+  onCancel?: () => void;
+  onSaved?: (pflicht: Pflicht) => void;
 }
 
-const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
-  pflichtId,
-  onClose,
-  onSave,
-}) => {
+import { useSidebarStore } from '@/stores/sidebarStore';
+
+const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, onSaved }) => {
   const [pflicht, setPflicht] = useState<Pflicht | null>(null);
+  const [original, setOriginal] = useState<Pflicht | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { close, setEditSaveHandler } = useSidebarStore();
+  const saveRef = useRef<() => void>(() => {});
 
   const loadPflichtDetails = useCallback(async () => {
     if (!pflichtId) return;
@@ -31,6 +32,7 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
     try {
       const data = await getPflichtDetails(pflichtId);
       setPflicht(data);
+      setOriginal(data);
     } catch (err) {
       console.error('Failed to load pflicht details:', err);
       setError(err instanceof Error ? err.message : 'Fehler beim Laden der Pflicht-Details.');
@@ -66,15 +68,88 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
     setError(null);
 
     try {
-      const updatedPflicht = await updatePflicht(pflichtId, pflicht);
-      onSave(updatedPflicht);
-      onClose();
+      // compute minimal updates vs original
+      const updates: Record<string, any> = {};
+      const curr = pflicht as any;
+      const prev = (original ?? {}) as any;
+      const keys = new Set<string>([...Object.keys(curr || {}), ...Object.keys(prev || {})]);
+      for (const key of keys) {
+        const a = curr?.[key];
+        const b = prev?.[key];
+        if (JSON.stringify(a) !== JSON.stringify(b)) {
+          updates[key] = a;
+        }
+      }
+
+      const updated = await patchObject('pflicht', pflichtId, updates);
+      if (onSaved) onSaved(updated);
+      else close();
     } catch (err) {
       console.error('Failed to update pflicht:', err);
       setError(err instanceof Error ? err.message : 'Fehler beim Speichern der Änderungen.');
     } finally {
       setSaving(false);
     }
+  };
+
+  // When used in the sidebar, we expose a stable save handler; in panel mode this is unused
+  useEffect(() => {
+    saveRef.current = handleSave;
+  });
+  useEffect(() => {
+    const stableInvoker = () => saveRef.current();
+    setEditSaveHandler(stableInvoker);
+    return () => setEditSaveHandler(null);
+  }, [setEditSaveHandler]);
+
+  const ensureArray = <T,>(arr: T[] | null | undefined): T[] => Array.isArray(arr) ? arr : [];
+
+  const handleActorDetailChange = (index: number, field: 'betroffener' | 'handlungsanweisungen', value: string) => {
+    setPflicht(prev => {
+      if (!prev) return prev;
+      const list = ensureArray(prev.details_per_betroffene);
+      const updated = [...list];
+      const current = updated[index] ?? { betroffener: '', handlungsanweisungen: '' };
+      const item = { ...current, [field]: value } as any;
+      updated[index] = item;
+      return { ...prev, details_per_betroffene: updated };
+    });
+  };
+
+  const addActorDetail = () => {
+    setPflicht(prev => prev ? { ...prev, details_per_betroffene: [...ensureArray(prev.details_per_betroffene), { betroffener: '', handlungsanweisungen: '' }] } : prev);
+  };
+
+  const removeActorDetail = (index: number) => {
+    setPflicht(prev => {
+      if (!prev) return prev;
+      const updated = ensureArray(prev.details_per_betroffene).filter((_, i) => i !== index);
+      return { ...prev, details_per_betroffene: updated };
+    });
+  };
+
+  const handleOverrideChange = (index: number, field: 'laenderkuerzel' | 'handlungsanweisungen', value: string) => {
+    setPflicht(prev => {
+      if (!prev) return prev;
+      const list = ensureArray(prev.national_overrides);
+      const updated = [...list];
+      const current = updated[index] ?? { laenderkuerzel: '', handlungsanweisungen: '' };
+      const item = { ...current, [field]: value } as any;
+      updated[index] = item;
+      return { ...prev, national_overrides: updated };
+    });
+  };
+
+  const addOverride = () => {
+    setPflicht(prev => prev ? { ...prev, national_overrides: [...ensureArray(prev.national_overrides), { laenderkuerzel: '', handlungsanweisungen: '' }] } : prev);
+  };
+
+  const removeOverride = (index: number) => {
+    setPflicht(prev => {
+      if (!prev) return prev;
+      const updated = ensureArray(prev.national_overrides).filter((_, i) => i !== index);
+      return { ...prev, national_overrides: updated };
+    });
   };
 
   const formatDate = (dateString: string | null) => {
@@ -112,22 +187,23 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
   if (!pflicht) return null;
 
   return (
-        <div className={styles.dialogBody}>
-          <div className={styles.compactGrid}>
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>Stichtag</Label>
-              <div className={styles.fieldValue}>
-                <div className={styles.iconValue}>
-                  <Calendar className="h-4 w-4" />
-                  <Input
-                    type="date"
-                    value={formatDate(pflicht.stichtag)}
-                    onChange={(e) => handleInputChange('stichtag', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                    className={styles.fieldInput}
-                  />
+        <>
+          <div className={styles.dialogBody}>
+            <div className={styles.compactGrid}>
+              <div className={styles.fieldGroup}>
+                <Label className={styles.fieldLabel}>Stichtag</Label>
+                <div className={styles.fieldValue}>
+                  <div className={styles.iconValue}>
+                    <Calendar className="h-4 w-4" />
+                    <Input
+                      type="date"
+                      value={formatDate(pflicht.stichtag)}
+                      onChange={(e) => handleInputChange('stichtag', e.target.value ? new Date(e.target.value).toISOString() : null)}
+                      className={styles.fieldInput}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
             <div className={styles.fieldGroup}>
               <Label className={styles.fieldLabel}>Stichtag Typ</Label>
@@ -228,15 +304,62 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
                 )}
               </div>
             )}
+
+            {/* Actor-specific instructions */}
+            <div className={styles.fieldGroupFullWidth}>
+              <Label className={styles.fieldLabel}>Handlungsanweisungen je Akteur</Label>
+              {ensureArray(pflicht.details_per_betroffene).map((d, i) => (
+                <div key={i} className={styles.dynamicFieldItem}>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <Input
+                      placeholder="Betroffener"
+                      value={d?.betroffener || ''}
+                      onChange={(e) => handleActorDetailChange(i, 'betroffener', e.target.value)}
+                    />
+                    <Button variant="outline" onClick={() => removeActorDetail(i)}>Entfernen</Button>
+                  </div>
+                  <Textarea
+                    placeholder="Handlungsanweisungen"
+                    value={d?.handlungsanweisungen || ''}
+                    onChange={(e) => handleActorDetailChange(i, 'handlungsanweisungen', e.target.value)}
+                    rows={3}
+                    className={styles.textarea}
+                  />
+                </div>
+              ))}
+              <Button variant="outline" onClick={addActorDetail} className={styles.addButton}>Akteur hinzufügen</Button>
+            </div>
+
+            {/* National overrides */}
+            <div className={styles.fieldGroupFullWidth}>
+              <Label className={styles.fieldLabel}>Nationale Umsetzungen</Label>
+              {ensureArray(pflicht.national_overrides).map((o, i) => (
+                <div key={i} className={styles.dynamicFieldItem}>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <Input
+                      placeholder="Länderkürzel"
+                      value={o?.laenderkuerzel || ''}
+                      onChange={(e) => handleOverrideChange(i, 'laenderkuerzel', e.target.value)}
+                      style={{ maxWidth: 200 }}
+                    />
+                    <Button variant="outline" onClick={() => removeOverride(i)}>Entfernen</Button>
+                  </div>
+                  <Textarea
+                    placeholder="Handlungsanweisungen"
+                    value={o?.handlungsanweisungen || ''}
+                    onChange={(e) => handleOverrideChange(i, 'handlungsanweisungen', e.target.value)}
+                    rows={3}
+                    className={styles.textarea}
+                  />
+                </div>
+              ))}
+              <Button variant="outline" onClick={addOverride} className={styles.addButton}>Umsetzung hinzufügen</Button>
+            </div>
+            </div>
           </div>
 
           <div className={styles.actions}>
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className={styles.actionButton}
-              disabled={saving}
-            >
+            <Button variant="outline" onClick={onCancel ?? close} className={styles.actionButton} disabled={saving}>
               Abbrechen
             </Button>
             <Button
@@ -248,8 +371,8 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
               {saving ? 'Speichern...' : 'Speichern'}
             </Button>
           </div>
-        </div>
+        </>
   );
 };
 
-export default PflichtEditDialog;
+export default PflichtEditView;

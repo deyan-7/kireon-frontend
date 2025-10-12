@@ -1,29 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Pflicht, Beleg } from '@/types/pflicht';
+import { Pflicht } from '@/types/pflicht';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, AlertCircle, BookOpenIcon, MessageSquare } from 'lucide-react';
-import { useRightPanelStore } from '@/stores/rightPanelStore';
+import { Calendar, Users, AlertCircle } from 'lucide-react';
+import { useSidebarStore } from '@/stores/sidebarStore';
+import InstructionCard from '@/components/laws/InstructionCard';
 import { getPflichtDetails } from '@/lib/services/pflicht-service';
 import styles from './PflichtDetailDialog.module.scss';
 
-interface PflichtDetailDialogProps {
-  pflichtId: number | null;
-  onClose: () => void;
-  onEdit?: () => void;
-  onShowBelege: (belege: Beleg[], pflichtThema: string) => void;
-}
+interface PflichtDetailViewProps { pflichtId: number | null; onLoaded?: (pflicht: Pflicht) => void }
 
-const PflichtDetailView: React.FC<PflichtDetailDialogProps> = ({
-  pflichtId,
-  onClose,
-  onEdit,
-  onShowBelege,
-}) => {
+const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoaded }) => {
   const [pflicht, setPflicht] = useState<Pflicht | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { openPanel } = useRightPanelStore();
+  const { updateContext } = useSidebarStore();
 
   const loadPflichtDetails = useCallback(async () => {
     if (!pflichtId) return;
@@ -33,6 +24,7 @@ const PflichtDetailView: React.FC<PflichtDetailDialogProps> = ({
       setError(null);
       const data = await getPflichtDetails(pflichtId);
       setPflicht(data);
+      onLoaded?.(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Laden der Pflicht-Details');
     } finally {
@@ -45,6 +37,13 @@ const PflichtDetailView: React.FC<PflichtDetailDialogProps> = ({
       loadPflichtDetails();
     }
   }, [pflichtId, loadPflichtDetails]);
+
+  // Keep header sources icon in sync with loaded belege
+  useEffect(() => {
+    if (pflicht?.belege && pflicht.belege.length > 0) {
+      updateContext({ belege: pflicht.belege });
+    }
+  }, [pflicht?.belege, updateContext]);
 
 
   const formatDate = (dateString: string | null) => {
@@ -81,20 +80,9 @@ const PflichtDetailView: React.FC<PflichtDetailDialogProps> = ({
 
   if (!pflicht) return null;
 
-
   return (
         <div className={styles.dialogBody}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openPanel({ documentId: pflicht.dokument_id, pflichtId })}
-              title="Law Monitor Chat öffnen"
-            >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Chat öffnen
-            </Button>
-          </div>
+          {/* Actions moved to ContextualSidebar header/footer */}
           <div className={styles.compactGrid}>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Stichtag</label>
@@ -188,34 +176,19 @@ const PflichtDetailView: React.FC<PflichtDetailDialogProps> = ({
             )}
           </div>
 
-          <div className={styles.actions}>
-            {pflicht.belege && pflicht.belege.length > 0 && (
-              <Button
-                variant="outline"
-                onClick={() => onShowBelege(pflicht.belege!, pflicht.thema || 'Unbekannte Pflicht')}
-                className={styles.actionButton}
-              >
-                <BookOpenIcon className="h-4 w-4 mr-2" />
-                Quellen anzeigen
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className={styles.actionButton}
-            >
-              Schließen
-            </Button>
-            {onEdit && (
-              <Button
-                variant="outline"
-                onClick={onEdit}
-                className={styles.actionButton}
-              >
-                Bearbeiten
-              </Button>
-            )}
-          </div>
+          {(pflicht.details_per_betroffene?.length || pflicht.national_overrides?.length) ? (
+            <div className={styles.fieldGroupFullWidth}>
+              <label className={styles.fieldLabel}>Handlungsanweisungen</label>
+              <div className={styles.fieldValue}>
+                {pflicht.details_per_betroffene?.map((detail, index) => (
+                  <InstructionCard key={`actor-${index}`} title={detail.betroffener} instructions={detail.handlungsanweisungen} />
+                ))}
+                {pflicht.national_overrides?.map((override, index) => (
+                  <InstructionCard key={`override-${index}`} title={`Nationale Umsetzung: ${override.laenderkuerzel}`} instructions={override.handlungsanweisungen} />
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
   );
 };

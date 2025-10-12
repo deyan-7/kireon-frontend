@@ -43,6 +43,9 @@ export interface Pflicht {
   rechtsgrundlage_ref: string | null;
   belege: Beleg[] | null;
   extra_info: Record<string, any> | null;
+  // New fields per updated model
+  details_per_betroffene: ActorDetails[] | null;
+  national_overrides: NationalOverride[] | null;
 }
 
 export interface PflichtDebugInfo {
@@ -68,4 +71,26 @@ export interface Beleg {
 export interface DokumentFeedback {
   feedback_type: "positive" | "negative";
   message?: string | null;
+}
+
+export interface ChangeHistory {
+  id: number;
+  target_object_type: string;
+  target_object_id: string | number;
+  changes: any[];
+  applied_at: string;
+  applied_by: string;
+  reverted: boolean;
+  reverted_at: string | null;
+  reverted_by: string | null;
+}
+
+export interface ActorDetails {
+  betroffener: string;
+  handlungsanweisungen: string | null;
+}
+
+export interface NationalOverride {
+  laenderkuerzel: string;
+  handlungsanweisungen: string | null;
 }

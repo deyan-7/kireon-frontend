@@ -67,11 +67,6 @@ const ResizableSplitView: React.FC<ResizableSplitViewProps> = ({
             onMouseDown={handleMouseDown}
           />
           <div className={styles.sidePanel} style={{ width: `${panelWidth}px` }}>
-            <div className={styles.sidePanelHeader}>
-              <button onClick={onSidePanelClose} className={styles.closeButton}>
-                <XMarkIcon className={styles.closeIcon} />
-              </button>
-            </div>
             <div className={styles.sidePanelContent}>
               {sidePanelContent}
             </div>
@@ -83,4 +78,3 @@ const ResizableSplitView: React.FC<ResizableSplitViewProps> = ({
 };
 
 export default ResizableSplitView;
-

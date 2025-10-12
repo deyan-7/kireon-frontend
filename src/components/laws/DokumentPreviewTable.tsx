@@ -8,6 +8,7 @@ import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { deletePflicht } from '@/lib/services/pflicht-service';
 import { submitDokumentFeedback } from '@/lib/services/dokument-feedback-service';
 import styles from './DokumentPreviewTable.module.scss';
+import { useSidebarStore } from '@/stores/sidebarStore';
 // Chat trigger moved to Pflicht dialog; no panel trigger in table
 
 interface DokumentPreviewTableProps {
@@ -43,6 +44,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
   onPageChange,
   refreshing = false,
 }) => {
+  const { open } = useSidebarStore();
   const [expandedDokumente, setExpandedDokumente] = useState<Set<string>>(new Set());
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
   const [showNegativeFeedback, setShowNegativeFeedback] = useState<Set<string>>(new Set());
@@ -490,16 +492,28 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                                 </span>
                               </td>
                               <td className={styles.pflichtCell}>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeletePflicht(pflicht.id, pflicht.thema || 'Unbekannte Pflicht');
-                                  }}
-                                  className={styles.deleteButton}
-                                  title="Pflicht löschen"
-                                >
-                                  <TrashIcon className={styles.deleteIcon} />
-                                </button>
+                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      open('history', { objectType: 'pflicht', objectId: pflicht.id, title: 'Änderungsverlauf' });
+                                    }}
+                                    className={styles.deleteButton}
+                                    title="Änderungsverlauf anzeigen"
+                                  >
+                                    H
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeletePflicht(pflicht.id, pflicht.thema || 'Unbekannte Pflicht');
+                                    }}
+                                    className={styles.deleteButton}
+                                    title="Pflicht löschen"
+                                  >
+                                    <TrashIcon className={styles.deleteIcon} />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))

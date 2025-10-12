@@ -1,5 +1,5 @@
 import { DokumentPreviewSearchParams, DokumentPreviewResponse, SearchResultResponse } from '@/types/pflicht-preview';
-import { Pflicht, Dokument } from '@/types/pflicht';
+import { Pflicht, Dokument, ChangeHistory } from '@/types/pflicht';
 import { auth } from '@/lib/auth';
 
 export async function deleteDokument(dokumentId: string): Promise<void> {
@@ -93,6 +93,7 @@ export async function getPflichtDetails(pflichtId: number): Promise<Pflicht> {
       'accept': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
     },
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -115,6 +116,7 @@ export async function getDokumentDetails(dokumentId: string): Promise<Dokument> 
       'accept': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
     },
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -146,6 +148,38 @@ export async function updatePflicht(pflichtId: number, pflicht: Pflicht): Promis
     throw new Error(`API Error: ${response.status} ${errorText}`);
   }
 
+  return response.json();
+}
+
+export async function patchObject(
+  objectType: 'pflicht' | 'dokument',
+  objectId: number | string,
+  updates: Record<string, any>,
+  options?: { add_to_list?: Record<string, any>; remove_from_list?: Record<string, any>; is_assistant_update?: boolean }
+): Promise<any> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const requestUrl = `${baseUrl}/api/object/${objectType}/${objectId}`;
+  const response = await fetch(requestUrl, {
+    method: 'PATCH',
+    headers: {
+      'accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    },
+    body: JSON.stringify({
+      payload: {
+        updates,
+        ...(options?.add_to_list ? { add_to_list: options.add_to_list } : {}),
+        ...(options?.remove_from_list ? { remove_from_list: options.remove_from_list } : {}),
+        is_assistant_update: options?.is_assistant_update ?? false,
+      },
+    }),
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API Error: ${response.status} ${errorText}`);
+  }
   return response.json();
 }
 
@@ -210,4 +244,31 @@ export async function deletePflicht(pflichtId: number): Promise<{ message: strin
   }
 
   return response.json();
+}
+
+export async function getChangeHistory(objectType: 'pflicht' | 'dokument', objectId: number | string): Promise<ChangeHistory[]> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const response = await fetch(`${baseUrl}/api/object/${objectType}/${objectId}/history`, {
+    headers: { ...(token && { 'Authorization': `Bearer ${token}` }) },
+    cache: 'no-store',
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch change history: ${response.status} ${errorText}`);
+  }
+  return response.json();
+}
+
+export async function revertChange(historyId: number): Promise<void> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const response = await fetch(`${baseUrl}/api/object/history/${historyId}/revert`, {
+    method: 'POST',
+    headers: { ...(token && { 'Authorization': `Bearer ${token}` }) },
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to revert change: ${response.status} ${errorText}`);
+  }
 }

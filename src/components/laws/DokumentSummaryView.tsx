@@ -6,13 +6,12 @@ import { getDokumentDetails } from '@/lib/services/pflicht-service';
 import { AlertCircle } from 'lucide-react';
 import styles from './DokumentSummaryDialog.module.scss';
 
-interface DokumentSummaryDialogProps {
+interface DokumentSummaryViewProps {
   dokumentId: string | null;
+  onLoaded?: (doc: Dokument) => void;
 }
 
-const DokumentSummaryDialog: React.FC<DokumentSummaryDialogProps> = ({
-  dokumentId,
-}) => {
+const DokumentSummaryView: React.FC<DokumentSummaryViewProps> = ({ dokumentId, onLoaded }) => {
   const [dokument, setDokument] = useState<Dokument | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +24,7 @@ const DokumentSummaryDialog: React.FC<DokumentSummaryDialogProps> = ({
     try {
       const data = await getDokumentDetails(dokumentId);
       setDokument(data);
+      onLoaded?.(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Laden der Dokument-Details');
     } finally {
@@ -91,4 +91,4 @@ const DokumentSummaryDialog: React.FC<DokumentSummaryDialogProps> = ({
   return renderContent();
 };
 
-export default DokumentSummaryDialog;
+export default DokumentSummaryView;

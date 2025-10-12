@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useMemo } from "react";
 import { useAgentStreamContext } from "@/context/AgentStreamProvider";
-import { useRightPanelStore } from "@/stores/rightPanelStore";
+import { useSidebarStore } from "@/stores/sidebarStore";
 import { useAuth } from "@/context/AuthContext";
 import ChatMessage from "@/components/ChatMessage";
 import TextInput from "@/components/TextInput";
@@ -12,7 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 
 const LawMonitorChatPanel = () => {
   const { chatMessages, isStreaming, sendMessage } = useAgentStreamContext();
-  const { context } = useRightPanelStore();
+  const { context } = useSidebarStore();
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +26,7 @@ const LawMonitorChatPanel = () => {
     const token = await user.getIdToken();
     const agentConfig = {
       pflicht_id: context.pflichtId,
-      document_id: context.documentId,
+      document_id: context.dokumentId,
     };
 
     console.log("agentConfig", agentConfig);
