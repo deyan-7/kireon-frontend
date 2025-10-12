@@ -8,6 +8,7 @@ import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { deletePflicht } from '@/lib/services/pflicht-service';
 import { submitDokumentFeedback } from '@/lib/services/dokument-feedback-service';
 import styles from './DokumentPreviewTable.module.scss';
+// Chat trigger moved to Pflicht dialog; no panel trigger in table
 
 interface DokumentPreviewTableProps {
   dokumente: DokumentPreview[];

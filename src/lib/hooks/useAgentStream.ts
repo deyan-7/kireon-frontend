@@ -14,6 +14,8 @@ export interface StreamOptions {
   agent_config?: Record<string, unknown>;
   stream_tokens?: boolean;
   run_id?: string;
+  // Optional context payload for agent-specific metadata
+  context?: { document_id?: string; obligation_id?: number };
 }
 
 export interface Artifact {
@@ -195,7 +197,10 @@ export function useAgentStream(endpoint: string) {
             body: JSON.stringify({
               user_input: {
                 ...options,
-                agent_config: { ...options?.agent_config, language: locale },
+                agent_config: {
+                  ...options?.agent_config,
+                  language: locale,
+                },
               },
             }),
           }
@@ -228,55 +233,21 @@ export function useAgentStream(endpoint: string) {
               const payload = JSON.parse(raw);
 
               if (payload.type === "token") {
-                const node = payload.langgraph_node;
-                const isChat = node === "controller_llm";
-                const isChatMessage =
-                  payload.custom_data?.metadata?.type === "chat";
-
-                if (isChat && isChatMessage) {
-                  // ————— unchanged chat logic —————
-                  chatRef.current[node] =
-                    (chatRef.current[node] || "") + payload.content;
-                  const draft = {
-                    id: "streaming_" + node,
-                    role: "ai",
-                    content: chatRef.current[node],
-                  } as ExtendedChatMessage;
-                  setChatMessages((prev) => [
-                    ...prev.filter(
-                      (m) => m.id !== draft.id && !m.id.startsWith("streaming_")
-                    ),
-                    draft,
-                  ]);
-                } else {
-                  // ————— new: tool-artifact streaming draft —————
-                  // const meta = payload.custom_data?.metadata ?? {};
-                  // const artifactType = meta.artifact_type as string | undefined;
-
-                  artifactRef.current[node] =
-                    (artifactRef.current[node] || "") + payload.content;
-
-                  // const draft: Artifact = {
-                  //   id: "streaming_" + node,
-                  //   node,
-                  //   type: artifactType,
-                  //   title: undefined,
-                  //   content: artifactRef.current[node],
-                  //   status: "streaming",
-                  //   meta,
-                  // };
-
-                  setArtifacts((prev) => {
-                    const draftExists = prev.some((a) => a.id === draftId);
-                    if (draftExists) {
-                      // If a streaming draft exists, map and update it.
-                      return prev.map((a) => (a.id === draftId ? complete : a));
-                    } else {
-                      // Otherwise, add the new complete artifact to the array.
-                      return [...prev, complete];
-                    }
-                  });
-                }
+                const node = payload.langgraph_node || "default";
+                // Append token content to a draft assistant message regardless of metadata
+                chatRef.current[node] =
+                  (chatRef.current[node] || "") + payload.content;
+                const draft = {
+                  id: "streaming_" + node,
+                  role: "ai",
+                  content: chatRef.current[node],
+                } as ExtendedChatMessage;
+                setChatMessages((prev) => [
+                  ...prev.filter(
+                    (m) => m.id !== draft.id && !m.id.startsWith("streaming_")
+                  ),
+                  draft,
+                ]);
               }
 
               if (payload.type === "message") {
@@ -307,12 +278,8 @@ export function useAgentStream(endpoint: string) {
     const role = final.type === "ai" ? "ai" : final.type;
 
     if (role === "ai") {
-      const validMessageTypes = ["chat", "metadata_update"];
-      if (
-        !validMessageTypes.includes(final?.custom_data?.metadata?.type) ||
-        !final.content?.trim()
-      ) {
-        console.debug("Skipped non-chat or empty AI message", final);
+      if (!final.content?.trim()) {
+        console.debug("Skipped empty AI message", final);
         return;
       }
 
@@ -337,7 +304,9 @@ export function useAgentStream(endpoint: string) {
         return [...filtered, finalChat];
       });
 
-      delete chatRef.current["controller_llm"];
+      // Clear any streaming buffer for this node if present
+      const node = sseMeta?.node ?? sseMeta?.langgraph_node ?? "default";
+      delete chatRef.current[node];
     } else if (role === "tool") {
       try {
         const isJson =
@@ -347,26 +316,26 @@ export function useAgentStream(endpoint: string) {
         const toolData = isJson
           ? JSON.parse(final.content)
           : {
-              artifact_type: "markdown",
-              artifact_title: "Tool Output",
-              artifact_content: final.content,
-            };
-  
+            artifact_type: "markdown",
+            artifact_title: "Tool Output",
+            artifact_content: final.content,
+          };
+
         const isForm = toolData.artifact_type === "json_form";
         const artifactCompleteContent = isForm
           ? toolData
           : toolData.artifact_content?.trim?.() ||
-            toolData.task_content?.content?.trim?.();
-  
+          toolData.task_content?.content?.trim?.();
+
         if (!artifactCompleteContent) {
           console.debug("Skipped empty tool artifact", toolData);
           return;
         }
-  
+
         const node = sseMeta.node ?? sseMeta.langgraph_node;
         const draftId = `streaming_${node}`;
         const finalId = final.tool_call_id || draftId;
-  
+
         const complete: Artifact = {
           id: finalId,
           node,
@@ -376,7 +345,7 @@ export function useAgentStream(endpoint: string) {
           status: "complete",
           meta: toolData,
         };
-  
+
         setArtifacts((prev) => {
           const draftExists = prev.some((a) => a.id === draftId);
           if (draftExists) {

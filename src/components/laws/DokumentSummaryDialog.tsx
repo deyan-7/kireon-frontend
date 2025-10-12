@@ -1,7 +1,6 @@
 // src/components/laws/DokumentSummaryDialog.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dokument } from '@/types/pflicht';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { getDokumentDetails } from '@/lib/services/pflicht-service';
 import { AlertCircle } from 'lucide-react';
@@ -9,12 +8,10 @@ import styles from './DokumentSummaryDialog.module.scss';
 
 interface DokumentSummaryDialogProps {
   dokumentId: string | null;
-  onClose: () => void;
 }
 
 const DokumentSummaryDialog: React.FC<DokumentSummaryDialogProps> = ({
   dokumentId,
-  onClose,
 }) => {
   const [dokument, setDokument] = useState<Dokument | null>(null);
   const [loading, setLoading] = useState(false);
@@ -91,18 +88,7 @@ const DokumentSummaryDialog: React.FC<DokumentSummaryDialogProps> = ({
     );
   };
 
-  return (
-    <Dialog open={!!dokumentId} onOpenChange={onClose}>
-      <DialogContent className={styles.dialogContent}>
-        <DialogHeader className={styles.dialogHeader}>
-          <DialogTitle className={styles.dialogTitle}>
-            {dokument?.thema || 'Dokument Zusammenfassung'}
-          </DialogTitle>
-        </DialogHeader>
-        {renderContent()}
-      </DialogContent>
-    </Dialog>
-  );
+  return renderContent();
 };
 
 export default DokumentSummaryDialog;

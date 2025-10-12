@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Pflicht, Beleg } from '@/types/pflicht';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, AlertCircle, X, BookOpenIcon } from 'lucide-react';
+import { Calendar, Users, AlertCircle, BookOpenIcon, MessageSquare } from 'lucide-react';
+import { useRightPanelStore } from '@/stores/rightPanelStore';
 import { getPflichtDetails } from '@/lib/services/pflicht-service';
 import styles from './PflichtDetailDialog.module.scss';
 
@@ -14,7 +14,7 @@ interface PflichtDetailDialogProps {
   onShowBelege: (belege: Beleg[], pflichtThema: string) => void;
 }
 
-const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
+const PflichtDetailView: React.FC<PflichtDetailDialogProps> = ({
   pflichtId,
   onClose,
   onEdit,
@@ -23,6 +23,7 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
   const [pflicht, setPflicht] = useState<Pflicht | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { openPanel } = useRightPanelStore();
 
   const loadPflichtDetails = useCallback(async () => {
     if (!pflichtId) return;
@@ -59,46 +60,22 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
 
   if (loading) {
     return (
-      <Dialog open={!!pflichtId} onOpenChange={onClose}>
-        <DialogContent className={styles.dialogContent}>
-          <DialogHeader>
-            <DialogTitle>Lade Pflicht-Details...</DialogTitle>
-          </DialogHeader>
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner} />
-            <p>Lade Pflicht-Details...</p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner} />
+        <p>Lade Pflicht-Details...</p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Dialog open={!!pflichtId} onOpenChange={onClose}>
-        <DialogContent className={styles.dialogContent}>
-          <DialogHeader className={styles.dialogHeader}>
-            <DialogTitle className={styles.dialogTitle}>
-              Fehler beim Laden
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className={styles.closeButton}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogHeader>
-          <div className={styles.errorContainer}>
-            <AlertCircle className={styles.errorIcon} />
-            <p className={styles.errorMessage}>{error}</p>
-            <Button onClick={loadPflichtDetails} variant="outline">
-              Erneut versuchen
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <div className={styles.errorContainer}>
+        <AlertCircle className={styles.errorIcon} />
+        <p className={styles.errorMessage}>{error}</p>
+        <Button onClick={loadPflichtDetails} variant="outline">
+          Erneut versuchen
+        </Button>
+      </div>
     );
   }
 
@@ -106,15 +83,18 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
 
 
   return (
-    <Dialog open={!!pflichtId} onOpenChange={onClose}>
-      <DialogContent className={styles.dialogContent}>
-        <DialogHeader className={styles.dialogHeader}>
-          <DialogTitle className={styles.dialogTitle}>
-            {pflicht.thema || 'Pflicht-Details'}
-          </DialogTitle>
-        </DialogHeader>
-
         <div className={styles.dialogBody}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openPanel({ documentId: pflicht.dokument_id, pflichtId })}
+              title="Law Monitor Chat öffnen"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Chat öffnen
+            </Button>
+          </div>
           <div className={styles.compactGrid}>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Stichtag</label>
@@ -237,9 +217,7 @@ const PflichtDetailDialog: React.FC<PflichtDetailDialogProps> = ({
             )}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
   );
 };
 
-export default PflichtDetailDialog;
+export default PflichtDetailView;

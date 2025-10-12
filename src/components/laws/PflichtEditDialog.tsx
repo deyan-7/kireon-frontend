@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Pflicht } from '@/types/pflicht';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Calendar, Users, AlertCircle, X } from 'lucide-react';
+import { Calendar, Users, AlertCircle } from 'lucide-react';
 import { getPflichtDetails, updatePflicht } from '@/lib/services/pflicht-service';
 import styles from './PflichtEditDialog.module.scss';
 
@@ -91,60 +90,28 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
 
   if (loading) {
     return (
-      <Dialog open={!!pflichtId} onOpenChange={onClose}>
-        <DialogContent className={styles.dialogContent}>
-          <DialogHeader>
-            <DialogTitle>Lade Pflicht-Details...</DialogTitle>
-          </DialogHeader>
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner} />
-            <p>Lade Pflicht-Details...</p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner} />
+        <p>Lade Pflicht-Details...</p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Dialog open={!!pflichtId} onOpenChange={onClose}>
-        <DialogContent className={styles.dialogContent}>
-          <DialogHeader className={styles.dialogHeader}>
-            <DialogTitle className={styles.dialogTitle}>
-              Fehler beim Laden
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className={styles.closeButton}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogHeader>
-          <div className={styles.errorContainer}>
-            <AlertCircle className={styles.errorIcon} />
-            <p className={styles.errorMessage}>{error}</p>
-            <Button onClick={loadPflichtDetails} variant="outline">
-              Erneut versuchen
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <div className={styles.errorContainer}>
+        <AlertCircle className={styles.errorIcon} />
+        <p className={styles.errorMessage}>{error}</p>
+        <Button onClick={loadPflichtDetails} variant="outline">
+          Erneut versuchen
+        </Button>
+      </div>
     );
   }
 
   if (!pflicht) return null;
 
   return (
-    <Dialog open={!!pflichtId} onOpenChange={onClose}>
-      <DialogContent className={styles.dialogContent}>
-        <DialogHeader className={styles.dialogHeader}>
-          <DialogTitle className={styles.dialogTitle}>
-            {pflicht.thema || 'Pflicht bearbeiten'}
-          </DialogTitle>
-        </DialogHeader>
-
         <div className={styles.dialogBody}>
           <div className={styles.compactGrid}>
             <div className={styles.fieldGroup}>
@@ -282,8 +249,6 @@ const PflichtEditDialog: React.FC<PflichtEditDialogProps> = ({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
   );
 };
 

@@ -2,32 +2,32 @@
 
 import { useState } from 'react';
 import { useDokumentPreviews } from '@/lib/hooks/useDokumentPreviews';
-import LawsSplitView from '@/components/LawsSplitView';
-import BereicheSidebar from '@/components/laws/BereicheSidebar';
+// Removed LawsSplitView and BereicheSidebar in favor of ResizableSplitView
 import DokumentPreviewTable from '@/components/laws/DokumentPreviewTable';
-import PflichtDetailDialog from '@/components/laws/PflichtDetailDialog';
-import PflichtEditDialog from '@/components/laws/PflichtEditDialog';
+import PflichtDetailView from '@/components/laws/PflichtDetailDialog';
+import PflichtEditView from '@/components/laws/PflichtEditDialog';
 import CreateDokumentModal from '@/components/laws/CreateDokumentModal';
-import DokumentSummaryDialog from '@/components/laws/DokumentSummaryDialog';
+import DokumentSummaryView from '@/components/laws/DokumentSummaryDialog';
 import RightSidebar from '@/components/shared/RightSidebar';
+import { useRightPanelStore } from '@/stores/rightPanelStore';
+import { AgentStreamProvider } from '@/context/AgentStreamProvider';
+import LawMonitorChatPanel from '@/components/laws/LawMonitorChatPanel';
 import { deleteDokument } from '@/lib/services/pflicht-service';
 import { Beleg } from '@/types/pflicht';
+import ResizableSplitView from '@/components/ResizableSplitView';
+import DetailPanel from '@/components/shared/DetailPanel';
 
 export default function LawsPage() {
   const {
     loading,
     refreshing,
     dokumente,
-    bereichList,
-    bereichCounts,
     filterText,
-    selectedBereich,
     currentPage,
     totalPages,
     totalCount,
     itemsPerPage,
     setFilterText,
-    selectBereich,
     goToPage,
     search,
   } = useDokumentPreviews();
@@ -37,36 +37,39 @@ export default function LawsPage() {
   const [editingPflichtId, setEditingPflichtId] = useState<number | null>(null);
   const [showCreateDokumentModal, setShowCreateDokumentModal] = useState(false);
   const [sidebarContent, setSidebarContent] = useState<{ title: string; belege: Beleg[] } | null>(null);
+  const [detailPanelTitle, setDetailPanelTitle] = useState('');
+
+  const { isOpen, closePanel } = useRightPanelStore();
 
 
 
   const handleDokumentClick = (dokumentId: string) => {
+    const doc = dokumente.find(d => d.id === dokumentId);
+    setDetailPanelTitle(doc?.thema || 'Dokument Zusammenfassung');
     setSelectedDokumentId(dokumentId);
   };
 
-  const handleCloseDokumentDialog = () => {
-    setSelectedDokumentId(null);
-  };
+  // Deprecated: handled by handleCloseDetailPanel
 
   const handlePflichtClick = (pflichtId: number) => {
+    const pflicht = dokumente.flatMap(d => d.pflichten).find(p => p.id === pflichtId);
+    setDetailPanelTitle(pflicht?.thema || 'Pflicht-Details');
     setSelectedPflichtId(pflichtId);
   };
 
-  const handleClosePflichtDialog = () => {
-    setSelectedPflichtId(null);
-  };
+  // Deprecated: handled by handleCloseDetailPanel
 
 
   const handleEditPflichtClick = () => {
     if (selectedPflichtId) {
+      const pflicht = dokumente.flatMap(d => d.pflichten).find(p => p.id === selectedPflichtId);
+      setDetailPanelTitle(`Bearbeite: ${pflicht?.thema}` || 'Pflicht bearbeiten');
       setEditingPflichtId(selectedPflichtId);
       setSelectedPflichtId(null);
     }
   };
 
-  const handleCloseEditDialog = () => {
-    setEditingPflichtId(null);
-  };
+  // Deprecated: handled by handleCloseDetailPanel
 
   const handleDeleteDokument = async (dokumentId: string) => {
     try {
@@ -107,74 +110,96 @@ export default function LawsPage() {
     setSidebarContent(null);
   };
 
-  const sidebar = (
-    <BereicheSidebar
-      bereiche={bereichList}
-      bereichCounts={bereichCounts}
-      selected={selectedBereich}
-      onSelect={selectBereich}
-      totalCount={totalCount}
-    />
-  );
-
   if (loading && dokumente.length === 0 && !refreshing) {
     return <div>Lade Dokumente...</div>;
   }
+  
+  const handleCloseDetailPanel = () => {
+    setSelectedPflichtId(null);
+    setEditingPflichtId(null);
+    setSelectedDokumentId(null);
+    setDetailPanelTitle('');
+  };
 
-  return (
-    <div style={{ height: 'calc(100vh - 5rem)', display: 'flex', flexDirection: 'column' }}>
-      <LawsSplitView sidebar={sidebar}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h1>Dokumente</h1>
+  const mainContent = (
+    <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
+      <div style={{ padding: '2rem', height: '100%', overflowY: 'auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h1>Dokumente</h1>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={() => {
+              // Open chat panel without specific context; Pflicht dialog provides precise context
+              useRightPanelStore.getState().openPanel({});
+            }}
+            className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50"
+            title="Law Monitor Chat öffnen"
+          >
+            Law Monitor Chat
+          </button>
         </div>
-        <p style={{ marginBottom: '2rem', color: '#666' }}>
-          {selectedBereich
-            ? `Anzeigen von Dokumenten für: ${selectedBereich}`
-            : "Alle Dokumente anzeigen"}
-        </p>
+      </div>
+        <p style={{ marginBottom: '2rem', color: '#666' }}>Alle Dokumente anzeigen</p>
 
         <DokumentPreviewTable
-          dokumente={dokumente}
-          filterText={filterText}
-          onFilterChange={handleFilterChange}
-          onSelectDokument={handleDokumentClick}
-          onSelectPflicht={handlePflichtClick}
-          onAddNew={() => setShowCreateDokumentModal(true)}
-          onDeleteDokument={handleDeleteDokument}
-          onDeletePflicht={handlePflichtDeleted}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalCount={totalCount}
-          itemsPerPage={itemsPerPage}
-          onPageChange={goToPage}
-          refreshing={refreshing}
+        dokumente={dokumente}
+        filterText={filterText}
+        onFilterChange={handleFilterChange}
+        onSelectDokument={handleDokumentClick}
+        onSelectPflicht={handlePflichtClick}
+        onAddNew={() => setShowCreateDokumentModal(true)}
+        onDeleteDokument={handleDeleteDokument}
+        onDeletePflicht={handlePflichtDeleted}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        itemsPerPage={itemsPerPage}
+        onPageChange={goToPage}
+        refreshing={refreshing}
         />
-      </LawsSplitView>
+      </div>
 
-      {selectedDokumentId && (
-        <DokumentSummaryDialog
-          dokumentId={selectedDokumentId}
-          onClose={handleCloseDokumentDialog}
-        />
-      )}
+      <DetailPanel
+        isOpen={!!selectedPflichtId || !!editingPflichtId || !!selectedDokumentId}
+        onClose={handleCloseDetailPanel}
+        title={detailPanelTitle}
+      >
+        {selectedPflichtId && (
+          <PflichtDetailView
+            pflichtId={selectedPflichtId}
+            onClose={handleCloseDetailPanel}
+            onEdit={handleEditPflichtClick}
+            onShowBelege={handleShowBelege}
+          />
+        )}
+        {editingPflichtId && (
+          <PflichtEditView
+            pflichtId={editingPflichtId}
+            onClose={handleCloseDetailPanel}
+            onSave={handlePflichtSaved}
+          />
+        )}
+        {selectedDokumentId && (
+          <DokumentSummaryView dokumentId={selectedDokumentId} />
+        )}
+      </DetailPanel>
+    </div>
+  );
 
-      {selectedPflichtId && (
-        <PflichtDetailDialog
-          pflichtId={selectedPflichtId}
-          onClose={handleClosePflichtDialog}
-          onEdit={handleEditPflichtClick}
-          onShowBelege={handleShowBelege}
-        />
-      )}
+  const sidePanelContent = (
+    <AgentStreamProvider>
+      <LawMonitorChatPanel />
+    </AgentStreamProvider>
+  );
 
-      {editingPflichtId && (
-        <PflichtEditDialog
-          pflichtId={editingPflichtId}
-          onClose={handleCloseEditDialog}
-          onSave={handlePflichtSaved}
-        />
-      )}
-
+  return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <ResizableSplitView
+        mainContent={mainContent}
+        sidePanelContent={sidePanelContent}
+        isSidePanelOpen={isOpen}
+        onSidePanelClose={closePanel}
+      />
 
       {showCreateDokumentModal && (
         <CreateDokumentModal

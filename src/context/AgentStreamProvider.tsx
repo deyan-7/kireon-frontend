@@ -23,8 +23,8 @@ interface AgentStreamProviderProps {
 
 export const AgentStreamProvider = ({ children }: AgentStreamProviderProps) => {
   const stream = useAgentStream(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/stream` ||
-    "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io/stream"
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stream` ||
+    "https://backend.niceforest-23188099.westeurope.azurecontainerapps.io/api/stream"
   );
 
   return (

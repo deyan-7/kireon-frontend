@@ -28,7 +28,7 @@ export default async function RootLayout({
   }
   return (
     <html lang={locale}>
-      <body>
+      <body suppressHydrationWarning>
         <NextIntlClientProvider>
           <AuthProvider>
             <TaskProvider>
