@@ -119,6 +119,7 @@ export default function LawsPage() {
         itemsPerPage={itemsPerPage}
         onPageChange={goToPage}
         refreshing={refreshing}
+        onRefresh={() => search(filterText)}
         />
       </div>
 

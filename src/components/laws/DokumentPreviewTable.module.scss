@@ -123,6 +123,10 @@
 }
 
 .table th:nth-child(7), .table td:nth-child(7) {
+  width: 18%;
+}
+
+.table th:nth-child(8), .table td:nth-child(8) {
   width: 3rem;
 }
 
@@ -148,6 +152,10 @@
   padding: 0.5rem !important;
 }
 
+.statusCell {
+  padding: 0.5rem !important;
+}
+
 .deleteButton {
   background: none;
   border: none;
@@ -160,6 +168,13 @@
   &:hover {
     background-color: #fef2f2;
     color: #dc2626;
+  }
+
+  &:disabled,
+  &:disabled:hover {
+    background-color: transparent;
+    color: #d1d5db;
+    cursor: not-allowed;
   }
 }
 
@@ -188,6 +203,59 @@
   width: 1rem;
   height: 1rem;
   color: #6b7280;
+}
+
+.statusBadgeCreating,
+.statusBadgeReady,
+.statusBadgeError {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.statusBadgeCreating {
+  color: #2563eb;
+}
+
+.statusSpinner {
+  width: 1rem;
+  height: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+.statusBadgeReady {
+  color: #059669;
+  font-weight: 600;
+}
+
+.statusBadgeError {
+  color: #dc2626;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.statusErrorIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.statusErrorText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  max-width: 280px;
+}
+
+.statusErrorDetails {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  word-break: break-word;
+}
+
+.retryButton {
+  white-space: nowrap;
 }
 
 .dokumentRow {
@@ -685,5 +753,14 @@
   &:hover {
     background-color: #f9fafb;
     border-color: #9ca3af;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }

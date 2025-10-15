@@ -27,6 +27,12 @@ export interface Dokument {
   extraction_timestamp: string;
   pflichten: Pflicht[];
   comments: Comment[] | null;
+  creation_status: 'creating' | 'ready' | 'error';
+  creation_error: string | null;
+  retry_count: number;
+  updated_at: string | null;
+  locked_by: string | null;
+  locked_at: string | null;
 }
 
 export interface DokumentDebugInfo {
@@ -105,4 +111,11 @@ export interface ActorDetails {
 export interface NationalOverride {
   laenderkuerzel: string;
   handlungsanweisungen: string | null;
+}
+
+export interface DokumentJobStatus {
+  dokument_id: string;
+  creation_status: 'creating' | 'ready' | 'error';
+  creation_error: string | null;
+  retry_count: number;
 }

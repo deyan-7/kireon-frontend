@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getDokumentPreviews } from '@/lib/services/pflicht-service';
+import { getDokumentPreviews, getDokumentDetails } from '@/lib/services/pflicht-service';
 import { DokumentPreview, DokumentPreviewSearchParams } from '@/types/pflicht-preview';
+import { Dokument } from '@/types/pflicht';
 
 export function useDokumentPreviews() {
   const [loading, setLoading] = useState(true);
@@ -15,6 +16,25 @@ export function useDokumentPreviews() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [itemsPerPage] = useState(50);
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+
+  const updateProcessingIds = useCallback((next: Iterable<string>) => {
+    setProcessingIds((prev) => {
+      const nextSet = new Set(next);
+      if (prev.size === nextSet.size) {
+        let identical = true;
+        prev.forEach((value) => {
+          if (!nextSet.has(value)) {
+            identical = false;
+          }
+        });
+        if (identical) {
+          return prev;
+        }
+      }
+      return nextSet;
+    });
+  }, []);
 
   const search = useCallback(async (searchText: string = '', bereich: string | null = null) => {
     try {
@@ -36,6 +56,9 @@ export function useDokumentPreviews() {
       const response = await getDokumentPreviews(params);
       
       setDokumente(response.data);
+      updateProcessingIds(
+        response.data.filter((d) => d.creation_status === 'creating').map((d) => d.id),
+      );
       setTotalPages(response.totalPages);
       setTotalCount(response.total);
 
@@ -53,13 +76,14 @@ export function useDokumentPreviews() {
     } catch (error) {
       console.error('Error fetching dokument previews:', error);
       setDokumente([]);
+      updateProcessingIds([]);
       setTotalPages(1);
       setTotalCount(0);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [currentPage, itemsPerPage, dokumente.length]);
+  }, [currentPage, itemsPerPage, dokumente.length, updateProcessingIds]);
 
   const selectBereich = useCallback((bereich: string | null) => {
     setSelectedBereich(bereich);
@@ -99,6 +123,101 @@ export function useDokumentPreviews() {
       search(filterText, selectedBereich);
     }
   }, [currentPage, search, filterText, selectedBereich]);
+
+  useEffect(() => {
+    if (processingIds.size === 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const convertToPreview = (doc: Dokument): DokumentPreview => ({
+      id: doc.id,
+      bereich: doc.bereich,
+      gesetzeskuerzel: doc.gesetzeskuerzel,
+      gesetzgebung: doc.gesetzgebung,
+      dokument_status: doc.dokument_status,
+      verfahren_status: doc.verfahren_status,
+      extraction_timestamp: doc.extraction_timestamp,
+      thema: doc.thema,
+      url: doc.url,
+      pflichten: doc.pflichten.map((pflicht) => ({
+        id: pflicht.id,
+        dokument_id: pflicht.dokument_id,
+        thema: pflicht.thema,
+        stichtag: pflicht.stichtag,
+        folgestatus: pflicht.folgestatus,
+        produkte: pflicht.produkte,
+        laenderkuerzel: pflicht.laenderkuerzel ? [...pflicht.laenderkuerzel] : null,
+      })),
+      creation_status: doc.creation_status,
+      creation_error: doc.creation_error,
+      updated_at: doc.updated_at,
+      retry_count: doc.retry_count,
+    });
+
+    const poll = async () => {
+      const ids = Array.from(processingIds);
+      const stillProcessing = new Set<string>();
+
+      try {
+        const updates = await Promise.all(
+          ids.map(async (id) => {
+            try {
+              const dokument = await getDokumentDetails(id);
+              return convertToPreview(dokument);
+            } catch (error) {
+              console.error(`Fehler beim Aktualisieren des Dokuments ${id}:`, error);
+              return null;
+            }
+          }),
+        );
+
+        setDokumente((prev) => {
+          let changed = false;
+          const byId = new Map(prev.map((d) => [d.id, d]));
+
+          updates.forEach((preview) => {
+            if (!preview) {
+              return;
+            }
+            if (preview.creation_status === 'creating') {
+              stillProcessing.add(preview.id);
+            }
+            if (!byId.has(preview.id)) {
+              return;
+            }
+            const previous = byId.get(preview.id)!;
+            const merged = { ...previous, ...preview };
+            const serializedPrev = JSON.stringify(previous);
+            const serializedMerged = JSON.stringify(merged);
+            if (serializedPrev !== serializedMerged) {
+              byId.set(preview.id, merged);
+              changed = true;
+            }
+          });
+
+          if (!changed) {
+            return prev;
+          }
+
+          return prev.map((d) => byId.get(d.id) ?? d);
+        });
+      } finally {
+        if (!cancelled) {
+          updateProcessingIds(stillProcessing);
+        }
+      }
+    };
+
+    const interval = setInterval(poll, 5000);
+    void poll();
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [processingIds, updateProcessingIds]);
 
   return {
     loading,

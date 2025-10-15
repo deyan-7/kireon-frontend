@@ -1,5 +1,5 @@
 import { DokumentPreviewSearchParams, DokumentPreviewResponse, SearchResultResponse } from '@/types/pflicht-preview';
-import { Pflicht, Dokument, ChangeHistory, Comment } from '@/types/pflicht';
+import { Pflicht, Dokument, ChangeHistory, Comment, DokumentJobStatus } from '@/types/pflicht';
 import { auth } from '@/lib/auth';
 
 export async function deleteDokument(dokumentId: string): Promise<void> {
@@ -227,7 +227,7 @@ export async function deleteComment(
   }
 }
 
-export async function createDokumentFromUrl(url: string): Promise<Dokument> {
+export async function initiateDokumentCreation(url: string): Promise<DokumentJobStatus> {
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -258,7 +258,39 @@ export async function createDokumentFromUrl(url: string): Promise<Dokument> {
   }
 
   const result = await response.json();
-  return result;
+  return result as DokumentJobStatus;
+}
+
+export async function retryDokumentCreation(dokumentId: string): Promise<DokumentJobStatus> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+  const requestUrl = `${baseUrl}/api/dokument/${dokumentId}/retry`;
+
+  const response = await fetch(requestUrl, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    },
+    cache: 'no-cache',
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+
+    if (response.status === 404) {
+      throw new Error(`Dokument wurde nicht gefunden`);
+    } else if (response.status === 400) {
+      throw new Error(`Nur fehlgeschlagene Dokumente können erneut gestartet werden`);
+    }
+
+    throw new Error(`API Error: ${response.status} ${errorText}`);
+  }
+
+  const result = await response.json();
+  return result as DokumentJobStatus;
 }
 
 export async function deletePflicht(pflichtId: number): Promise<{ message: string }> {

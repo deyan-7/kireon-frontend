@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { createDokumentFromUrl } from '@/lib/services/pflicht-service';
+import { initiateDokumentCreation } from '@/lib/services/pflicht-service';
 import styles from './CreateDokumentModal.module.scss';
 
 interface CreateDokumentModalProps {
@@ -56,7 +56,13 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
       setSuccess(false);
 
       try {
-        await createDokumentFromUrl(url.trim());
+        const job = await initiateDokumentCreation(url.trim());
+        if (job.creation_status === 'error') {
+          const message = job.creation_error || 'Die Erstellung ist zuvor fehlgeschlagen. Bitte versuchen Sie es erneut über die Übersicht.';
+          setError(message);
+          onSuccess();
+          return;
+        }
         setSuccess(true);
         setUrl('');
 
@@ -98,7 +104,10 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
 
       for (const currentUrl of urls) {
         try {
-          await createDokumentFromUrl(currentUrl);
+          const job = await initiateDokumentCreation(currentUrl);
+          if (job.creation_status === 'error') {
+            throw new Error(job.creation_error || 'Die Erstellung ist zuvor fehlgeschlagen. Bitte prüfen Sie die Übersicht.');
+          }
           setSuccessCount(prev => prev + 1);
         } catch (err) {
           setErrorCount(prev => prev + 1);
@@ -111,6 +120,7 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
 
       setProcessStatus('finished');
       setLoading(false);
+      onSuccess();
     }
   };
 
@@ -192,7 +202,7 @@ const CreateDokumentModal: React.FC<CreateDokumentModalProps> = ({
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4" />
                     <AlertDescription>
-                      Das Dokument konnte erfolgreich erstellt werden! <br /> Die Übersicht wird aktualisiert...
+                      Das Dokument wird nun im Hintergrund erstellt. <br /> Die Übersicht wird in Kürze aktualisiert.
                     </AlertDescription>
                   </div>
                 </Alert>

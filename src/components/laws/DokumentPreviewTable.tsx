@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDownIcon, ChevronRightIcon, PlusIcon, MagnifyingGlassIcon, TrashIcon, HandThumbUpIcon, HandThumbDownIcon } from '@heroicons/react/24/outline';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
-import { deletePflicht } from '@/lib/services/pflicht-service';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { deletePflicht, retryDokumentCreation } from '@/lib/services/pflicht-service';
 import { submitDokumentFeedback } from '@/lib/services/dokument-feedback-service';
 import styles from './DokumentPreviewTable.module.scss';
 import { useSidebarStore } from '@/stores/sidebarStore';
@@ -26,6 +27,7 @@ interface DokumentPreviewTableProps {
   itemsPerPage: number;
   onPageChange: (page: number) => void;
   refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
@@ -43,6 +45,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
   itemsPerPage,
   onPageChange,
   refreshing = false,
+  onRefresh,
 }) => {
   const { open } = useSidebarStore();
   const [expandedDokumente, setExpandedDokumente] = useState<Set<string>>(new Set());
@@ -51,6 +54,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
   const [negativeFeedbackMessage, setNegativeFeedbackMessage] = useState<Record<string, string>>({});
   const [feedbackLoading, setFeedbackLoading] = useState<Set<string>>(new Set());
   const [feedbackStates, setFeedbackStates] = useState<Record<string, 'positive' | 'negative' | null>>({});
+  const [retryingIds, setRetryingIds] = useState<Set<string>>(new Set());
 
   const toggleDokument = (dokumentId: string) => {
     setExpandedDokumente(prev => {
@@ -276,6 +280,68 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
     );
   };
 
+  const handleRetryDokument = async (dokumentId: string) => {
+    setRetryingIds((prev) => {
+      const next = new Set(prev);
+      next.add(dokumentId);
+      return next;
+    });
+
+    try {
+      await retryDokumentCreation(dokumentId);
+      onRefresh?.();
+    } catch (error) {
+      console.error('Fehler beim Neustart der Dokumenterstellung:', error);
+      alert('Fehler beim Neustart der Dokumenterstellung. Bitte versuchen Sie es erneut.');
+    } finally {
+      setRetryingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(dokumentId);
+        return next;
+      });
+    }
+  };
+
+  const renderCreationStatus = (dokument: DokumentPreview) => {
+    const isRetrying = retryingIds.has(dokument.id);
+    if (isRetrying || dokument.creation_status === 'creating') {
+      return (
+        <div className={styles.statusBadgeCreating}>
+          <Loader2 className={styles.statusSpinner} />
+          <span>In Erstellung</span>
+        </div>
+      );
+    }
+
+    if (dokument.creation_status === 'error') {
+      return (
+        <div className={styles.statusBadgeError}>
+          <AlertCircle className={styles.statusErrorIcon} />
+          <div className={styles.statusErrorText}>
+            <span>Erstellung fehlgeschlagen</span>
+            {dokument.creation_error && (
+              <span className={styles.statusErrorDetails}>{dokument.creation_error}</span>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className={styles.retryButton}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRetryDokument(dokument.id);
+            }}
+            disabled={isRetrying}
+          >
+            Wiederholen
+          </Button>
+        </div>
+      );
+    }
+
+    return <span className={styles.statusBadgeReady}>Fertig</span>;
+  };
+
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
@@ -370,6 +436,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
               <th>Bereich</th>
               <th>Gesetzeskürzel</th>
               <th>Gesetzgebung</th>
+              <th>Status</th>
               <th className={styles.actionColumn}></th>
             </tr>
           </thead>
@@ -430,6 +497,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                       )}
                     </td>
                     <td className={styles.gesetzgebung}>{dokument.gesetzgebung || 'Nicht verfügbar'}</td>
+                    <td className={styles.statusCell}>{renderCreationStatus(dokument)}</td>
                     <td className={styles.actionCell}>
                       <button
                         onClick={(e) => {
@@ -438,6 +506,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                         }}
                         className={styles.deleteButton}
                         title="Dokument löschen"
+                        disabled={dokument.creation_status === 'creating' || retryingIds.has(dokument.id)}
                       >
                         <TrashIcon className={styles.deleteIcon} />
                       </button>
@@ -453,6 +522,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                         <td className={styles.pflichtHeaderCell}>Länder</td>
                         <td className={styles.pflichtHeaderCell}>Produkte</td>
                         <td className={styles.pflichtHeaderCell}>Folgestatus</td>
+                        <td className={styles.pflichtHeaderCell}></td>
                         <td></td>
                       </tr>
                       {dokument.pflichten.length > 0 ? (
@@ -491,6 +561,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                                   {pflicht.folgestatus || '-'}
                                 </span>
                               </td>
+                              <td className={styles.pflichtCell}></td>
                               <td className={styles.pflichtCell}>
                                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                                   <button
@@ -520,7 +591,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                       ) : (
                             <tr className={`${styles.pflichtRow} ${isExpanded ? styles.expandedSectionRow : ''}`}>
                           <td></td>
-                          <td colSpan={6} className={styles.pflichtCell}>
+                          <td colSpan={7} className={styles.pflichtCell}>
                             <div className={styles.noPflichtenMessage}>
                               Keine Pflichten für dieses Dokument vorhanden.
                             </div>
@@ -531,7 +602,7 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
                       {/* Feedback Row */}
                       <tr className={`${styles.feedbackRow} ${isExpanded ? styles.expandedSectionRow : ''}`}>
                         <td></td>
-                        <td colSpan={6} className={styles.feedbackCell}>
+                        <td colSpan={7} className={styles.feedbackCell}>
                           <div className={styles.feedbackContainer}>
                             <div className={styles.feedbackContent}>
                               <div className={styles.feedbackButtons}>

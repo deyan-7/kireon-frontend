@@ -19,6 +19,10 @@ export interface DokumentPreview {
   thema: string | null;
   url: string | null;
   pflichten: PflichtPreview[];
+  creation_status: 'creating' | 'ready' | 'error' | null;
+  creation_error: string | null;
+  updated_at?: string | null;
+  retry_count?: number;
 }
 
 export interface DokumentPreviewSearchParams {
