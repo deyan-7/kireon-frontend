@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChangeHistory } from '@/types/pflicht';
-import { getChangeHistory, revertChange } from '@/lib/services/pflicht-service';
+import { getChangeHistory } from '@/lib/services/pflicht-service';
 // Removed revert button per request
 
 interface ChangeLogViewProps {
@@ -14,32 +14,34 @@ const ChangeLogView: React.FC<ChangeLogViewProps> = ({ objectType, objectId, ref
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getChangeHistory(objectType, objectId);
-      setItems(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler beim Laden der Änderungshistorie');
-    } finally {
-      setLoading(false);
-    }
-  }, [objectType, objectId, refreshKey]);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    let isActive = true;
 
-  const handleRevert = async (historyId: number) => {
-    if (!confirm('Diese Änderung wirklich zurücksetzen?')) return;
-    try {
-      await revertChange(historyId);
-      await load();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Fehler beim Zurücksetzen');
-    }
-  };
+    const fetchHistory = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getChangeHistory(objectType, objectId);
+        if (isActive) {
+          setItems(data);
+        }
+      } catch (err) {
+        if (isActive) {
+          setError(err instanceof Error ? err.message : 'Fehler beim Laden der Änderungshistorie');
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchHistory();
+
+    return () => {
+      isActive = false;
+    };
+  }, [objectType, objectId, refreshKey]);
 
   if (loading) return <div style={{ padding: '1rem' }}>Lade Änderungshistorie...</div>;
   if (error) return <div style={{ padding: '1rem', color: '#b91c1c' }}>{error}</div>;

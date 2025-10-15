@@ -32,7 +32,7 @@ const DokumentSummaryView: React.FC<DokumentSummaryViewProps> = ({ dokumentId, o
     } finally {
       setLoading(false);
     }
-  }, [dokumentId]);
+  }, [dokumentId, onLoaded]);
 
   useEffect(() => {
     if (dokumentId) {

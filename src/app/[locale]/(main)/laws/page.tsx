@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { useDokumentPreviews } from '@/lib/hooks/useDokumentPreviews';
 import DokumentPreviewTable from '@/components/laws/DokumentPreviewTable';
 import CreateDokumentModal from '@/components/laws/CreateDokumentModal';
-import { AgentStreamProvider } from '@/context/AgentStreamProvider';
-import LawMonitorChatPanel from '@/components/laws/LawMonitorChatPanel';
 import { deleteDokument } from '@/lib/services/pflicht-service';
 import ResizableSplitView from '@/components/ResizableSplitView';
 import { useSidebarStore } from '@/stores/sidebarStore';
@@ -65,8 +63,6 @@ export default function LawsPage() {
       alert('Fehler beim Löschen des Dokuments. Bitte versuchen Sie es erneut.');
     }
   };
-
-  // Optionally refresh after edits
 
   const handlePflichtDeleted = () => {
     search(filterText);

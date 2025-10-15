@@ -32,7 +32,7 @@ const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoad
     } finally {
       setLoading(false);
     }
-  }, [pflichtId]);
+  }, [pflichtId, onLoaded]);
 
   useEffect(() => {
     if (pflichtId) {
