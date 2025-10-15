@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDokumentDialogStore } from '@/stores/dokumentDialogStore';
 import DokumentSummaryView from '@/components/laws/DokumentSummaryView';
+import DokumentEditView from '@/components/laws/DokumentEditView';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Clock, X } from 'lucide-react';
+import { MessageSquare, Clock, X, Pencil } from 'lucide-react';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { Dokument } from '@/types/pflicht';
 
@@ -43,6 +44,13 @@ const DokumentDialogPanel: React.FC = () => {
   const { isOpen, dokumentId, title, close } = useDokumentDialogStore();
   const { open, updateContext } = useSidebarStore();
   const [doc, setDoc] = useState<Dokument | null>(null);
+  const [mode, setMode] = useState<'view' | 'edit'>('view');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setMode('view');
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (doc && dokumentId) {
@@ -78,17 +86,29 @@ const DokumentDialogPanel: React.FC = () => {
           >
             <Clock className="h-5 w-5" />
           </Button>
+          {mode === 'view' && (
+            <Button variant="ghost" size="icon" onClick={() => setMode('edit')} title="Bearbeiten">
+              <Pencil className="h-5 w-5" />
+            </Button>
+          )}
           <button onClick={close} title="Schließen" style={{ padding: 6 }}>
             <X className="h-5 w-5" />
           </button>
         </div>
       </div>
       <div style={contentStyles}>
-        <DokumentSummaryView dokumentId={dokumentId} onLoaded={setDoc} />
+        {mode === 'view' ? (
+          <DokumentSummaryView dokumentId={dokumentId} onLoaded={setDoc} />
+        ) : (
+          <DokumentEditView
+            dokumentId={dokumentId}
+            onCancel={() => setMode('view')}
+            onSaved={() => setMode('view')}
+          />
+        )}
       </div>
     </div>
   );
 };
 
 export default DokumentDialogPanel;
-

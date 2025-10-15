@@ -1,5 +1,5 @@
 import { DokumentPreviewSearchParams, DokumentPreviewResponse, SearchResultResponse } from '@/types/pflicht-preview';
-import { Pflicht, Dokument, ChangeHistory } from '@/types/pflicht';
+import { Pflicht, Dokument, ChangeHistory, Comment } from '@/types/pflicht';
 import { auth } from '@/lib/auth';
 
 export async function deleteDokument(dokumentId: string): Promise<void> {
@@ -181,6 +181,50 @@ export async function patchObject(
     throw new Error(`API Error: ${response.status} ${errorText}`);
   }
   return response.json();
+}
+
+export async function addComment(
+  objectType: 'pflicht' | 'dokument',
+  objectId: number | string,
+  text: string,
+): Promise<Comment> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const response = await fetch(`${baseUrl}/api/object/${objectType}/${objectId}/comments`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteComment(
+  objectType: 'pflicht' | 'dokument',
+  objectId: number | string,
+  commentId: number,
+): Promise<void> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const response = await fetch(`${baseUrl}/api/object/${objectType}/${objectId}/comments/${commentId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+  }
 }
 
 export async function createDokumentFromUrl(url: string): Promise<Dokument> {

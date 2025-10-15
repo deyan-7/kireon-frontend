@@ -22,5 +22,8 @@
     "laws_title": "Dokumente",
     "customer_title": "Kunden",
     "welcome_message": "Wählen Sie einen Bereich aus, um zu beginnen."
+  },
+  "labels": {
+    "notizen": "Notizen"
   }
 }

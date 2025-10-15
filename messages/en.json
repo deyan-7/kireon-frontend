@@ -19,5 +19,8 @@
     "laws_title": "Documents",
     "customer_title": "Customers",
     "welcome_message": "Select an area to get started."
+  },
+  "labels": {
+    "notizen": "Notes"
   }
 }

@@ -6,6 +6,7 @@ import { Calendar, Users, AlertCircle } from 'lucide-react';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import InstructionCard from '@/components/laws/InstructionCard';
 import { getPflichtDetails } from '@/lib/services/pflicht-service';
+import CommentSection from '@/components/laws/CommentSection';
 import { useObjectRefreshStore, objectKey } from '@/stores/objectRefreshStore';
 import styles from './PflichtDetailDialog.module.scss';
 
@@ -198,6 +199,20 @@ const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoad
               </div>
             </div>
           ) : null}
+
+          {pflicht.notizen && (
+            <div className={styles.instructionsSection}>
+              <label className={styles.fieldLabel}>Notizen</label>
+              <div className={styles.fieldValue}>
+                <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{pflicht.notizen}</p>
+              </div>
+            </div>
+          )}
+          <CommentSection
+            objectType="pflicht"
+            objectId={pflichtId}
+            comments={pflicht.comments}
+          />
         </div>
   );
 };

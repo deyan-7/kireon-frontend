@@ -359,6 +359,17 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
               <Button variant="outline" onClick={addOverride} className={styles.addButton}>Umsetzung hinzufügen</Button>
             </div>
             </div>
+
+            <div className={styles.fieldGroupFullWidth}>
+              <Label className={styles.fieldLabel}>Notizen</Label>
+              <Textarea
+                value={pflicht.notizen || ''}
+                onChange={(e) => handleInputChange('notizen', e.target.value)}
+                className={styles.textarea}
+                rows={5}
+                placeholder="Interne Notizen hinzufügen..."
+              />
+            </div>
           </div>
 
           <div className={styles.actions}>

@@ -100,14 +100,13 @@ const LawMonitorChatPanel = () => {
             {(() => {
               const toolCallsRaw = (msg as any).meta?.tool_calls || (msg as any).tool_calls;
               const calls = normalizeToolCalls(toolCallsRaw);
-              if (!calls.length) return null;
               const isDraft = typeof (msg as any).id === 'string' && (msg as any).id.startsWith('streaming_');
               const isLast = messages[messages.length - 1]?.id === msg.id;
               const noTokensYet = !(msg as any).content || (msg as any).content.length === 0;
               const show = isStreaming && isDraft && isLast && noTokensYet;
               if (!show) return null;
-              const labels = calls.map((c) => formatToolActivity(c)).filter(Boolean) as string[];
-              if (!labels.length) return null;
+              const mapped = calls.map((c) => formatToolActivity(c)).filter(Boolean) as string[];
+              const labels = mapped.length ? mapped : ["Denke nach"];
               return (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
                   {labels.map((label, i) => (

@@ -2,6 +2,13 @@ import { Country } from './counties';
 
 export type LaenderKuerzel = Country;
 
+export interface Comment {
+  id: number;
+  text: string;
+  created_at: string;
+  created_by: string;
+}
+
 export interface Dokument {
   id: string;
   dokument_status: string | null;
@@ -12,12 +19,14 @@ export interface Dokument {
   produktbereich: string | null;
   thema: string | null;
   zusammenfassung: string | null;
+  notizen: string | null;
   titel: string | null;
   url: string | null;
   trace_id: string | null;
   extra_info: Record<string, any> | null;
   extraction_timestamp: string;
   pflichten: Pflicht[];
+  comments: Comment[] | null;
 }
 
 export interface DokumentDebugInfo {
@@ -29,6 +38,7 @@ export interface DokumentDebugInfo {
 }
 
 export interface Pflicht {
+  id: number;
   dokument_id: string;
   stichtag: string | null;
   stichtag_typ: string | null;
@@ -38,6 +48,7 @@ export interface Pflicht {
   produkte: string[] | null;
   betroffene: string | null;
   ausblick: string | null;
+  notizen: string | null;
   laenderkuerzel: Country[] | null;
   verweise: string | null;
   rechtsgrundlage_ref: string | null;
@@ -46,6 +57,7 @@ export interface Pflicht {
   // New fields per updated model
   details_per_betroffene: ActorDetails[] | null;
   national_overrides: NationalOverride[] | null;
+  comments: Comment[] | null;
 }
 
 export interface PflichtDebugInfo {

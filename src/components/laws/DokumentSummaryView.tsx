@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dokument } from '@/types/pflicht';
 import { Button } from '@/components/ui/button';
 import { getDokumentDetails } from '@/lib/services/pflicht-service';
+import CommentSection from '@/components/laws/CommentSection';
 import { useObjectRefreshStore, objectKey } from '@/stores/objectRefreshStore';
 import { AlertCircle } from 'lucide-react';
 import styles from './DokumentSummaryDialog.module.scss';
@@ -93,6 +94,18 @@ const DokumentSummaryView: React.FC<DokumentSummaryViewProps> = ({ dokumentId, o
           <h3 className={styles.fieldLabel}>Zusammenfassung</h3>
           <p className={styles.summaryContent}>{dokument.zusammenfassung || 'Keine Zusammenfassung verfügbar.'}</p>
         </div>
+
+        {dokument.notizen && (
+          <div className={styles.summarySection}>
+            <h3 className={styles.fieldLabel}>Notizen</h3>
+            <p className={styles.summaryContent}>{dokument.notizen}</p>
+          </div>
+        )}
+        <CommentSection
+          objectType="dokument"
+          objectId={dokument.id}
+          comments={dokument.comments}
+        />
       </div>
     );
   };
