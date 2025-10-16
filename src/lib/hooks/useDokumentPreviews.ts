@@ -135,6 +135,7 @@ export function useDokumentPreviews() {
     const poll = async () => {
       const ids = Array.from(processingIds);
       const stillProcessing = new Set<string>();
+      let refreshNeeded = false;
 
       try {
         const statusUpdates = await Promise.all(
@@ -162,6 +163,10 @@ export function useDokumentPreviews() {
 
             const existing = byId.get(status.dokument_id);
             if (existing && existing.creation_status !== status.creation_status) {
+              if (status.creation_status === 'ready' && existing.creation_status !== 'ready') {
+                refreshNeeded = true;
+              }
+
               const updatedDoc = {
                 ...existing,
                 creation_status: status.creation_status,
@@ -178,6 +183,9 @@ export function useDokumentPreviews() {
       } finally {
         if (!cancelled) {
           updateProcessingIds(stillProcessing);
+          if (refreshNeeded) {
+            void search(filterText, selectedBereich);
+          }
         }
       }
     };
@@ -189,7 +197,7 @@ export function useDokumentPreviews() {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [processingIds, updateProcessingIds]);
+  }, [processingIds, updateProcessingIds, search, filterText, selectedBereich]);
 
   return {
     loading,
