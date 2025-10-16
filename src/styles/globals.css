@@ -10,6 +10,26 @@
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Example shadow */
   --thumbs-up-bg: #0055c0;
   --thumbs-down-bg: #a93636;
+
+  /* shadcn/ui token defaults */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 347 76% 95%;
+  --accent-foreground: 347 78% 28%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 347 100% 48%;
+  --radius: 0.75rem;
 }
 
 /* Light theme (Default) */
@@ -22,6 +42,24 @@
   --background-color: #ffffff;
   --secondary-bg: #F5F5F5;
   --scrollbar-color: rgba(115, 12, 22, 0.3);
+
+  --background: 0 0% 100%;
+  --foreground: 228 9% 16%;
+  --card: 0 0% 100%;
+  --card-foreground: 228 9% 16%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 228 9% 16%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 230 8% 21%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 230 8% 38%;
+  --accent: 15 85% 93%;
+  --accent-foreground: 10 80% 32%;
+  --destructive: 0 76% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 13% 92%;
+  --input: 220 13% 92%;
+  --ring: 347 100% 45%;
 
   --primary-text: #000000;
   --secondary-text: #333333;

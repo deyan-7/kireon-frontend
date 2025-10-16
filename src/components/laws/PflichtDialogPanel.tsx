@@ -5,139 +5,131 @@ import { usePflichtDialogStore } from '@/stores/pflichtDialogStore';
 import PflichtDetailView from '@/components/laws/PflichtDetailView';
 import PflichtEditView from '@/components/laws/PflichtEditView';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { MessageSquare, Clock, BookOpen, Pencil, X } from 'lucide-react';
 import { useSidebarStore } from '@/stores/sidebarStore';
-
-const panelStyles: React.CSSProperties = {
-  position: 'absolute',
-  top: '1rem',
-  right: '1rem',
-  width: '70%',
-  minWidth: 720,
-  maxWidth: 1400,
-  height: 'calc(100% - 2rem)',
-  background: '#fff',
-  border: '1px solid #e5e7eb',
-  borderRadius: 8,
-  boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
-  display: 'flex',
-  flexDirection: 'column',
-  zIndex: 30,
-};
-
-const headerStyles: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '0.5rem 0.75rem',
-  borderBottom: '1px solid #e5e7eb',
-};
-
-const contentStyles: React.CSSProperties = {
-  flex: 1,
-  minHeight: 0,
-  overflow: 'auto',
-};
+import { Pflicht } from '@/types/pflicht';
 
 const PflichtDialogPanel: React.FC = () => {
   const { isOpen, pflichtId, title, close } = usePflichtDialogStore();
-  const { open } = useSidebarStore();
+  const { open, updateContext } = useSidebarStore();
   const [mode, setMode] = useState<'view' | 'edit'>('view');
-  const [pflichtData, setPflichtData] = useState<any | null>(null);
-  const { updateContext } = useSidebarStore();
+  const [pflichtData, setPflichtData] = useState<Pflicht | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setMode('view');
+      setPflichtData(null);
     }
   }, [isOpen]);
 
-  // Keep sidebar context in sync with current Pflicht title/ids so title and tab enables are correct
+  const headerTitle = pflichtData?.thema || title || 'Pflicht';
+
   useEffect(() => {
     if (pflichtData && pflichtId) {
       updateContext({
-        title: pflichtData?.thema || title || 'Pflicht',
+        title: headerTitle,
         pflichtId,
-        dokumentId: pflichtData?.dokument_id,
+        dokumentId: pflichtData.dokument_id,
         objectType: 'pflicht',
         objectId: pflichtId,
-        belege: pflichtData?.belege || [],
+        belege: pflichtData.belege || [],
       });
     }
-  }, [pflichtData, pflichtId, title, updateContext]);
+  }, [pflichtData, pflichtId, headerTitle, updateContext]);
 
   if (!isOpen || !pflichtId) return null;
 
   return (
-    <div style={panelStyles}>
-      <div style={headerStyles}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{title || 'Pflicht-Details'}</h3>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() =>
-              open('chat', {
-                pflichtId,
-                dokumentId: pflichtData?.dokument_id,
-                objectType: 'pflicht',
-                objectId: pflichtId,
-                title: pflichtData?.thema || title || 'Pflicht',
-              })
-            }
-            title="Chat"
-          >
-            <MessageSquare className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() =>
-              open('history', {
-                objectType: 'pflicht',
-                objectId: pflichtId,
-                pflichtId,
-                dokumentId: pflichtData?.dokument_id,
-                title: pflichtData?.thema || title || 'Pflicht',
-              })
-            }
-            title="Verlauf"
-          >
-            <Clock className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() =>
-              open('sources', {
-                belege: pflichtData?.belege || [],
-                pflichtId,
-                dokumentId: pflichtData?.dokument_id,
-                objectType: 'pflicht',
-                objectId: pflichtId,
-                title: pflichtData?.thema || title || 'Pflicht',
-              })
-            }
-            title="Quellen"
-          >
-            <BookOpen className="h-5 w-5" />
-          </Button>
-          {mode === 'view' && (
-            <Button variant="ghost" size="icon" onClick={() => setMode('edit')} title="Bearbeiten">
-              <Pencil className="h-5 w-5" />
+    <div className="absolute inset-y-4 right-4 z-30 flex w-[min(70vw,1400px)] min-w-[720px] max-w-[1400px]">
+      <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-white shadow-2xl">
+        <div className="flex flex-col gap-2 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Pflicht-Details</p>
+            <h3 className="truncate text-lg font-semibold leading-tight">{headerTitle}</h3>
+          </div>
+          <div className="flex shrink-0 items-center justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                open('chat', {
+                  pflichtId,
+                  dokumentId: pflichtData?.dokument_id,
+                  objectType: 'pflicht',
+                  objectId: pflichtId,
+                  title: headerTitle,
+                })
+              }
+              title="Chat"
+            >
+              <MessageSquare className="h-5 w-5" />
             </Button>
-          )}
-          <button onClick={close} title="Schließen" style={{ padding: 6 }}>
-            <X className="h-5 w-5" />
-          </button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                open('history', {
+                  objectType: 'pflicht',
+                  objectId: pflichtId,
+                  pflichtId,
+                  dokumentId: pflichtData?.dokument_id,
+                  title: headerTitle,
+                })
+              }
+              title="Verlauf"
+            >
+              <Clock className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                open('sources', {
+                  belege: pflichtData?.belege || [],
+                  pflichtId,
+                  dokumentId: pflichtData?.dokument_id,
+                  objectType: 'pflicht',
+                  objectId: pflichtId,
+                  title: headerTitle,
+                })
+              }
+              title="Quellen"
+            >
+              <BookOpen className="h-5 w-5" />
+            </Button>
+            {mode === 'view' && (
+              <Button variant="ghost" size="icon" onClick={() => setMode('edit')} title="Bearbeiten">
+                <Pencil className="h-5 w-5" />
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" onClick={close} title="Schließen">
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
-      </div>
-      <div style={contentStyles}>
-        {mode === 'view' ? (
-          <PflichtDetailView pflichtId={pflichtId} onLoaded={setPflichtData} />
-        ) : (
-          <PflichtEditView pflichtId={pflichtId} onCancel={() => setMode('view')} onSaved={() => setMode('view')} />
-        )}
+
+        <Separator />
+
+        <div className="flex flex-1 flex-col overflow-hidden bg-slate-50">
+          <ScrollArea className="h-full">
+            <div className="space-y-6 px-6 py-6">
+              {mode === 'view' ? (
+                <PflichtDetailView pflichtId={pflichtId} onLoaded={setPflichtData} />
+              ) : (
+                <PflichtEditView
+                  pflichtId={pflichtId}
+                  onCancel={() => setMode('view')}
+                  onSaved={(updatedPflicht) => {
+                    setPflichtData(updatedPflicht);
+                    setMode('view');
+                  }}
+                />
+              )}
+            </div>
+          </ScrollArea>
+        </div>
       </div>
     </div>
   );

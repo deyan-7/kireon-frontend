@@ -4,18 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Calendar, Users, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { Calendar, Users, AlertCircle, Trash2 } from 'lucide-react';
 import { getPflichtDetails, patchObject } from '@/lib/services/pflicht-service';
 import { useObjectRefreshStore } from '@/stores/objectRefreshStore';
-import styles from './PflichtEditDialog.module.scss';
+import { useSidebarStore } from '@/stores/sidebarStore';
 
 interface PflichtEditViewProps {
   pflichtId: number | null;
   onCancel?: () => void;
   onSaved?: (pflicht: Pflicht) => void;
 }
-
-import { useSidebarStore } from '@/stores/sidebarStore';
 
 const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, onSaved }) => {
   const [pflicht, setPflicht] = useState<Pflicht | null>(null);
@@ -36,7 +37,6 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
       setPflicht(data);
       setOriginal(data);
     } catch (err) {
-      console.error('Failed to load pflicht details:', err);
       setError(err instanceof Error ? err.message : 'Fehler beim Laden der Pflicht-Details.');
     } finally {
       setLoading(false);
@@ -47,113 +47,95 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
     loadPflichtDetails();
   }, [pflichtId, loadPflichtDetails]);
 
-  const handleInputChange = (field: keyof Pflicht, value: any) => {
-    if (!pflicht) return;
-
-    setPflicht(prev => prev ? { ...prev, [field]: value } : prev);
+  const handleInputChange = (field: keyof Pflicht, value: unknown) => {
+    setPflicht((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
   const handleArrayChange = (field: keyof Pflicht, value: string) => {
-    if (!pflicht) return;
+    const arrayValue = value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    setPflicht((prev) => (prev ? { ...prev, [field]: arrayValue } : prev));
+  };
 
-    const arrayValue = value.split(',').map(item => item.trim()).filter(item => item);
-    setPflicht(prev => prev ? { ...prev, [field]: arrayValue } : prev);
+  const ensureArray = <T,>(arr: T[] | null | undefined): T[] => (Array.isArray(arr) ? arr : []);
+
+  const handleDynamicListChange = (
+    listName: 'details_per_betroffene' | 'national_overrides',
+    index: number,
+    field: string,
+    value: string,
+  ) => {
+    setPflicht((prev) => {
+      if (!prev) return prev;
+      const list = ensureArray(prev[listName]);
+      const updatedList = [...list];
+      updatedList[index] = { ...updatedList[index], [field]: value };
+      return { ...prev, [listName]: updatedList };
+    });
+  };
+
+  const addDynamicListItem = (
+    listName: 'details_per_betroffene' | 'national_overrides',
+    newItem: Record<string, string>,
+  ) => {
+    setPflicht((prev) => (prev ? { ...prev, [listName]: [...ensureArray(prev[listName]), newItem] } : prev));
+  };
+
+  const removeDynamicListItem = (listName: 'details_per_betroffene' | 'national_overrides', index: number) => {
+    setPflicht((prev) => {
+      if (!prev) return prev;
+      const updatedList = ensureArray(prev[listName]).filter((_, i) => i !== index);
+      return { ...prev, [listName]: updatedList };
+    });
   };
 
   const handleSave = async () => {
-    if (!pflicht || !pflichtId) {
-      console.error('Missing pflicht or pflichtId:', { pflicht, pflichtId });
-      return;
-    }
+    if (!pflicht || !pflichtId) return;
 
     setSaving(true);
     setError(null);
 
     try {
-      // compute minimal updates vs original
-      const updates: Record<string, any> = {};
-      const curr = pflicht as any;
-      const prev = (original ?? {}) as any;
-      const keys = new Set<string>([...Object.keys(curr || {}), ...Object.keys(prev || {})]);
-      for (const key of keys) {
-        const a = curr?.[key];
-        const b = prev?.[key];
-        if (JSON.stringify(a) !== JSON.stringify(b)) {
-          updates[key] = a;
-        }
-      }
+      const updates: Record<string, unknown> = {};
+      const curr = pflicht as Record<string, unknown>;
+      const prev = (original ?? {}) as Record<string, unknown>;
+      const keys = new Set([...Object.keys(curr), ...Object.keys(prev)]);
 
-      const updated = await patchObject('pflicht', pflichtId, updates);
-      bump('pflicht', pflichtId);
-      if (onSaved) onSaved(updated);
-      else close();
+      keys.forEach((key) => {
+        if (JSON.stringify(curr[key]) !== JSON.stringify(prev[key])) {
+          updates[key] = curr[key];
+        }
+      });
+
+      if (Object.keys(updates).length > 0) {
+        const updated = await patchObject('pflicht', pflichtId, updates);
+        setPflicht(updated);
+        setOriginal(updated);
+        bump('pflicht', pflichtId);
+        if (onSaved) onSaved(updated);
+        else close();
+      } else {
+        if (onSaved) onSaved(pflicht);
+        else close();
+      }
     } catch (err) {
-      console.error('Failed to update pflicht:', err);
       setError(err instanceof Error ? err.message : 'Fehler beim Speichern der Änderungen.');
     } finally {
       setSaving(false);
     }
   };
 
-  // When used in the sidebar, we expose a stable save handler; in panel mode this is unused
   useEffect(() => {
     saveRef.current = handleSave;
   });
+
   useEffect(() => {
     const stableInvoker = () => saveRef.current();
     setEditSaveHandler(stableInvoker);
     return () => setEditSaveHandler(null);
   }, [setEditSaveHandler]);
-
-  const ensureArray = <T,>(arr: T[] | null | undefined): T[] => Array.isArray(arr) ? arr : [];
-
-  const handleActorDetailChange = (index: number, field: 'betroffener' | 'handlungsanweisungen', value: string) => {
-    setPflicht(prev => {
-      if (!prev) return prev;
-      const list = ensureArray(prev.details_per_betroffene);
-      const updated = [...list];
-      const current = updated[index] ?? { betroffener: '', handlungsanweisungen: '' };
-      const item = { ...current, [field]: value } as any;
-      updated[index] = item;
-      return { ...prev, details_per_betroffene: updated };
-    });
-  };
-
-  const addActorDetail = () => {
-    setPflicht(prev => prev ? { ...prev, details_per_betroffene: [...ensureArray(prev.details_per_betroffene), { betroffener: '', handlungsanweisungen: '' }] } : prev);
-  };
-
-  const removeActorDetail = (index: number) => {
-    setPflicht(prev => {
-      if (!prev) return prev;
-      const updated = ensureArray(prev.details_per_betroffene).filter((_, i) => i !== index);
-      return { ...prev, details_per_betroffene: updated };
-    });
-  };
-
-  const handleOverrideChange = (index: number, field: 'laenderkuerzel' | 'handlungsanweisungen', value: string) => {
-    setPflicht(prev => {
-      if (!prev) return prev;
-      const list = ensureArray(prev.national_overrides);
-      const updated = [...list];
-      const current = updated[index] ?? { laenderkuerzel: '', handlungsanweisungen: '' };
-      const item = { ...current, [field]: value } as any;
-      updated[index] = item;
-      return { ...prev, national_overrides: updated };
-    });
-  };
-
-  const addOverride = () => {
-    setPflicht(prev => prev ? { ...prev, national_overrides: [...ensureArray(prev.national_overrides), { laenderkuerzel: '', handlungsanweisungen: '' }] } : prev);
-  };
-
-  const removeOverride = (index: number) => {
-    setPflicht(prev => {
-      if (!prev) return prev;
-      const updated = ensureArray(prev.national_overrides).filter((_, i) => i !== index);
-      return { ...prev, national_overrides: updated };
-    });
-  };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
@@ -168,18 +150,18 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner} />
-        <p>Lade Pflicht-Details...</p>
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-sm text-muted-foreground">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <span>Lade Pflicht-Details...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.errorContainer}>
-        <AlertCircle className={styles.errorIcon} />
-        <p className={styles.errorMessage}>{error}</p>
+      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-destructive/30 bg-destructive/5 px-6 py-12 text-center">
+        <AlertCircle className="h-10 w-10 text-destructive" />
+        <p className="text-sm font-medium text-destructive">{error}</p>
         <Button onClick={loadPflichtDetails} variant="outline">
           Erneut versuchen
         </Button>
@@ -190,202 +172,206 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
   if (!pflicht) return null;
 
   return (
-        <>
-          <div className={styles.dialogBody}>
-            <div className={styles.compactGrid}>
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Stichtag</Label>
-                <div className={styles.fieldValue}>
-                  <div className={styles.iconValue}>
-                    <Calendar className="h-4 w-4" />
-                    <Input
-                      type="date"
-                      value={formatDate(pflicht.stichtag)}
-                      onChange={(e) => handleInputChange('stichtag', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                      className={styles.fieldInput}
-                    />
-                  </div>
+    <>
+      <div className="space-y-6">
+        <Card className="bg-white shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold">Allgemeine Informationen</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Stichtag</Label>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="date"
+                    value={formatDate(pflicht.stichtag)}
+                    onChange={(e) =>
+                      handleInputChange('stichtag', e.target.value ? new Date(e.target.value).toISOString() : null)
+                    }
+                  />
                 </div>
               </div>
 
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>Stichtag Typ</Label>
-              <Input
-                value={pflicht.stichtag_typ || ''}
-                onChange={(e) => handleInputChange('stichtag_typ', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>Stichtag Typ</Label>
+                <Input value={pflicht.stichtag_typ || ''} onChange={(e) => handleInputChange('stichtag_typ', e.target.value)} />
+              </div>
 
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>Folgestatus</Label>
-              <Input
-                value={pflicht.folgestatus || ''}
-                onChange={(e) => handleInputChange('folgestatus', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>Folgestatus</Label>
+                <Input value={pflicht.folgestatus || ''} onChange={(e) => handleInputChange('folgestatus', e.target.value)} />
+              </div>
 
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>Markt (kommagetrennt)</Label>
-              <Input
-                value={pflicht.laenderkuerzel?.join(', ') || ''}
-                onChange={(e) => handleArrayChange('laenderkuerzel', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
-
-            {pflicht.produkte && pflicht.produkte.length > 0 && (
-              <div className={styles.fieldGroup}>
-                <Label className={styles.fieldLabel}>Produkte (kommagetrennt)</Label>
+              <div className="space-y-2">
+                <Label>Markt (kommagetrennt)</Label>
                 <Input
-                  value={pflicht.produkte.join(', ') || ''}
-                  onChange={(e) => handleArrayChange('produkte', e.target.value)}
-                  className={styles.fieldInput}
+                  value={pflicht.laenderkuerzel?.join(', ') || ''}
+                  onChange={(e) => handleArrayChange('laenderkuerzel', e.target.value)}
                 />
               </div>
-            )}
 
-            {pflicht.information && (
-              <div className={styles.fieldGroupFullWidth}>
-                <Label className={styles.fieldLabel}>Informationen</Label>
+              <div className="space-y-2 md:col-span-2">
+                <Label>Produkte (kommagetrennt)</Label>
+                <Input
+                  value={pflicht.produkte?.join(', ') || ''}
+                  onChange={(e) => handleArrayChange('produkte', e.target.value)}
+                  placeholder="Produkt A, Produkt B"
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label>Informationen</Label>
                 <Textarea
                   value={pflicht.information || ''}
                   onChange={(e) => handleInputChange('information', e.target.value)}
-                  className={styles.textarea}
                   rows={4}
                 />
               </div>
-            )}
 
-            <div className={styles.fieldGroupFullWidth}>
-              <Label className={styles.fieldLabel}>Verweise</Label>
-              <Input
-                value={pflicht.verweise || ''}
-                onChange={(e) => handleInputChange('verweise', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
-
-            <div className={styles.fieldGroupFullWidth}>
-              <Label className={styles.fieldLabel}>Rechtsgrundlage Ref.</Label>
-              <Input
-                value={pflicht.rechtsgrundlage_ref || ''}
-                onChange={(e) => handleInputChange('rechtsgrundlage_ref', e.target.value)}
-                className={styles.fieldInput}
-              />
-            </div>
-
-            {(pflicht.betroffene || pflicht.ausblick) && (
-              <div className={styles.bottomRow}>
-                {pflicht.ausblick && (
-                  <div className={styles.fieldGroup}>
-                    <Label className={styles.fieldLabel}>Ausblick</Label>
-                    <Textarea
-                      value={pflicht.ausblick || ''}
-                      onChange={(e) => handleInputChange('ausblick', e.target.value)}
-                      className={styles.textarea}
-                      rows={3}
-                    />
-                  </div>
-                )}
-
-                {pflicht.betroffene && (
-                  <div className={styles.fieldGroup}>
-                    <Label className={styles.fieldLabel}>Betroffene Akteure</Label>
-                    <div className={styles.fieldValue}>
-                      <div className={styles.iconValue}>
-                        <Users className="h-4 w-4" />
-                        <Input
-                          value={pflicht.betroffene || ''}
-                          onChange={(e) => handleInputChange('betroffene', e.target.value)}
-                          className={styles.fieldInput}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <div className="space-y-2 md:col-span-2">
+                <Label>Verweise</Label>
+                <Input value={pflicht.verweise || ''} onChange={(e) => handleInputChange('verweise', e.target.value)} />
               </div>
-            )}
 
-            {/* Actor-specific instructions */}
-            <div className={styles.fieldGroupFullWidth}>
-              <Label className={styles.fieldLabel}>Handlungsanweisungen je Akteur</Label>
-              {ensureArray(pflicht.details_per_betroffene).map((d, i) => (
-                <div key={i} className={styles.dynamicFieldItem}>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <Input
-                      placeholder="Betroffener"
-                      value={d?.betroffener || ''}
-                      onChange={(e) => handleActorDetailChange(i, 'betroffener', e.target.value)}
-                    />
-                    <Button variant="outline" onClick={() => removeActorDetail(i)}>Entfernen</Button>
-                  </div>
-                  <Textarea
-                    placeholder="Handlungsanweisungen"
-                    value={d?.handlungsanweisungen || ''}
-                    onChange={(e) => handleActorDetailChange(i, 'handlungsanweisungen', e.target.value)}
-                    rows={3}
-                    className={styles.textarea}
+              <div className="space-y-2 md:col-span-2">
+                <Label>Rechtsgrundlage Ref.</Label>
+                <Input
+                  value={pflicht.rechtsgrundlage_ref || ''}
+                  onChange={(e) => handleInputChange('rechtsgrundlage_ref', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Ausblick</Label>
+                <Textarea value={pflicht.ausblick || ''} onChange={(e) => handleInputChange('ausblick', e.target.value)} rows={3} />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Betroffene Akteure</Label>
+                <div className="relative">
+                  <Users className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={pflicht.betroffene || ''}
+                    onChange={(e) => handleInputChange('betroffene', e.target.value)}
+                    className="pl-8"
                   />
                 </div>
-              ))}
-              <Button variant="outline" onClick={addActorDetail} className={styles.addButton}>Akteur hinzufügen</Button>
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* National overrides */}
-            <div className={styles.fieldGroupFullWidth}>
-              <Label className={styles.fieldLabel}>Nationale Umsetzungen</Label>
-              {ensureArray(pflicht.national_overrides).map((o, i) => (
-                <div key={i} className={styles.dynamicFieldItem}>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <Input
-                      placeholder="Länderkürzel"
-                      value={o?.laenderkuerzel || ''}
-                      onChange={(e) => handleOverrideChange(i, 'laenderkuerzel', e.target.value)}
-                      style={{ maxWidth: 200 }}
-                    />
-                    <Button variant="outline" onClick={() => removeOverride(i)}>Entfernen</Button>
-                  </div>
-                  <Textarea
-                    placeholder="Handlungsanweisungen"
-                    value={o?.handlungsanweisungen || ''}
-                    onChange={(e) => handleOverrideChange(i, 'handlungsanweisungen', e.target.value)}
-                    rows={3}
-                    className={styles.textarea}
+        <Card className="bg-white shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold">Handlungsanweisungen je Akteur</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {ensureArray(pflicht.details_per_betroffene).map((detail, index) => (
+              <div key={index} className="space-y-3 rounded-lg border border-border/60 bg-muted/30 p-4">
+                <div className="flex items-start gap-2">
+                  <Input
+                    placeholder="Betroffener"
+                    value={detail?.betroffener || ''}
+                    onChange={(e) => handleDynamicListChange('details_per_betroffene', index, 'betroffener', e.target.value)}
                   />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeDynamicListItem('details_per_betroffene', index)}
+                    title="Entfernen"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-              ))}
-              <Button variant="outline" onClick={addOverride} className={styles.addButton}>Umsetzung hinzufügen</Button>
-            </div>
-            </div>
-
-            <div className={styles.fieldGroupFullWidth}>
-              <Label className={styles.fieldLabel}>Notizen</Label>
-              <Textarea
-                value={pflicht.notizen || ''}
-                onChange={(e) => handleInputChange('notizen', e.target.value)}
-                className={styles.textarea}
-                rows={5}
-                placeholder="Interne Notizen hinzufügen..."
-              />
-            </div>
-          </div>
-
-          <div className={styles.actions}>
-            <Button variant="outline" onClick={onCancel ?? close} className={styles.actionButton} disabled={saving}>
-              Abbrechen
-            </Button>
+                <Textarea
+                  placeholder="Handlungsanweisungen"
+                  value={detail?.handlungsanweisungen || ''}
+                  onChange={(e) =>
+                    handleDynamicListChange('details_per_betroffene', index, 'handlungsanweisungen', e.target.value)
+                  }
+                  rows={3}
+                />
+              </div>
+            ))}
             <Button
               variant="outline"
-              onClick={handleSave}
-              className={styles.actionButton}
-              disabled={saving}
+              onClick={() => addDynamicListItem('details_per_betroffene', { betroffener: '', handlungsanweisungen: '' })}
             >
-              {saving ? 'Speichern...' : 'Speichern'}
+              Akteur hinzufügen
             </Button>
-          </div>
-        </>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold">Nationale Umsetzungen</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {ensureArray(pflicht.national_overrides).map((override, index) => (
+              <div key={index} className="space-y-3 rounded-lg border border-border/60 bg-muted/30 p-4">
+                <div className="flex items-start gap-2">
+                  <Input
+                    placeholder="Länderkürzel"
+                    value={override?.laenderkuerzel || ''}
+                    onChange={(e) => handleDynamicListChange('national_overrides', index, 'laenderkuerzel', e.target.value)}
+                    className="max-w-[200px]"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeDynamicListItem('national_overrides', index)}
+                    title="Entfernen"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Textarea
+                  placeholder="Handlungsanweisungen"
+                  value={override?.handlungsanweisungen || ''}
+                  onChange={(e) =>
+                    handleDynamicListChange('national_overrides', index, 'handlungsanweisungen', e.target.value)
+                  }
+                  rows={3}
+                />
+              </div>
+            ))}
+            <Button
+              variant="outline"
+              onClick={() => addDynamicListItem('national_overrides', { laenderkuerzel: '', handlungsanweisungen: '' })}
+            >
+              Umsetzung hinzufügen
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold">Notizen</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Textarea
+              value={pflicht.notizen || ''}
+              onChange={(e) => handleInputChange('notizen', e.target.value)}
+              rows={5}
+              placeholder="Interne Notizen hinzufügen..."
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Separator className="my-6" />
+
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onCancel ?? close} disabled={saving}>
+          Abbrechen
+        </Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? 'Speichern...' : 'Änderungen speichern'}
+        </Button>
+      </div>
+    </>
   );
 };
 
