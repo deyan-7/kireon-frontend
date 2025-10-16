@@ -8,6 +8,8 @@ export interface PflichtPreview {
   laenderkuerzel: string[] | null;
 }
 
+import type { CreationStatus } from './pflicht';
+
 export interface DokumentPreview {
   id: string;
   bereich: string | null;
@@ -19,7 +21,7 @@ export interface DokumentPreview {
   thema: string | null;
   url: string | null;
   pflichten: PflichtPreview[];
-  creation_status: 'creating' | 'ready' | 'error' | null;
+  creation_status: CreationStatus | null;
   creation_error: string | null;
   updated_at?: string | null;
   retry_count?: number;

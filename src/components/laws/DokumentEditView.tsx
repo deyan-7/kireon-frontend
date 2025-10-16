@@ -55,8 +55,8 @@ const DokumentEditView: React.FC<DokumentEditViewProps> = ({ dokumentId, onCance
 
     try {
       const updates: Record<string, unknown> = {};
-      const curr = dokument as Record<string, unknown>;
-      const prev = (original ?? {}) as Record<string, unknown>;
+      const curr = dokument as unknown as Record<string, unknown>;
+      const prev = (original ?? {}) as unknown as Record<string, unknown>;
       const keys = new Set([...Object.keys(curr), ...Object.keys(prev)]);
 
       keys.forEach((key) => {

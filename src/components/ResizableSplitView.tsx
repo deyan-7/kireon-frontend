@@ -16,7 +16,7 @@ const ResizableSplitView: React.FC<ResizableSplitViewProps> = ({
   mainContent,
   sidePanelContent,
   isSidePanelOpen,
-  onSidePanelClose: _onSidePanelClose,
+  onSidePanelClose,
   initialSidePanelWidth = 400,
   minSidePanelWidth = 300,
 }) => {
@@ -50,6 +50,17 @@ const ResizableSplitView: React.FC<ResizableSplitViewProps> = ({
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [handleMouseMove, handleMouseUp]);
+
+  useEffect(() => {
+    if (!isSidePanelOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onSidePanelClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSidePanelOpen, onSidePanelClose]);
 
   return (
     <div className={styles.splitViewContainer}>

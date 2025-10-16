@@ -6,7 +6,6 @@ import PflichtDetailView from '@/components/laws/PflichtDetailView';
 import PflichtEditView from '@/components/laws/PflichtEditView';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { MessageSquare, Clock, BookOpen, Pencil, X } from 'lucide-react';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { Pflicht } from '@/types/pflicht';

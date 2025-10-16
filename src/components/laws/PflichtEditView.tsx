@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Pflicht } from '@/types/pflicht';
+import { Pflicht, ActorDetails, NationalOverride } from '@/types/pflicht';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -59,7 +59,10 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
     setPflicht((prev) => (prev ? { ...prev, [field]: arrayValue } : prev));
   };
 
-  const ensureArray = <T,>(arr: T[] | null | undefined): T[] => (Array.isArray(arr) ? arr : []);
+  const ensureActorDetails = (arr: Pflicht['details_per_betroffene']) =>
+    Array.isArray(arr) ? arr : [];
+  const ensureOverrides = (arr: Pflicht['national_overrides']) =>
+    Array.isArray(arr) ? arr : [];
 
   const handleDynamicListChange = (
     listName: 'details_per_betroffene' | 'national_overrides',
@@ -69,10 +72,14 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
   ) => {
     setPflicht((prev) => {
       if (!prev) return prev;
-      const list = ensureArray(prev[listName]);
-      const updatedList = [...list];
-      updatedList[index] = { ...updatedList[index], [field]: value };
-      return { ...prev, [listName]: updatedList };
+      if (listName === 'details_per_betroffene') {
+        const list = [...ensureActorDetails(prev.details_per_betroffene)];
+        list[index] = { ...list[index], [field]: value };
+        return { ...prev, details_per_betroffene: list };
+      }
+      const list = [...ensureOverrides(prev.national_overrides)];
+      list[index] = { ...list[index], [field]: value };
+      return { ...prev, national_overrides: list };
     });
   };
 
@@ -80,14 +87,33 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
     listName: 'details_per_betroffene' | 'national_overrides',
     newItem: Record<string, string>,
   ) => {
-    setPflicht((prev) => (prev ? { ...prev, [listName]: [...ensureArray(prev[listName]), newItem] } : prev));
-  };
-
-  const removeDynamicListItem = (listName: 'details_per_betroffene' | 'national_overrides', index: number) => {
     setPflicht((prev) => {
       if (!prev) return prev;
-      const updatedList = ensureArray(prev[listName]).filter((_, i) => i !== index);
-      return { ...prev, [listName]: updatedList };
+      if (listName === 'details_per_betroffene') {
+        return {
+          ...prev,
+          details_per_betroffene: [...ensureActorDetails(prev.details_per_betroffene), newItem as unknown as ActorDetails],
+        };
+      }
+      return {
+        ...prev,
+        national_overrides: [...ensureOverrides(prev.national_overrides), newItem as unknown as NationalOverride],
+      };
+    });
+  };
+
+  const removeDynamicListItem = (
+    listName: 'details_per_betroffene' | 'national_overrides',
+    index: number,
+  ) => {
+    setPflicht((prev) => {
+      if (!prev) return prev;
+      if (listName === 'details_per_betroffene') {
+        const updatedList = ensureActorDetails(prev.details_per_betroffene).filter((_, i) => i !== index);
+        return { ...prev, details_per_betroffene: updatedList };
+      }
+      const updatedList = ensureOverrides(prev.national_overrides).filter((_, i) => i !== index);
+      return { ...prev, national_overrides: updatedList };
     });
   };
 
@@ -99,8 +125,8 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
 
     try {
       const updates: Record<string, unknown> = {};
-      const curr = pflicht as Record<string, unknown>;
-      const prev = (original ?? {}) as Record<string, unknown>;
+      const curr = pflicht as unknown as Record<string, unknown>;
+      const prev = (original ?? {}) as unknown as Record<string, unknown>;
       const keys = new Set([...Object.keys(curr), ...Object.keys(prev)]);
 
       keys.forEach((key) => {
@@ -268,7 +294,7 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
             <CardTitle className="text-base font-semibold text-slate-900">Handlungsanweisungen je Akteur</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
-            {ensureArray(pflicht.details_per_betroffene).map((detail, index) => (
+            {ensureActorDetails(pflicht.details_per_betroffene).map((detail, index) => (
               <div key={index} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start gap-2">
                   <Input
@@ -309,7 +335,7 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
             <CardTitle className="text-base font-semibold text-slate-900">Nationale Umsetzungen</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
-            {ensureArray(pflicht.national_overrides).map((override, index) => (
+            {ensureOverrides(pflicht.national_overrides).map((override, index) => (
               <div key={index} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start gap-2">
                   <Input

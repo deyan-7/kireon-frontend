@@ -6,7 +6,6 @@ import DokumentSummaryView from '@/components/laws/DokumentSummaryView';
 import DokumentEditView from '@/components/laws/DokumentEditView';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { MessageSquare, Clock, Pencil, X } from 'lucide-react';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { Dokument } from '@/types/pflicht';
