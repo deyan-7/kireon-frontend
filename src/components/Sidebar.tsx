@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import clsx from "clsx";
+import Image from "next/image";
 import styles from "./Sidebar.module.scss";
 import {
   DocumentTextIcon,
@@ -41,6 +42,16 @@ const Sidebar = () => {
 
   return (
     <nav className={clsx(styles.sidebar, isCollapsed && styles.collapsed)}>
+      <div className={styles.logoContainer}>
+        <Image
+          src="/assets/images/logo.png"
+          alt="Logo"
+          width={160}
+          height={40}
+          className={styles.logo}
+          priority
+        />
+      </div>
       <div className={styles.sidebarContent}>
         <ul className={styles.navList}>
           {navItems.map((item) => {

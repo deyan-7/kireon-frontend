@@ -5,107 +5,110 @@ import { useDokumentDialogStore } from '@/stores/dokumentDialogStore';
 import DokumentSummaryView from '@/components/laws/DokumentSummaryView';
 import DokumentEditView from '@/components/laws/DokumentEditView';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Clock, X, Pencil } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { MessageSquare, Clock, Pencil, X } from 'lucide-react';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { Dokument } from '@/types/pflicht';
-
-const panelStyles: React.CSSProperties = {
-  position: 'absolute',
-  top: '1rem',
-  right: '1rem',
-  width: '50%',
-  minWidth: 720,
-  maxWidth: 1400,
-  height: 'calc(100% - 2rem)',
-  background: '#fff',
-  border: '1px solid #e5e7eb',
-  borderRadius: 8,
-  boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
-  display: 'flex',
-  flexDirection: 'column',
-  zIndex: 30,
-};
-
-const headerStyles: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '0.5rem 0.75rem',
-  borderBottom: '1px solid #e5e7eb',
-};
-
-const contentStyles: React.CSSProperties = {
-  flex: 1,
-  minHeight: 0,
-  overflow: 'auto',
-};
 
 const DokumentDialogPanel: React.FC = () => {
   const { isOpen, dokumentId, title, close } = useDokumentDialogStore();
   const { open, updateContext } = useSidebarStore();
-  const [doc, setDoc] = useState<Dokument | null>(null);
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [dokumentData, setDokumentData] = useState<Dokument | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setMode('view');
+      setDokumentData(null);
     }
   }, [isOpen]);
 
+  const headerTitle = dokumentData?.thema || title || 'Dokument';
+
   useEffect(() => {
-    if (doc && dokumentId) {
+    if (dokumentData && dokumentId) {
       updateContext({
-        title: doc?.thema || title || 'Dokument',
+        title: headerTitle,
         dokumentId,
         objectType: 'dokument',
         objectId: dokumentId,
       });
     }
-  }, [doc, dokumentId, title, updateContext]);
+  }, [dokumentData, dokumentId, headerTitle, updateContext]);
 
   if (!isOpen || !dokumentId) return null;
 
   return (
-    <div style={panelStyles}>
-      <div style={headerStyles}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{doc?.thema || title || 'Dokument'}</h3>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => open('chat', { dokumentId, objectType: 'dokument', objectId: dokumentId, title: doc?.thema || title || 'Dokument' })}
-            title="Chat"
-          >
-            <MessageSquare className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => open('history', { dokumentId, objectType: 'dokument', objectId: dokumentId, title: doc?.thema || title || 'Dokument' })}
-            title="Verlauf"
-          >
-            <Clock className="h-5 w-5" />
-          </Button>
-          {mode === 'view' && (
-            <Button variant="ghost" size="icon" onClick={() => setMode('edit')} title="Bearbeiten">
-              <Pencil className="h-5 w-5" />
+    <div className="absolute inset-y-4 right-4 z-30 flex w-[min(60vw,1200px)] min-w-[640px] max-w-[1200px]">
+      <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex flex-col gap-2 border-b border-slate-200 bg-white px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-600">Dokument-Details</p>
+            <h3 className="truncate text-lg font-semibold leading-tight text-slate-900">{headerTitle}</h3>
+          </div>
+          <div className="flex shrink-0 items-center justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                open('chat', {
+                  dokumentId,
+                  objectType: 'dokument',
+                  objectId: dokumentId,
+                  title: headerTitle,
+                })
+              }
+              title="Chat"
+            >
+              <MessageSquare className="h-5 w-5" />
             </Button>
-          )}
-          <button onClick={close} title="Schließen" style={{ padding: 6 }}>
-            <X className="h-5 w-5" />
-          </button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                open('history', {
+                  dokumentId,
+                  objectType: 'dokument',
+                  objectId: dokumentId,
+                  title: headerTitle,
+                })
+              }
+              title="Verlauf"
+            >
+              <Clock className="h-5 w-5" />
+            </Button>
+            {mode === 'view' && (
+              <Button variant="ghost" size="icon" onClick={() => setMode('edit')} title="Bearbeiten">
+                <Pencil className="h-5 w-5" />
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" onClick={close} title="Schließen">
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
-      </div>
-      <div style={contentStyles}>
-        {mode === 'view' ? (
-          <DokumentSummaryView dokumentId={dokumentId} onLoaded={setDoc} />
-        ) : (
-          <DokumentEditView
-            dokumentId={dokumentId}
-            onCancel={() => setMode('view')}
-            onSaved={() => setMode('view')}
-          />
-        )}
+
+        <div className="flex flex-1 flex-col overflow-hidden bg-slate-100">
+          <ScrollArea className="h-full">
+            <div className="space-y-6 px-6 py-6">
+              {mode === 'view' ? (
+                <DokumentSummaryView dokumentId={dokumentId} onLoaded={setDokumentData} />
+              ) : (
+                <DokumentEditView
+                  dokumentId={dokumentId}
+                  onCancel={() => setMode('view')}
+                  onSaved={(updatedDokument) => {
+                    if (updatedDokument) {
+                      setDokumentData(updatedDokument);
+                    }
+                    setMode('view');
+                  }}
+                />
+              )}
+            </div>
+          </ScrollArea>
+        </div>
       </div>
     </div>
   );

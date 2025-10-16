@@ -3,10 +3,12 @@ import { Dokument } from '@/types/pflicht';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 import { AlertCircle } from 'lucide-react';
 import { getDokumentDetails, patchObject } from '@/lib/services/pflicht-service';
 import { useObjectRefreshStore } from '@/stores/objectRefreshStore';
-import styles from './DokumentEditView.module.scss';
 
 interface DokumentEditViewProps {
   dokumentId: string | null;
@@ -41,8 +43,8 @@ const DokumentEditView: React.FC<DokumentEditViewProps> = ({ dokumentId, onCance
     loadDokumentDetails();
   }, [dokumentId, loadDokumentDetails]);
 
-  const handleInputChange = (field: keyof Dokument, value: any) => {
-    setDokument(prev => prev ? { ...prev, [field]: value } : prev);
+  const handleInputChange = (field: keyof Dokument, value: string) => {
+    setDokument((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
   const handleSave = async () => {
@@ -52,21 +54,22 @@ const DokumentEditView: React.FC<DokumentEditViewProps> = ({ dokumentId, onCance
     setError(null);
 
     try {
-      const updates: Record<string, any> = {};
-      const curr = dokument as any;
-      const prev = (original ?? {}) as any;
-      const keys = new Set<string>([...Object.keys(curr || {}), ...Object.keys(prev || {})]);
-      for (const key of keys) {
-        const a = curr?.[key];
-        const b = prev?.[key];
-        if (JSON.stringify(a) !== JSON.stringify(b)) {
-          updates[key] = a;
+      const updates: Record<string, unknown> = {};
+      const curr = dokument as Record<string, unknown>;
+      const prev = (original ?? {}) as Record<string, unknown>;
+      const keys = new Set([...Object.keys(curr), ...Object.keys(prev)]);
+
+      keys.forEach((key) => {
+        if (JSON.stringify(curr[key]) !== JSON.stringify(prev[key])) {
+          updates[key] = curr[key];
         }
-      }
+      });
 
       if (Object.keys(updates).length > 0) {
         const updated = await patchObject('dokument', dokumentId, updates);
         bump('dokument', dokumentId);
+        setDokument(updated);
+        setOriginal(updated);
         onSaved?.(updated);
       } else {
         onSaved?.(dokument);
@@ -82,18 +85,18 @@ const DokumentEditView: React.FC<DokumentEditViewProps> = ({ dokumentId, onCance
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner} />
-        <p>Lade Dokument-Details...</p>
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-sm text-muted-foreground">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <span>Lade Dokument-Details...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.errorContainer}>
-        <AlertCircle className={styles.errorIcon} />
-        <p className={styles.errorMessage}>{error}</p>
+      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-destructive/30 bg-destructive/5 px-6 py-12 text-center">
+        <AlertCircle className="h-10 w-10 text-destructive" />
+        <p className="text-sm font-medium text-destructive">{error}</p>
         <Button onClick={loadDokumentDetails} variant="outline">
           Erneut versuchen
         </Button>
@@ -105,34 +108,47 @@ const DokumentEditView: React.FC<DokumentEditViewProps> = ({ dokumentId, onCance
 
   return (
     <>
-      <div className={styles.dialogBody}>
-        <div className={styles.fieldGroupFullWidth}>
-          <Label className={styles.fieldLabel}>Zusammenfassung</Label>
-          <Textarea
-            value={dokument.zusammenfassung || ''}
-            onChange={(e) => handleInputChange('zusammenfassung', e.target.value)}
-            className={styles.textarea}
-            rows={8}
-          />
-        </div>
-        <div className={styles.fieldGroupFullWidth}>
-          <Label className={styles.fieldLabel}>Notizen</Label>
-          <Textarea
-            value={dokument.notizen || ''}
-            onChange={(e) => handleInputChange('notizen', e.target.value)}
-            className={styles.textarea}
-            rows={5}
-            placeholder="Interne Notizen hinzufügen..."
-          />
-        </div>
-      </div>
-      <div className={styles.actions}>
-        <Button variant="outline" onClick={onCancel} disabled={saving}>Abbrechen</Button>
-        <Button onClick={handleSave} disabled={saving}>{saving ? 'Speichern...' : 'Speichern'}</Button>
+      <Card className="border-l-4 border-l-purple-500 border-slate-200 bg-white shadow-md">
+        <CardHeader className="border-b border-slate-100 pb-4">
+          <CardTitle className="text-base font-semibold text-slate-900">Dokument bearbeiten</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6 pt-6">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-slate-900">Zusammenfassung</Label>
+            <Textarea
+              value={dokument.zusammenfassung || ''}
+              onChange={(e) => handleInputChange('zusammenfassung', e.target.value)}
+              rows={8}
+              placeholder="Zusammenfassung aktualisieren"
+              className="border-slate-300 bg-white focus-visible:border-slate-400"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-slate-900">Notizen</Label>
+            <Textarea
+              value={dokument.notizen || ''}
+              onChange={(e) => handleInputChange('notizen', e.target.value)}
+              rows={5}
+              placeholder="Interne Notizen hinzufügen..."
+              className="border-slate-300 bg-white focus-visible:border-slate-400"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator className="my-6" />
+
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onCancel} disabled={saving}>
+          Abbrechen
+        </Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? 'Speichern...' : 'Änderungen speichern'}
+        </Button>
       </div>
     </>
   );
 };
 
 export default DokumentEditView;
-

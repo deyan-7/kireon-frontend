@@ -174,11 +174,11 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
   return (
     <>
       <div className="space-y-6">
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base font-semibold">Allgemeine Informationen</CardTitle>
+        <Card className="border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-md">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <CardTitle className="text-base font-semibold text-slate-900">Allgemeine Informationen</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Stichtag</Label>
@@ -263,13 +263,13 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base font-semibold">Handlungsanweisungen je Akteur</CardTitle>
+        <Card className="border-l-4 border-l-indigo-500 border-slate-200 bg-white shadow-md">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <CardTitle className="text-base font-semibold text-slate-900">Handlungsanweisungen je Akteur</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             {ensureArray(pflicht.details_per_betroffene).map((detail, index) => (
-              <div key={index} className="space-y-3 rounded-lg border border-border/60 bg-muted/30 p-4">
+              <div key={index} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start gap-2">
                   <Input
                     placeholder="Betroffener"
@@ -304,13 +304,13 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base font-semibold">Nationale Umsetzungen</CardTitle>
+        <Card className="border-l-4 border-l-purple-500 border-slate-200 bg-white shadow-md">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <CardTitle className="text-base font-semibold text-slate-900">Nationale Umsetzungen</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             {ensureArray(pflicht.national_overrides).map((override, index) => (
-              <div key={index} className="space-y-3 rounded-lg border border-border/60 bg-muted/30 p-4">
+              <div key={index} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start gap-2">
                   <Input
                     placeholder="Länderkürzel"
@@ -346,11 +346,11 @@ const PflichtEditView: React.FC<PflichtEditViewProps> = ({ pflichtId, onCancel, 
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base font-semibold">Notizen</CardTitle>
+        <Card className="border-l-4 border-l-amber-500 border-slate-200 bg-white shadow-md">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <CardTitle className="text-base font-semibold text-slate-900">Notizen</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2 pt-6">
             <Textarea
               value={pflicht.notizen || ''}
               onChange={(e) => handleInputChange('notizen', e.target.value)}

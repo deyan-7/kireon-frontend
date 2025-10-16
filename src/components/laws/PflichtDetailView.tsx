@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Pflicht } from '@/types/pflicht';
+import { Comment, Pflicht } from '@/types/pflicht';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +76,28 @@ const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoad
     }
   };
 
+  const handleCommentAdded = (comment: Comment) => {
+    setPflicht((prev) =>
+      prev
+        ? {
+            ...prev,
+            comments: [...(prev.comments ?? []), comment],
+          }
+        : prev,
+    );
+  };
+
+  const handleCommentDeleted = (commentId: number) => {
+    setPflicht((prev) =>
+      prev
+        ? {
+            ...prev,
+            comments: prev.comments?.filter((comment) => comment.id !== commentId) ?? [],
+          }
+        : prev,
+    );
+  };
+
   if (!pflichtId) return null;
 
   if (loading) {
@@ -107,11 +129,11 @@ const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoad
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base font-semibold">Allgemeine Informationen</CardTitle>
+      <Card className="border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-md">
+        <CardHeader className="border-b border-slate-100 pb-4">
+          <CardTitle className="text-base font-semibold text-slate-900">Allgemeine Informationen</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-x-6 gap-y-6 md:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-x-6 gap-y-6 pt-6 md:grid-cols-2">
           <DetailField label="Stichtag">
             <div className="flex items-center gap-2 text-sm text-foreground">
               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -181,11 +203,11 @@ const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoad
       </Card>
 
       {hasInstructions && (
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base font-semibold">Handlungsanweisungen</CardTitle>
+        <Card className="border-l-4 border-l-indigo-500 border-slate-200 bg-white shadow-md">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <CardTitle className="text-base font-semibold text-slate-900">Handlungsanweisungen</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             {pflicht.details_per_betroffene?.map((detail, index) => (
               <InstructionCard key={`actor-${index}`} title={detail.betroffener} instructions={detail.handlungsanweisungen} />
             ))}
@@ -201,18 +223,24 @@ const PflichtDetailView: React.FC<PflichtDetailViewProps> = ({ pflichtId, onLoad
       )}
 
       {pflicht.notizen && (
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="flex flex-row items-center gap-2 pb-3">
-            <FileText className="h-4 w-4 text-muted-foreground" />
-            <CardTitle className="text-base font-semibold">Notizen</CardTitle>
+        <Card className="border-l-4 border-l-amber-500 border-slate-200 bg-white shadow-md">
+          <CardHeader className="flex flex-row items-center gap-2 border-b border-slate-100 pb-3">
+            <FileText className="h-4 w-4 text-amber-600" />
+            <CardTitle className="text-base font-semibold text-slate-900">Notizen</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <p className="whitespace-pre-wrap text-sm text-foreground">{pflicht.notizen}</p>
           </CardContent>
         </Card>
       )}
 
-      <CommentSection objectType="pflicht" objectId={pflichtId} comments={pflicht.comments} />
+      <CommentSection
+        objectType="pflicht"
+        objectId={pflichtId}
+        comments={pflicht.comments}
+        onCommentAdded={handleCommentAdded}
+        onCommentDeleted={handleCommentDeleted}
+      />
     </div>
   );
 };

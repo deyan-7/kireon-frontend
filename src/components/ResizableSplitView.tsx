@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import styles from './ResizableSplitView.module.scss';
 
 interface ResizableSplitViewProps {
@@ -17,7 +16,7 @@ const ResizableSplitView: React.FC<ResizableSplitViewProps> = ({
   mainContent,
   sidePanelContent,
   isSidePanelOpen,
-  onSidePanelClose,
+  onSidePanelClose: _onSidePanelClose,
   initialSidePanelWidth = 400,
   minSidePanelWidth = 300,
 }) => {
@@ -67,27 +66,6 @@ const ResizableSplitView: React.FC<ResizableSplitViewProps> = ({
             onMouseDown={handleMouseDown}
           />
           <div className={styles.sidePanel} style={{ width: `${panelWidth}px` }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.5rem' }}>
-              <button
-                type="button"
-                onClick={onSidePanelClose}
-                aria-label="Seitenpanel schließen"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '2rem',
-                  height: '2rem',
-                  borderRadius: '9999px',
-                  border: '1px solid #d1d5db',
-                  backgroundColor: '#fff',
-                  color: '#4b5563',
-                  cursor: 'pointer',
-                }}
-              >
-                <XMarkIcon style={{ width: '1rem', height: '1rem' }} />
-              </button>
-            </div>
             <div className={styles.sidePanelContent}>
               {sidePanelContent}
             </div>

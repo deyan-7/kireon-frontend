@@ -43,11 +43,11 @@ const PflichtDialogPanel: React.FC = () => {
 
   return (
     <div className="absolute inset-y-4 right-4 z-30 flex w-[min(70vw,1400px)] min-w-[720px] max-w-[1400px]">
-      <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-white shadow-2xl">
-        <div className="flex flex-col gap-2 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex flex-col gap-2 border-b border-slate-200 bg-white px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Pflicht-Details</p>
-            <h3 className="truncate text-lg font-semibold leading-tight">{headerTitle}</h3>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-600">Pflicht-Details</p>
+            <h3 className="truncate text-lg font-semibold leading-tight text-slate-900">{headerTitle}</h3>
           </div>
           <div className="flex shrink-0 items-center justify-end gap-1">
             <Button
@@ -110,9 +110,7 @@ const PflichtDialogPanel: React.FC = () => {
           </div>
         </div>
 
-        <Separator />
-
-        <div className="flex flex-1 flex-col overflow-hidden bg-slate-50">
+        <div className="flex flex-1 flex-col overflow-hidden bg-slate-100">
           <ScrollArea className="h-full">
             <div className="space-y-6 px-6 py-6">
               {mode === 'view' ? (
