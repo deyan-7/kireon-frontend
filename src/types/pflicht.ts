@@ -9,6 +9,8 @@ export interface Comment {
   created_by: string;
 }
 
+export type CreationStatus = 'creating' | 'ready' | 'error' | 'ingesting_sections' | 'extracting_content' | 'queued' | 'processing';
+
 export interface Dokument {
   id: string;
   dokument_status: string | null;
@@ -27,7 +29,7 @@ export interface Dokument {
   extraction_timestamp: string;
   pflichten: Pflicht[];
   comments: Comment[] | null;
-  creation_status: 'creating' | 'ready' | 'error';
+  creation_status: CreationStatus;
   creation_error: string | null;
   retry_count: number;
   updated_at: string | null;
@@ -115,7 +117,7 @@ export interface NationalOverride {
 
 export interface DokumentJobStatus {
   dokument_id: string;
-  creation_status: 'creating' | 'ready' | 'error';
+  creation_status: CreationStatus;
   creation_error: string | null;
   retry_count: number;
 }

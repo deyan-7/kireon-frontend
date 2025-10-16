@@ -293,6 +293,29 @@ export async function retryDokumentCreation(dokumentId: string): Promise<Dokumen
   return result as DokumentJobStatus;
 }
 
+export async function getDokumentStatus(dokumentId: string): Promise<DokumentJobStatus> {
+  const token = await auth.currentUser?.getIdToken();
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+  const requestUrl = `${baseUrl}/api/dokument/${dokumentId}/status`;
+
+  const response = await fetch(requestUrl, {
+    method: 'GET',
+    headers: {
+      'accept': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API Error fetching status: ${response.status} ${errorText}`);
+  }
+
+  return response.json();
+}
+
 export async function deletePflicht(pflichtId: number): Promise<{ message: string }> {
   const token = await auth.currentUser?.getIdToken();
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;

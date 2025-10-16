@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getDokumentPreviews, getDokumentDetails } from '@/lib/services/pflicht-service';
+import { getDokumentPreviews, getDokumentStatus } from '@/lib/services/pflicht-service';
 import { DokumentPreview, DokumentPreviewSearchParams } from '@/types/pflicht-preview';
-import { Dokument } from '@/types/pflicht';
 
 export function useDokumentPreviews() {
   const [loading, setLoading] = useState(true);
@@ -54,10 +53,12 @@ export function useDokumentPreviews() {
       };
 
       const response = await getDokumentPreviews(params);
-      
+
       setDokumente(response.data);
       updateProcessingIds(
-        response.data.filter((d) => d.creation_status === 'creating').map((d) => d.id),
+        response.data
+          .filter((d) => d.creation_status && !['ready', 'error'].includes(d.creation_status))
+          .map((d) => d.id),
       );
       setTotalPages(response.totalPages);
       setTotalCount(response.total);
@@ -131,43 +132,17 @@ export function useDokumentPreviews() {
 
     let cancelled = false;
 
-    const convertToPreview = (doc: Dokument): DokumentPreview => ({
-      id: doc.id,
-      bereich: doc.bereich,
-      gesetzeskuerzel: doc.gesetzeskuerzel,
-      gesetzgebung: doc.gesetzgebung,
-      dokument_status: doc.dokument_status,
-      verfahren_status: doc.verfahren_status,
-      extraction_timestamp: doc.extraction_timestamp,
-      thema: doc.thema,
-      url: doc.url,
-      pflichten: doc.pflichten.map((pflicht) => ({
-        id: pflicht.id,
-        dokument_id: pflicht.dokument_id,
-        thema: pflicht.thema,
-        stichtag: pflicht.stichtag,
-        folgestatus: pflicht.folgestatus,
-        produkte: pflicht.produkte,
-        laenderkuerzel: pflicht.laenderkuerzel ? [...pflicht.laenderkuerzel] : null,
-      })),
-      creation_status: doc.creation_status,
-      creation_error: doc.creation_error,
-      updated_at: doc.updated_at,
-      retry_count: doc.retry_count,
-    });
-
     const poll = async () => {
       const ids = Array.from(processingIds);
       const stillProcessing = new Set<string>();
 
       try {
-        const updates = await Promise.all(
+        const statusUpdates = await Promise.all(
           ids.map(async (id) => {
             try {
-              const dokument = await getDokumentDetails(id);
-              return convertToPreview(dokument);
+              return await getDokumentStatus(id);
             } catch (error) {
-              console.error(`Fehler beim Aktualisieren des Dokuments ${id}:`, error);
+              console.error(`Fehler beim Abrufen des Status für Dokument ${id}:`, error);
               return null;
             }
           }),
@@ -177,30 +152,27 @@ export function useDokumentPreviews() {
           let changed = false;
           const byId = new Map(prev.map((d) => [d.id, d]));
 
-          updates.forEach((preview) => {
-            if (!preview) {
-              return;
+          statusUpdates.forEach((status) => {
+            if (!status) return;
+
+            const isStillProcessing = !['ready', 'error'].includes(status.creation_status);
+            if (isStillProcessing) {
+              stillProcessing.add(status.dokument_id);
             }
-            if (preview.creation_status === 'creating') {
-              stillProcessing.add(preview.id);
-            }
-            if (!byId.has(preview.id)) {
-              return;
-            }
-            const previous = byId.get(preview.id)!;
-            const merged = { ...previous, ...preview };
-            const serializedPrev = JSON.stringify(previous);
-            const serializedMerged = JSON.stringify(merged);
-            if (serializedPrev !== serializedMerged) {
-              byId.set(preview.id, merged);
+
+            const existing = byId.get(status.dokument_id);
+            if (existing && existing.creation_status !== status.creation_status) {
+              const updatedDoc = {
+                ...existing,
+                creation_status: status.creation_status,
+                creation_error: status.creation_error,
+              };
+              byId.set(status.dokument_id, updatedDoc);
               changed = true;
             }
           });
 
-          if (!changed) {
-            return prev;
-          }
-
+          if (!changed) return prev;
           return prev.map((d) => byId.get(d.id) ?? d);
         });
       } finally {

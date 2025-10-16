@@ -304,16 +304,36 @@ const DokumentPreviewTable: React.FC<DokumentPreviewTableProps> = ({
 
   const renderCreationStatus = (dokument: DokumentPreview) => {
     const isRetrying = retryingIds.has(dokument.id);
-    if (isRetrying || dokument.creation_status === 'creating') {
+    const status = dokument.creation_status;
+
+    if (isRetrying || status === 'creating' || status === 'queued' || status === 'processing') {
       return (
         <div className={styles.statusBadgeCreating}>
           <Loader2 className={styles.statusSpinner} />
-          <span>In Erstellung</span>
+          <span>In Erstellung...</span>
         </div>
       );
     }
 
-    if (dokument.creation_status === 'error') {
+    if (status === 'ingesting_sections') {
+      return (
+        <div className={styles.statusBadgeCreating}>
+          <Loader2 className={styles.statusSpinner} />
+          <span>Analysiere Struktur...</span>
+        </div>
+      );
+    }
+
+    if (status === 'extracting_content') {
+      return (
+        <div className={styles.statusBadgeCreating}>
+          <Loader2 className={styles.statusSpinner} />
+          <span>Extrahiere Inhalte...</span>
+        </div>
+      );
+    }
+
+    if (status === 'error') {
       return (
         <div className={styles.statusBadgeError}>
           <AlertCircle className={styles.statusErrorIcon} />
